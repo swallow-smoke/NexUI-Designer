@@ -1,43 +1,93 @@
 .nexui-designer-root {
     background-color: #171a1f;
     color: #d9e2ec;
-    -unity-font-definition: initial;
+    min-height: 0;
+}
+
+.nexui-designer-root Label,
+.nexui-designer-root Button,
+.nexui-designer-root ToolbarButton,
+.nexui-designer-root TextField,
+.nexui-designer-root ObjectField,
+.nexui-designer-root PopupField {
+    color: #d9e2ec;
+}
+
+.nexui-designer-root TextElement {
+    color: #d9e2ec;
+}
+
+.nexui-designer-root .unity-label,
+.nexui-designer-root .unity-button__text,
+.nexui-designer-root .unity-text-element,
+.nexui-designer-root .unity-base-field__label,
+.nexui-designer-root .unity-base-field__input {
+    color: #d9e2ec;
 }
 
 .nexui-toolbar {
-    height: 44px;
-    padding-left: 10px;
-    padding-right: 10px;
+    height: 68px;
+    flex-direction: column;
+    padding-left: 8px;
+    padding-right: 8px;
+    padding-top: 4px;
+    padding-bottom: 4px;
     border-bottom-width: 1px;
     border-bottom-color: #28313c;
     background-color: #1f2630;
 }
 
+.nexui-toolbar-row {
+    height: 28px;
+    flex-direction: row;
+    align-items: center;
+}
+
+.nexui-toolbar-row-secondary {
+    margin-top: 3px;
+}
+
 .nexui-toolbar-brand {
-    width: 104px;
-    margin-right: 10px;
+    width: 72px;
+    min-width: 72px;
+    margin-right: 6px;
 }
 
 #BrandTitle {
-    font-size: 14px;
+    font-size: 12px;
     -unity-font-style: bold;
     color: #f3f7fb;
 }
 
 #BrandSubtitle {
-    font-size: 10px;
+    font-size: 9px;
     color: #7dd3fc;
     margin-top: -2px;
 }
 
 .nexui-screen-field {
-    min-width: 260px;
-    margin-right: 8px;
+    width: 210px;
+    margin-right: 5px;
+}
+
+.nexui-metadata-field {
+    width: 230px;
+    margin-right: 5px;
 }
 
 .nexui-resolution-field {
-    min-width: 170px;
-    margin-right: 8px;
+    width: 124px;
+    margin-right: 5px;
+}
+
+.nexui-compact-popup {
+    width: 104px;
+    margin-right: 5px;
+}
+
+.nexui-toolbar-toggle {
+    margin-left: 4px;
+    margin-right: 4px;
 }
 
 .nexui-toolbar-status {
@@ -45,9 +95,12 @@
     padding-right: 10px;
     padding-top: 4px;
     padding-bottom: 4px;
-    margin-right: 8px;
+    margin-left: 4px;
+    margin-right: 4px;
     border-radius: 6px;
-    font-size: 11px;
+    font-size: 10px;
+    min-width: 72px;
+    max-width: 160px;
 }
 
 .nexui-toolbar-status.is-muted {
@@ -66,15 +119,39 @@
 }
 
 .nexui-toolbar-button {
-    height: 26px;
-    margin-left: 4px;
-    padding-left: 10px;
-    padding-right: 10px;
+    height: 22px;
+    margin-left: 3px;
+    padding-left: 7px;
+    padding-right: 7px;
     border-radius: 6px;
+    font-size: 10px;
+}
+
+.nexui-toolbar .unity-base-field {
+    height: 22px;
+    font-size: 10px;
+}
+
+.nexui-toolbar .unity-base-field__label {
+    min-width: 44px;
+    width: 44px;
+    font-size: 10px;
+}
+
+.nexui-toolbar .unity-base-field__input {
+    min-width: 42px;
 }
 
 .nexui-button-primary {
     background-color: #2563eb;
+    color: #ffffff;
+}
+
+.nexui-button-primary TextElement {
+    color: #ffffff;
+}
+
+.nexui-button-primary .unity-button__text {
     color: #ffffff;
 }
 
@@ -83,8 +160,17 @@
     color: #d9e2ec;
 }
 
+.nexui-button-secondary TextElement {
+    color: #d9e2ec;
+}
+
+.nexui-button-secondary .unity-button__text {
+    color: #d9e2ec;
+}
+
 .nexui-designer-body {
-    padding: 8px;
+    padding: 6px;
+    min-height: 0;
 }
 
 .nexui-side-panel {
@@ -92,25 +178,35 @@
     border-radius: 8px;
     border-width: 1px;
     border-color: #2d3744;
-    padding: 8px;
+    padding: 6px;
+    min-height: 0;
 }
 
 .nexui-left-panel {
-    margin-right: 8px;
+    margin-right: 6px;
+    min-width: 150px;
+    max-width: 180px;
 }
 
 .nexui-right-panel {
-    margin-left: 8px;
+    margin-left: 6px;
+    min-width: 220px;
+    max-width: 260px;
 }
 
 .nexui-center-panel {
-    min-width: 360px;
+    min-width: 220px;
+    min-height: 0;
 }
 
 .nexui-bottom-panel {
-    padding-left: 8px;
-    padding-right: 8px;
-    padding-bottom: 8px;
+    height: 34px;
+    min-height: 34px;
+    max-height: 34px;
+    padding-left: 6px;
+    padding-right: 6px;
+    padding-bottom: 4px;
+    overflow: hidden;
 }
 
 .nexui-panel {
@@ -118,8 +214,8 @@
     border-radius: 8px;
     border-width: 1px;
     border-color: #2d3744;
-    padding: 8px;
-    margin-bottom: 8px;
+    padding: 6px;
+    margin-bottom: 6px;
 }
 
 #PanelTitle {
@@ -145,6 +241,7 @@
     border-radius: 6px;
     border-width: 1px;
     border-color: #2c3541;
+    min-height: 70px;
 }
 
 .nexui-hierarchy-row {
@@ -152,8 +249,64 @@
     color: #dce7f3;
 }
 
+.nexui-hierarchy-panel {
+    flex-grow: 1;
+    min-height: 0;
+}
+
+.nexui-empty-note {
+    white-space: normal;
+    color: #7f8fa3;
+    font-size: 11px;
+    margin-bottom: 8px;
+}
+
+.nexui-palette-grid,
+.nexui-align-grid {
+    flex-direction: column;
+    margin-bottom: 8px;
+}
+
+.nexui-palette-row {
+    flex-direction: row;
+    height: 24px;
+    margin-bottom: 4px;
+}
+
+.nexui-palette-button,
+.nexui-align-button {
+    flex-grow: 1;
+    height: 22px;
+    margin-right: 4px;
+    border-radius: 6px;
+    background-color: #263140;
+    color: #d9e2ec;
+    font-size: 10px;
+}
+
+.nexui-align-button {
+    font-size: 10px;
+}
+
 .nexui-inspector {
     flex-grow: 1;
+    min-height: 0;
+}
+
+.nexui-inspector .unity-base-field {
+    flex-direction: column;
+    margin-bottom: 4px;
+}
+
+.nexui-inspector .unity-base-field__label {
+    width: auto;
+    min-width: 0;
+    font-size: 10px;
+    margin-bottom: 1px;
+}
+
+.nexui-inspector .unity-base-field__input {
+    min-width: 0;
 }
 
 .nexui-inspector-section {
@@ -161,8 +314,8 @@
     border-radius: 7px;
     border-width: 1px;
     border-color: #2a3440;
-    padding: 8px;
-    margin-bottom: 8px;
+    padding: 6px;
+    margin-bottom: 6px;
 }
 
 #SectionTitle {
@@ -189,8 +342,15 @@
 }
 
 .nexui-bottom-card {
-    margin-right: 8px;
+    height: 28px;
+    min-height: 28px;
+    max-height: 28px;
+    margin-right: 6px;
     margin-bottom: 0;
+    min-width: 0;
+    padding-top: 4px;
+    padding-bottom: 3px;
+    overflow: hidden;
 }
 
 .nexui-inline-row {
@@ -202,55 +362,158 @@
     margin-right: 6px;
 }
 
+.nexui-bottom-text {
+    color: #c8d5e3;
+    white-space: nowrap;
+    font-size: 10px;
+    margin-left: 6px;
+}
+
+.nexui-bottom-card #PanelTitle {
+    font-size: 10px;
+    margin-bottom: 0;
+}
+
+.nexui-bottom-card #PanelSubtitle {
+    display: none;
+}
+
 .nexui-viewport {
     background-color: #11151b;
     border-radius: 8px;
     border-width: 1px;
     border-color: #2d3744;
-    padding: 12px;
+    padding: 10px;
+    min-height: 0;
+}
+
+.nexui-viewport-header {
+    flex-direction: row;
+    align-items: center;
 }
 
 .nexui-viewport-title {
-    font-size: 18px;
+    font-size: 15px;
     -unity-font-style: bold;
     color: #f8fbff;
 }
 
 .nexui-viewport-hint {
+    font-size: 10px;
     color: #8ca0b6;
     margin-top: 2px;
     margin-bottom: 10px;
 }
 
+.nexui-zoom-badge {
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    border-radius: 6px;
+    background-color: #1e2937;
+    color: #b7d7ff;
+}
+
 .nexui-preview-frame {
     flex-grow: 1;
-    align-items: center;
-    justify-content: center;
+    min-height: 0;
     background-color: #0e1217;
     border-radius: 8px;
     border-width: 1px;
     border-color: #222c38;
-    padding: 16px;
+    padding: 12px;
 }
 
 .nexui-preview-canvas {
-    width: 72%;
-    height: 72%;
-    min-width: 280px;
-    min-height: 180px;
-    max-width: 920px;
-    max-height: 540px;
-    align-items: center;
-    justify-content: center;
     background-color: #202936;
     border-width: 1px;
     border-color: #3b82f6;
     border-radius: 8px;
+    overflow: hidden;
 }
 
 .nexui-preview-canvas.is-empty {
     border-color: #3a4654;
     background-color: #1a2028;
+}
+
+.nexui-grid-layer,
+.nexui-element-layer {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.nexui-grid-layer {
+    background-color: #18202b;
+}
+
+.nexui-grid-line,
+.nexui-grid-line-major {
+    position: absolute;
+    background-color: #2c3745;
+}
+
+.nexui-grid-line-major {
+    background-color: #3c4a5c;
+}
+
+.nexui-canvas-empty-state {
+    position: absolute;
+    left: 32px;
+    top: 32px;
+    color: #93a4b7;
+    white-space: normal;
+}
+
+.nexui-design-element {
+    border-width: 1px;
+    border-radius: 8px;
+    padding: 8px;
+    overflow: hidden;
+}
+
+.nexui-design-element.is-selected {
+    border-width: 2px;
+    border-color: #7dd3fc;
+}
+
+.nexui-design-element.is-locked {
+    opacity: 0.68;
+}
+
+.nexui-element-name {
+    -unity-font-style: bold;
+    color: #f8fbff;
+    font-size: 11px;
+}
+
+.nexui-element-text {
+    color: #ffffff;
+    margin-top: 4px;
+    white-space: normal;
+}
+
+.nexui-element-meta {
+    position: absolute;
+    left: 8px;
+    bottom: 6px;
+    color: #8ca0b6;
+    font-size: 10px;
+}
+
+.nexui-resize-handle {
+    position: absolute;
+    right: 4px;
+    bottom: 4px;
+    width: 11px;
+    height: 11px;
+    border-right-width: 2px;
+    border-bottom-width: 2px;
+    border-color: #7dd3fc;
 }
 
 .nexui-canvas-title {

@@ -16,11 +16,19 @@ namespace emiteat.NexUI.Designer.Editor.Panels
         {
             AddToClassList("nexui-toolbar");
 
+            var topRow = new VisualElement();
+            topRow.AddToClassList("nexui-toolbar-row");
+            var bottomRow = new VisualElement();
+            bottomRow.AddToClassList("nexui-toolbar-row");
+            bottomRow.AddToClassList("nexui-toolbar-row-secondary");
+            Add(topRow);
+            Add(bottomRow);
+
             var brand = new VisualElement();
             brand.AddToClassList("nexui-toolbar-brand");
             brand.Add(new Label("NexUI") { name = "BrandTitle" });
             brand.Add(new Label("Designer") { name = "BrandSubtitle" });
-            Add(brand);
+            topRow.Add(brand);
 
             var objectField = new ObjectField
             {
@@ -30,7 +38,23 @@ namespace emiteat.NexUI.Designer.Editor.Panels
             };
             objectField.AddToClassList("nexui-screen-field");
             objectField.RegisterValueChangedCallback(evt => context.Open(evt.newValue as UIScreenDefinition));
-            Add(objectField);
+            topRow.Add(objectField);
+
+            var metadataField = new ObjectField
+            {
+                objectType = typeof(DesignerMetadataAsset),
+                allowSceneObjects = false,
+                label = "Metadata"
+            };
+            metadataField.AddToClassList("nexui-metadata-field");
+            metadataField.RegisterValueChangedCallback(evt => context.SetMetadata(evt.newValue as DesignerMetadataAsset));
+            topRow.Add(metadataField);
+            context.MetadataChanged += metadata => metadataField.SetValueWithoutNotify(metadata);
+            topRow.Add(MakeButton(() => context.CreateMetadataAsset(), "New", "nexui-button-secondary"));
+
+            _status = new Label();
+            _status.AddToClassList("nexui-toolbar-status");
+            topRow.Add(_status);
 
             var resolution = new PopupField<string>("Preview");
             foreach (var preset in DesignerResolutionPreset.Defaults)
@@ -43,19 +67,35 @@ namespace emiteat.NexUI.Designer.Editor.Panels
                     if (preset.Name == evt.newValue)
                         context.SetResolution(preset.Resolution);
             });
-            Add(resolution);
+            bottomRow.Add(resolution);
+
+            var state = new PopupField<string>("State", new System.Collections.Generic.List<string> { "Normal", "Hover", "Pressed", "Disabled", "Focused" }, context.PreviewState);
+            state.AddToClassList("nexui-compact-popup");
+            state.RegisterValueChangedCallback(evt => context.SetPreviewState(evt.newValue));
+            bottomRow.Add(state);
+
+            var input = new PopupField<string>("Input", new System.Collections.Generic.List<string> { "Keyboard", "Gamepad", "Touch", "SteamDeck" }, context.InputMode);
+            input.AddToClassList("nexui-compact-popup");
+            input.RegisterValueChangedCallback(evt => context.SetInputMode(evt.newValue));
+            bottomRow.Add(input);
+
+            var snap = new Toggle("Snap") { value = context.SnapEnabled };
+            snap.AddToClassList("nexui-toolbar-toggle");
+            snap.RegisterValueChangedCallback(evt => context.SetSnap(evt.newValue));
+            bottomRow.Add(snap);
+
+            var zoomOut = MakeButton(() => context.ZoomBy(-0.1f), "-", "nexui-button-secondary");
+            var zoomIn = MakeButton(() => context.ZoomBy(0.1f), "+", "nexui-button-secondary");
+            bottomRow.Add(zoomOut);
+            bottomRow.Add(zoomIn);
 
             var spacer = new VisualElement();
             spacer.style.flexGrow = 1;
-            Add(spacer);
+            bottomRow.Add(spacer);
 
-            _status = new Label();
-            _status.AddToClassList("nexui-toolbar-status");
-            Add(_status);
-
-            Add(MakeButton(context.RebuildPreview, DesignerLocalization.T("toolbar.rebuildPreview"), "nexui-button-secondary"));
-            Add(MakeButton(context.Save, DesignerLocalization.T("toolbar.save"), "nexui-button-primary"));
-            Add(MakeButton(context.Validate, DesignerLocalization.T("toolbar.validate"), "nexui-button-secondary"));
+            bottomRow.Add(MakeButton(context.RebuildPreview, "Rebuild", "nexui-button-secondary"));
+            bottomRow.Add(MakeButton(context.Save, DesignerLocalization.T("toolbar.save"), "nexui-button-primary"));
+            bottomRow.Add(MakeButton(context.Validate, DesignerLocalization.T("toolbar.validate"), "nexui-button-secondary"));
 
             context.ScreenChanged += _ => RefreshStatus(context);
             context.ValidationChanged += () => RefreshStatus(context);
@@ -80,7 +120,7 @@ namespace emiteat.NexUI.Designer.Editor.Panels
                 return;
             }
 
-            _status.text = context.Backend + "  |  " + context.CurrentScreen.ScreenId;
+            _status.text = context.Backend + " | " + context.CurrentScreen.ScreenId;
             _status.RemoveFromClassList("is-muted");
             _status.AddToClassList(context.ValidationMessages.Count == 0 ? "is-ok" : "is-warning");
         }

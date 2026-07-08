@@ -11,6 +11,7 @@ namespace emiteat.NexUI.Designer.Editor
         public NexUIDesignerContext Context { get; private set; }
 
         private NexUIDesignerToolbar _toolbar;
+        private NexUIDesignerPalette _palette;
         private NexUIDesignerHierarchy _hierarchy;
         private NexUIDesignerViewport _viewport;
         private NexUIDesignerInspector _inspector;
@@ -22,12 +23,10 @@ namespace emiteat.NexUI.Designer.Editor
         private void OnEnable()
         {
             Context = new NexUIDesignerContext();
-            DesignerLocalization.LanguageChanged += Rebuild;
         }
 
         private void OnDisable()
         {
-            DesignerLocalization.LanguageChanged -= Rebuild;
             Context?.Dispose();
         }
 
@@ -42,8 +41,11 @@ namespace emiteat.NexUI.Designer.Editor
                 "Packages/com.emiteat.nexui.designer/Editor/Styles/NexUIDesigner.uss");
             if (styleSheet != null && !rootVisualElement.styleSheets.Contains(styleSheet))
                 rootVisualElement.styleSheets.Add(styleSheet);
+            if (EditorStyles.label.font != null)
+                rootVisualElement.style.unityFont = EditorStyles.label.font;
 
             _toolbar = new NexUIDesignerToolbar(Context);
+            _palette = new NexUIDesignerPalette(Context);
             _hierarchy = new NexUIDesignerHierarchy(Context);
             _viewport = new NexUIDesignerViewport(Context);
             _inspector = new NexUIDesignerInspector(Context);
@@ -58,22 +60,27 @@ namespace emiteat.NexUI.Designer.Editor
             body.AddToClassList("nexui-designer-body");
             body.style.flexDirection = FlexDirection.Row;
             body.style.flexGrow = 1;
+            body.style.flexShrink = 1;
 
             var left = new VisualElement { name = "DesignerLeft" };
             left.AddToClassList("nexui-side-panel");
             left.AddToClassList("nexui-left-panel");
-            left.style.width = 240;
+            left.style.width = 160;
+            left.style.flexShrink = 0;
+            left.Add(_palette);
             left.Add(_hierarchy);
 
             var center = new VisualElement { name = "DesignerCenter" };
             center.AddToClassList("nexui-center-panel");
             center.style.flexGrow = 1;
+            center.style.flexShrink = 1;
             center.Add(_viewport);
 
             var right = new VisualElement { name = "DesignerRight" };
             right.AddToClassList("nexui-side-panel");
             right.AddToClassList("nexui-right-panel");
-            right.style.width = 330;
+            right.style.width = 240;
+            right.style.flexShrink = 0;
             right.Add(_inspector);
             right.Add(_validation);
 
@@ -83,7 +90,6 @@ namespace emiteat.NexUI.Designer.Editor
 
             var bottom = new VisualElement { name = "DesignerBottom" };
             bottom.AddToClassList("nexui-bottom-panel");
-            bottom.style.height = 170;
             bottom.style.flexDirection = FlexDirection.Row;
             bottom.Add(_state);
             bottom.Add(_commands);
