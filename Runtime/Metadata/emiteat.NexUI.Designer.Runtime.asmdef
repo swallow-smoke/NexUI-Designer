@@ -1,0 +1,24 @@
+{
+    "name": "emiteat.NexUI.Designer.Runtime",
+    "rootNamespace": "emiteat.NexUI.Designer",
+    "references": [
+        "emiteat.NexUI.Abstractions",
+        "emiteat.NexUI.Core",
+        "emiteat.NexUI.State",
+        "emiteat.NexUI.Motion",
+        "emiteat.NexUI.Theme",
+        "emiteat.NexUI.Accessibility",
+        "emiteat.NexUI.Localization",
+        "emiteat.NexUI.Prompt",
+        "emiteat.NexUI.Templates"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

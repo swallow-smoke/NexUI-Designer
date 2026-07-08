@@ -1,0 +1,265 @@
+.nexui-designer-root {
+    background-color: #171a1f;
+    color: #d9e2ec;
+    -unity-font-definition: initial;
+}
+
+.nexui-toolbar {
+    height: 44px;
+    padding-left: 10px;
+    padding-right: 10px;
+    border-bottom-width: 1px;
+    border-bottom-color: #28313c;
+    background-color: #1f2630;
+}
+
+.nexui-toolbar-brand {
+    width: 104px;
+    margin-right: 10px;
+}
+
+#BrandTitle {
+    font-size: 14px;
+    -unity-font-style: bold;
+    color: #f3f7fb;
+}
+
+#BrandSubtitle {
+    font-size: 10px;
+    color: #7dd3fc;
+    margin-top: -2px;
+}
+
+.nexui-screen-field {
+    min-width: 260px;
+    margin-right: 8px;
+}
+
+.nexui-resolution-field {
+    min-width: 170px;
+    margin-right: 8px;
+}
+
+.nexui-toolbar-status {
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-top: 4px;
+    padding-bottom: 4px;
+    margin-right: 8px;
+    border-radius: 6px;
+    font-size: 11px;
+}
+
+.nexui-toolbar-status.is-muted {
+    background-color: #2a3038;
+    color: #93a4b7;
+}
+
+.nexui-toolbar-status.is-ok {
+    background-color: #123626;
+    color: #8df2bd;
+}
+
+.nexui-toolbar-status.is-warning {
+    background-color: #3b2b12;
+    color: #ffd27a;
+}
+
+.nexui-toolbar-button {
+    height: 26px;
+    margin-left: 4px;
+    padding-left: 10px;
+    padding-right: 10px;
+    border-radius: 6px;
+}
+
+.nexui-button-primary {
+    background-color: #2563eb;
+    color: #ffffff;
+}
+
+.nexui-button-secondary {
+    background-color: #2d3642;
+    color: #d9e2ec;
+}
+
+.nexui-designer-body {
+    padding: 8px;
+}
+
+.nexui-side-panel {
+    background-color: #202731;
+    border-radius: 8px;
+    border-width: 1px;
+    border-color: #2d3744;
+    padding: 8px;
+}
+
+.nexui-left-panel {
+    margin-right: 8px;
+}
+
+.nexui-right-panel {
+    margin-left: 8px;
+}
+
+.nexui-center-panel {
+    min-width: 360px;
+}
+
+.nexui-bottom-panel {
+    padding-left: 8px;
+    padding-right: 8px;
+    padding-bottom: 8px;
+}
+
+.nexui-panel {
+    background-color: #202731;
+    border-radius: 8px;
+    border-width: 1px;
+    border-color: #2d3744;
+    padding: 8px;
+    margin-bottom: 8px;
+}
+
+#PanelTitle {
+    font-size: 12px;
+    -unity-font-style: bold;
+    color: #f3f7fb;
+    margin-bottom: 6px;
+}
+
+#PanelSubtitle {
+    font-size: 11px;
+    color: #92a4b8;
+    margin-bottom: 8px;
+}
+
+#EmptyStateText {
+    color: #6f8195;
+    font-size: 11px;
+}
+
+.nexui-list {
+    background-color: #1a2028;
+    border-radius: 6px;
+    border-width: 1px;
+    border-color: #2c3541;
+}
+
+.nexui-hierarchy-row {
+    height: 22px;
+    color: #dce7f3;
+}
+
+.nexui-inspector {
+    flex-grow: 1;
+}
+
+.nexui-inspector-section {
+    background-color: #1b222b;
+    border-radius: 7px;
+    border-width: 1px;
+    border-color: #2a3440;
+    padding: 8px;
+    margin-bottom: 8px;
+}
+
+#SectionTitle {
+    -unity-font-style: bold;
+    color: #b7d7ff;
+    margin-bottom: 6px;
+}
+
+.nexui-validation-panel {
+    min-height: 78px;
+}
+
+.nexui-validation-panel.is-valid {
+    border-color: #1f8f58;
+}
+
+.nexui-validation-panel.has-issues {
+    border-color: #b7791f;
+}
+
+.nexui-validation-content {
+    white-space: normal;
+    color: #c8d5e3;
+}
+
+.nexui-bottom-card {
+    margin-right: 8px;
+    margin-bottom: 0;
+}
+
+.nexui-inline-row {
+    flex-direction: row;
+}
+
+.nexui-inline-row TextField {
+    flex-grow: 1;
+    margin-right: 6px;
+}
+
+.nexui-viewport {
+    background-color: #11151b;
+    border-radius: 8px;
+    border-width: 1px;
+    border-color: #2d3744;
+    padding: 12px;
+}
+
+.nexui-viewport-title {
+    font-size: 18px;
+    -unity-font-style: bold;
+    color: #f8fbff;
+}
+
+.nexui-viewport-hint {
+    color: #8ca0b6;
+    margin-top: 2px;
+    margin-bottom: 10px;
+}
+
+.nexui-preview-frame {
+    flex-grow: 1;
+    align-items: center;
+    justify-content: center;
+    background-color: #0e1217;
+    border-radius: 8px;
+    border-width: 1px;
+    border-color: #222c38;
+    padding: 16px;
+}
+
+.nexui-preview-canvas {
+    width: 72%;
+    height: 72%;
+    min-width: 280px;
+    min-height: 180px;
+    max-width: 920px;
+    max-height: 540px;
+    align-items: center;
+    justify-content: center;
+    background-color: #202936;
+    border-width: 1px;
+    border-color: #3b82f6;
+    border-radius: 8px;
+}
+
+.nexui-preview-canvas.is-empty {
+    border-color: #3a4654;
+    background-color: #1a2028;
+}
+
+.nexui-canvas-title {
+    font-size: 20px;
+    -unity-font-style: bold;
+    color: #e5f0ff;
+}
+
+.nexui-canvas-meta {
+    color: #93a4b7;
+    margin-top: 4px;
+}

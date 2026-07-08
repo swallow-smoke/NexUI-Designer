@@ -1,0 +1,33 @@
+{
+    "name": "emiteat.NexUI.Designer.Editor",
+    "rootNamespace": "emiteat.NexUI.Designer.Editor",
+    "references": [
+        "emiteat.NexUI.Abstractions",
+        "emiteat.NexUI.Core",
+        "emiteat.NexUI.State",
+        "emiteat.NexUI.Motion",
+        "emiteat.NexUI.Theme",
+        "emiteat.NexUI.Components",
+        "emiteat.NexUI.Query",
+        "emiteat.NexUI.Accessibility",
+        "emiteat.NexUI.Localization",
+        "emiteat.NexUI.Prompt",
+        "emiteat.NexUI.Templates",
+        "emiteat.NexUI.Integrations.UIToolkit",
+        "emiteat.NexUI.Integrations.UGUI",
+        "emiteat.NexUI.Designer.Runtime",
+        "Unity.TextMeshPro",
+        "UnityEngine.UI"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

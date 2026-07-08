@@ -1,0 +1,30 @@
+{
+  "name": "com.emiteat.nexui.designer",
+  "displayName": "NexUI Designer",
+  "version": "0.1.0",
+  "unity": "2022.3",
+  "description": "Visual authoring extension package for NexUI. Provides Unity Editor tools for editing NexUI screens, bindings, motions, themes, policies, and validation.",
+  "keywords": [
+    "unity",
+    "ui",
+    "editor",
+    "designer",
+    "visual editor",
+    "nexui",
+    "ui toolkit",
+    "ugui"
+  ],
+  "author": {
+    "name": "emiteat"
+  },
+  "dependencies": {
+    "com.emiteat.nexui": "0.1.0"
+  },
+  "samples": [
+    {
+      "displayName": "Designer Sample",
+      "description": "Sample screens and metadata for NexUI Designer.",
+      "path": "Samples~/DesignerSample"
+    }
+  ]
+}
