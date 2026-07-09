@@ -71,6 +71,7 @@ namespace emiteat.NexUI.Designer.Editor.Backend
     {
         private readonly HashSet<string> _classes = new HashSet<string>();
         public string Id { get; private set; }
+        public DesignerBindingMetadata Binding { get; set; } = new DesignerBindingMetadata();
         public UIRenderBackend Backend { get; private set; }
         public object Native { get; private set; }
         public float Opacity { get; set; }

@@ -62,13 +62,17 @@ namespace emiteat.NexUI.Designer.Editor.Backend
         public Vector2 GetSize(IUIElementHandle handle) => handle?.Native is GameObject go && go.transform is RectTransform rt ? rt.sizeDelta : Vector2.zero;
         public void SetPosition(IUIElementHandle handle, Vector2 position) { if (handle?.Native is GameObject go && go.transform is RectTransform rt) rt.anchoredPosition = position; }
         public void SetSize(IUIElementHandle handle, Vector2 size) { if (handle?.Native is GameObject go && go.transform is RectTransform rt) rt.sizeDelta = size; }
-        public void SetAnchor(IUIElementHandle handle, DesignerAnchorPreset preset) { }
+        public void SetAnchor(IUIElementHandle handle, DesignerAnchorPreset preset)
+        {
+            if (handle?.Native is GameObject go && go.transform is RectTransform rt)
+                UGUIAnchorUtility.Apply(rt, preset);
+        }
         public void SetVisible(IUIElementHandle handle, bool visible) { if (handle?.Native is GameObject go) go.SetActive(visible); }
         public void SetName(IUIElementHandle handle, string elementId) { (handle as DesignerElementHandle)?.Rename(elementId); if (handle?.Native is GameObject go) go.name = elementId; }
         public void AddClass(IUIElementHandle handle, string className) => handle?.As<IUIStyleCapability>()?.SetClass(className, true);
         public void RemoveClass(IUIElementHandle handle, string className) => handle?.As<IUIStyleCapability>()?.SetClass(className, false);
-        public void SetBinding(IUIElementHandle handle, DesignerBindingMetadata binding) { }
-        public DesignerBindingMetadata GetBinding(IUIElementHandle handle) => new DesignerBindingMetadata();
+        public void SetBinding(IUIElementHandle handle, DesignerBindingMetadata binding) { if (handle is DesignerElementHandle h && binding != null) h.Binding = binding; }
+        public DesignerBindingMetadata GetBinding(IUIElementHandle handle) => (handle as DesignerElementHandle)?.Binding ?? new DesignerBindingMetadata();
         public void Save(UIScreenDefinition definition, IUISurface surface) { if (definition != null) EditorUtility.SetDirty(definition); }
 
         private static void Index(Transform transform, DesignerSurface surface)

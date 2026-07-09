@@ -52,7 +52,28 @@ Tools/NexUI/Designer/Validate Current Screen
 Tools/NexUI/Designer/Save Current Screen
 ```
 
-디자이너는 저장 작업을 현재 백엔드의 serializer에 위임합니다. UI Toolkit과 uGUI는 같은 에디터 창을 공유하면서도 각자 다른 저장 규칙을 가질 수 있습니다.
+디자이너는 저장 작업을 현재 백엔드의 serializer에 위임하고, 무엇이 실제로 디스크에 기록되었는지 콘솔과 툴바 상태에 정직하게 보고합니다. 저장 결과는 `DesignerSaveReport`로 요약됩니다.
+
+### 무엇이 저장되나요 (persisted vs preview-only)
+
+- **항상 저장됨**: `DesignerMetadataAsset` (element id, rect, binding, class, localization link, variant, responsive rule, contract, snapshot). `UIScreenDefinition`도 dirty로 표시 후 저장됩니다.
+- **uGUI (프리팹 백엔드)**: 백엔드 에셋이 프리팹이면 디자이너 소유 데이터를 프리팹에 기록합니다.
+  - RectTransform 위치/크기(좌상단 기준), active 상태
+  - Label/Button/Toast 등의 텍스트(TMP 우선, 없으면 UnityEngine.UI.Text), 텍스트 색상/크기
+  - Graphic/Image 틴트, Image가 없으면 추가
+  - Button/IconButton에 Button 컴포넌트가 없으면 추가
+  - `parentId` 기준 부모-자식 계층
+  - 프리팹은 `LoadPrefabContents/SaveAsPrefabAsset/UnloadPrefabContents`로 안전하게 저장되어 기존 참조를 보존합니다. GameObject 이름이 중복되면 이름 기반 매칭이 불안정해질 수 있어 경고합니다.
+- **UI Toolkit (UXML 백엔드)**: **UXML은 다시 쓰지 않습니다 (프리뷰/메타데이터 전용).** UXML/USS 저작은 UI Builder가 담당합니다. 저장 시 메타데이터만 기록하고, 메타데이터 element id와 UXML의 `name` 불일치를 검증해 경고로 보고합니다. 프리뷰에서 본 UXML 변경이 저장되었다고 절대 가장하지 않습니다.
+
+### UI Toolkit 관련 명령
+
+```text
+Tools/NexUI/Designer/Backend/Sync Metadata From Backend    # UXML/프리팹의 이름을 메타데이터로 가져오기
+Tools/NexUI/Designer/Backend/Apply Metadata To Preview     # 메타데이터를 라이브 프리뷰에만 반영 (저장 아님)
+Tools/NexUI/Designer/Backend/Open Backend Asset In UI Builder
+Tools/NexUI/Designer/Backend/Ping Backend Asset
+```
 
 ## 언어 바꾸기
 

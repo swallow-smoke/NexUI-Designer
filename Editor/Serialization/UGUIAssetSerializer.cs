@@ -1,15 +1,226 @@
+using System.Collections.Generic;
 using emiteat.NexUI.Core;
+using emiteat.NexUI.Designer.Editor.Backend;
+using TMPro;
 using UnityEditor;
+using UnityEngine;
+using UnityEngine.UI;
 
 namespace emiteat.NexUI.Designer.Editor.Serialization
 {
+    /// <summary>
+    /// Persists Designer metadata for a uGUI (prefab-based) screen. Metadata is always
+    /// saved to its own asset. When the screen's backend asset is a prefab, the serializer
+    /// also applies Designer-owned layout / text / tint / component data to the prefab using
+    /// the safe LoadPrefabContents → SaveAsPrefabAsset → UnloadPrefabContents pattern so
+    /// existing references and user-authored content are preserved.
+    /// </summary>
     public sealed class UGUIAssetSerializer : IDesignerAssetSerializer
     {
-        public void Save(UIScreenDefinition definition, DesignerMetadataAsset metadata)
+        public DesignerSaveReport Save(UIScreenDefinition definition, DesignerMetadataAsset metadata)
         {
-            DesignerMetadataUtility.MarkDirty(definition);
-            DesignerMetadataUtility.MarkDirty(metadata);
+            var report = new DesignerSaveReport();
+
+            if (metadata != null)
+            {
+                DesignerMetadataUtility.MarkDirty(metadata);
+                report.MarkChanged("Designer metadata asset");
+            }
+            if (definition != null)
+                DesignerMetadataUtility.MarkDirty(definition);
+
+            var prefab = definition != null ? definition.backendAsset.asset as GameObject : null;
+            if (prefab == null)
+            {
+                report.MarkSkipped("No uGUI prefab assigned to the screen backend asset (metadata saved only).");
+                AssetDatabase.SaveAssets();
+                return report;
+            }
+
+            var path = AssetDatabase.GetAssetPath(prefab);
+            if (string.IsNullOrEmpty(path) || !path.EndsWith(".prefab"))
+            {
+                report.Warn($"Backend asset '{prefab.name}' is not a prefab asset; prefab changes were skipped (metadata saved only).");
+                AssetDatabase.SaveAssets();
+                return report;
+            }
+
+            if (metadata == null || metadata.elements.Count == 0)
+            {
+                report.MarkSkipped("No metadata elements to apply to prefab.");
+                AssetDatabase.SaveAssets();
+                return report;
+            }
+
+            GameObject root = null;
+            try
+            {
+                root = PrefabUtility.LoadPrefabContents(path);
+                WarnOnDuplicateNames(root, report);
+                ApplyMetadata(root, metadata, report);
+                PrefabUtility.SaveAsPrefabAsset(root, path);
+                report.MarkChanged($"Prefab '{System.IO.Path.GetFileName(path)}'");
+            }
+            catch (System.Exception e)
+            {
+                report.Error($"Failed to write prefab: {e.Message}");
+            }
+            finally
+            {
+                if (root != null)
+                    PrefabUtility.UnloadPrefabContents(root);
+            }
+
             AssetDatabase.SaveAssets();
+            return report;
         }
+
+        private static void ApplyMetadata(GameObject root, DesignerMetadataAsset metadata, DesignerSaveReport report)
+        {
+            // Pass 1: ensure every element exists so parents resolve regardless of order.
+            var objects = new Dictionary<string, GameObject>();
+            foreach (var element in metadata.elements)
+            {
+                if (element == null || string.IsNullOrEmpty(element.elementId)) continue;
+                var go = FindDescendant(root.transform, element.elementId);
+                if (go == null)
+                {
+                    go = new GameObject(element.elementId, typeof(RectTransform));
+                    go.transform.SetParent(root.transform, false);
+                    report.MarkChanged($"Created element '{element.elementId}'");
+                }
+                objects[element.elementId] = go;
+            }
+
+            // Pass 2: parent + apply properties.
+            foreach (var element in metadata.elements)
+            {
+                if (element == null || string.IsNullOrEmpty(element.elementId)) continue;
+                if (!objects.TryGetValue(element.elementId, out var go) || go == null) continue;
+
+                if (!string.IsNullOrEmpty(element.parentId) &&
+                    objects.TryGetValue(element.parentId, out var parent) && parent != null &&
+                    go.transform.parent != parent.transform)
+                {
+                    go.transform.SetParent(parent.transform, false);
+                }
+
+                ApplyRect(go, element);
+                go.SetActive(!element.hiddenInDesigner);
+                ApplyVisualAndText(go, element, report);
+            }
+        }
+
+        private static void ApplyRect(GameObject go, DesignerElementMetadata element)
+        {
+            var rt = go.GetComponent<RectTransform>();
+            if (rt == null) rt = go.AddComponent<RectTransform>();
+            // Establish the designer-space placement first (top-left origin, y growing
+            // downward), then re-anchor to the element's chosen preset. Reusing
+            // UGUIAnchorUtility keeps the saved prefab identical to what the live preview
+            // shows via UGUIDesignerBackend.SetAnchor. For the default TopLeft preset this
+            // is a no-op re-application, so existing metadata saves exactly as before.
+            rt.anchorMin = new Vector2(0f, 1f);
+            rt.anchorMax = new Vector2(0f, 1f);
+            rt.pivot = new Vector2(0f, 1f);
+            rt.sizeDelta = new Vector2(element.rect.width, element.rect.height);
+            rt.anchoredPosition = new Vector2(element.rect.x, -element.rect.y);
+            UGUIAnchorUtility.Apply(rt, element.anchorPreset);
+        }
+
+        private static void ApplyVisualAndText(GameObject go, DesignerElementMetadata element, DesignerSaveReport report)
+        {
+            var type = element.elementType ?? "Panel";
+            bool isButton = Is(type, "Button") || Is(type, "IconButton");
+            bool isText = Is(type, "Label") || Is(type, "Toast") || Is(type, "Tooltip");
+            bool isImage = Is(type, "Image");
+
+            // Tint on any Graphic; add an Image for Image/Button backgrounds when missing.
+            var graphic = go.GetComponent<Graphic>();
+            if (graphic == null && (isImage || isButton))
+            {
+                graphic = go.AddComponent<Image>();
+                report.MarkChanged($"Added Image to '{element.elementId}'");
+            }
+            if (graphic != null)
+                graphic.color = element.tint;
+
+            // Button component when the element is a button and lacks one.
+            if (isButton && go.GetComponent<Button>() == null)
+            {
+                var button = go.AddComponent<Button>();
+                if (graphic != null) button.targetGraphic = graphic;
+                report.MarkChanged($"Added Button to '{element.elementId}'");
+            }
+
+            // Text: set on an existing text component, else create one for text-y elements.
+            if (!string.IsNullOrEmpty(element.text) || isText || isButton)
+                ApplyText(go, element, isButton, report);
+        }
+
+        private static void ApplyText(GameObject go, DesignerElementMetadata element, bool isButton, DesignerSaveReport report)
+        {
+            var tmp = go.GetComponentInChildren<TMP_Text>(true);
+            var uiText = tmp == null ? go.GetComponentInChildren<Text>(true) : null;
+
+            if (tmp != null) { if (element.text != null) tmp.text = element.text; ApplyTextStyle(tmp, element); return; }
+            if (uiText != null) { if (element.text != null) uiText.text = element.text; uiText.color = element.textColor; uiText.fontSize = element.fontSize; return; }
+
+            if (string.IsNullOrEmpty(element.text)) return;
+
+            // No text component: create a TMP text. For buttons, place it on a child so the
+            // button's own graphic (background) is preserved.
+            var host = go;
+            if (isButton)
+            {
+                var child = new GameObject(element.elementId + "_Text", typeof(RectTransform));
+                child.transform.SetParent(go.transform, false);
+                var crt = child.GetComponent<RectTransform>();
+                crt.anchorMin = Vector2.zero; crt.anchorMax = Vector2.one;
+                crt.offsetMin = Vector2.zero; crt.offsetMax = Vector2.zero;
+                host = child;
+            }
+            var newText = host.AddComponent<TextMeshProUGUI>();
+            newText.text = element.text;
+            newText.alignment = TextAlignmentOptions.Center;
+            ApplyTextStyle(newText, element);
+            report.MarkChanged($"Added text to '{element.elementId}'");
+        }
+
+        private static void ApplyTextStyle(TMP_Text tmp, DesignerElementMetadata element)
+        {
+            tmp.color = element.textColor;
+            tmp.fontSize = element.fontSize;
+        }
+
+        private static void WarnOnDuplicateNames(GameObject root, DesignerSaveReport report)
+        {
+            var seen = new HashSet<string>();
+            var reported = new HashSet<string>();
+            var stack = new Stack<Transform>();
+            stack.Push(root.transform);
+            while (stack.Count > 0)
+            {
+                var t = stack.Pop();
+                if (!seen.Add(t.name) && reported.Add(t.name))
+                    report.Warn($"Duplicate GameObject name '{t.name}' in prefab; name-based element matching may be unpredictable.");
+                for (int i = 0; i < t.childCount; i++)
+                    stack.Push(t.GetChild(i));
+            }
+        }
+
+        private static GameObject FindDescendant(Transform root, string name)
+        {
+            if (root.name == name) return root.gameObject;
+            for (int i = 0; i < root.childCount; i++)
+            {
+                var found = FindDescendant(root.GetChild(i), name);
+                if (found != null) return found;
+            }
+            return null;
+        }
+
+        private static bool Is(string type, string other)
+            => string.Equals(type, other, System.StringComparison.OrdinalIgnoreCase);
     }
 }

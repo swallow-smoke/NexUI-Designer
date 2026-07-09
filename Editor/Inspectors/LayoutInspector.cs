@@ -1,3 +1,4 @@
+using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -7,6 +8,7 @@ namespace emiteat.NexUI.Designer.Editor.Inspectors
     {
         private readonly Vector2Field _position;
         private readonly Vector2Field _size;
+        private readonly EnumField _anchor;
         private readonly Toggle _locked;
         private bool _refreshing;
 
@@ -14,9 +16,11 @@ namespace emiteat.NexUI.Designer.Editor.Inspectors
         {
             _position = new Vector2Field("Position");
             _size = new Vector2Field("Size");
+            _anchor = new EnumField("Anchor", DesignerAnchorPreset.TopLeft);
             _locked = new Toggle("Locked");
             Add(_position);
             Add(_size);
+            Add(_anchor);
             Add(_locked);
 
             _position.RegisterValueChangedCallback(evt =>
@@ -32,6 +36,11 @@ namespace emiteat.NexUI.Designer.Editor.Inspectors
                 var r = Context.SelectedMetadata.rect;
                 r.size = new Vector2(Mathf.Max(24f, evt.newValue.x), Mathf.Max(24f, evt.newValue.y));
                 Context.UpdateSelectedRect(r);
+            });
+            _anchor.RegisterValueChangedCallback(evt =>
+            {
+                if (_refreshing || Context.SelectedMetadata == null) return;
+                Context.SetSelectedAnchor((DesignerAnchorPreset)evt.newValue);
             });
             _locked.RegisterValueChangedCallback(evt =>
             {
@@ -53,6 +62,7 @@ namespace emiteat.NexUI.Designer.Editor.Inspectors
             {
                 _position.SetValueWithoutNotify(selected.rect.position);
                 _size.SetValueWithoutNotify(selected.rect.size);
+                _anchor.SetValueWithoutNotify(selected.anchorPreset);
                 _locked.SetValueWithoutNotify(selected.locked);
             }
             _refreshing = false;

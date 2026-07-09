@@ -94,11 +94,19 @@ namespace emiteat.NexUI.Designer.Editor.Panels
             bottomRow.Add(spacer);
 
             bottomRow.Add(MakeButton(context.RebuildPreview, "Rebuild", "nexui-button-secondary"));
-            bottomRow.Add(MakeButton(context.Save, DesignerLocalization.T("toolbar.save"), "nexui-button-primary"));
+            bottomRow.Add(MakeButton(() => context.Save(), DesignerLocalization.T("toolbar.save"), "nexui-button-primary"));
             bottomRow.Add(MakeButton(context.Validate, DesignerLocalization.T("toolbar.validate"), "nexui-button-secondary"));
 
             context.ScreenChanged += _ => RefreshStatus(context);
             context.ValidationChanged += () => RefreshStatus(context);
+            context.SaveCompleted += report =>
+            {
+                _status.text = report.Summary();
+                _status.RemoveFromClassList("is-muted");
+                _status.RemoveFromClassList("is-ok");
+                _status.RemoveFromClassList("is-warning");
+                _status.AddToClassList(report.HasErrors ? "is-warning" : report.HasWarnings ? "is-warning" : "is-ok");
+            };
             RefreshStatus(context);
         }
 

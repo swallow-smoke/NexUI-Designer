@@ -1,5 +1,12 @@
 # 설치
 
+## 설치 순서 (중요)
+
+1. 먼저 런타임 패키지 `com.emiteat.nexui` (NexUI)를 설치합니다.
+2. 그 다음 에디터 패키지 `com.emiteat.nexui.designer` (NexUI Designer)를 설치합니다.
+
+디자이너는 런타임 패키지의 어셈블리(`emiteat.NexUI.Abstractions`, `emiteat.NexUI.Core`, `emiteat.NexUI.State`, `emiteat.NexUI.Motion`, `emiteat.NexUI.Theme`, `emiteat.NexUI.Components`, `emiteat.NexUI.Query`, `emiteat.NexUI.Accessibility`, `emiteat.NexUI.Localization`, `emiteat.NexUI.Prompt`, `emiteat.NexUI.Templates`, `emiteat.NexUI.Integrations.UIToolkit`, `emiteat.NexUI.Integrations.UGUI`)와 `Unity.TextMeshPro`, `UnityEngine.UI`를 참조합니다. 런타임 패키지가 없으면 디자이너는 컴파일되지 않습니다.
+
 ## 이 저장소에서 사용하기
 
 1. Unity 프로젝트를 엽니다.

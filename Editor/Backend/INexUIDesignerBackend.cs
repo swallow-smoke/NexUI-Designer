@@ -5,20 +5,9 @@ using UnityEngine;
 
 namespace emiteat.NexUI.Designer.Editor.Backend
 {
-    public enum DesignerAnchorPreset
-    {
-        TopLeft,
-        Top,
-        TopRight,
-        Left,
-        Center,
-        Right,
-        BottomLeft,
-        Bottom,
-        BottomRight,
-        Stretch
-    }
-
+    // DesignerAnchorPreset now lives in the runtime metadata assembly
+    // (emiteat.NexUI.Designer namespace) so DesignerElementMetadata can persist it without a
+    // UnityEditor dependency. It resolves here via enclosing-namespace lookup.
     public enum DesignerElementType
     {
         Panel,

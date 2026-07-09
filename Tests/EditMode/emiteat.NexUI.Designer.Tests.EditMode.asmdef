@@ -1,0 +1,27 @@
+{
+    "name": "emiteat.NexUI.Designer.Tests.EditMode",
+    "rootNamespace": "emiteat.NexUI.Designer.Tests.EditMode",
+    "references": [
+        "emiteat.NexUI.Abstractions",
+        "emiteat.NexUI.Core",
+        "emiteat.NexUI.Designer.Runtime",
+        "emiteat.NexUI.Designer.Editor",
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using emiteat.NexUI.Abstractions;
 using emiteat.NexUI.Core;
 using emiteat.NexUI.Designer.Editor.Backend;
+using emiteat.NexUI.Designer.Editor.Serialization;
+using emiteat.NexUI.Designer.Editor.Validation;
 using emiteat.NexUI.Motion;
 using emiteat.NexUI.State;
 using emiteat.NexUI.Theme;
@@ -14,6 +16,7 @@ namespace emiteat.NexUI.Designer.Editor
     public sealed class NexUIDesignerContext : IDisposable
     {
         private readonly List<string> _validationMessages = new List<string>();
+        private readonly List<DesignerValidationIssue> _validationIssues = new List<DesignerValidationIssue>();
         private int _elementCounter = 1;
 
         public UIScreenDefinition CurrentScreen { get; private set; }
@@ -33,8 +36,13 @@ namespace emiteat.NexUI.Designer.Editor
         public string PreviewState { get; private set; }
         public string InputMode { get; private set; }
         public IReadOnlyList<string> ValidationMessages => _validationMessages;
+        public IReadOnlyList<DesignerValidationIssue> ValidationIssues => _validationIssues;
+        public DesignerSaveReport LastSaveReport { get; private set; }
+        public int ErrorCount { get; private set; }
+        public int WarningCount { get; private set; }
 
         public event Action<UIScreenDefinition> ScreenChanged;
+        public event Action<DesignerSaveReport> SaveCompleted;
         public event Action<DesignerMetadataAsset> MetadataChanged;
         public event Action<IUIElementHandle> SelectionChanged;
         public event Action<DesignerElementMetadata> MetadataSelectionChanged;
@@ -145,49 +153,54 @@ namespace emiteat.NexUI.Designer.Editor
             Validate();
         }
 
-        public void Save()
+        /// <summary>
+        /// Persists the screen through the backend-appropriate serializer. The returned
+        /// report (also stored in <see cref="LastSaveReport"/> and logged) states exactly
+        /// what was written to disk and what was preview-only/skipped.
+        /// </summary>
+        public DesignerSaveReport Save()
         {
-            if (CurrentScreen != null && CurrentBackend != null && PreviewSurface != null)
+            var report = new DesignerSaveReport();
+
+            if (CurrentScreen == null)
             {
-                CurrentBackend.Save(CurrentScreen, PreviewSurface);
-                EditorUtility.SetDirty(CurrentScreen);
+                report.Warn("No screen is open; nothing was saved.");
+                LastSaveReport = report;
+                SaveCompleted?.Invoke(report);
+                return report;
             }
-            if (Metadata != null)
-                EditorUtility.SetDirty(Metadata);
-            AssetDatabase.SaveAssets();
+
+            var serializer = DesignerSerializerRegistry.Get(CurrentScreen.backendAsset.backend);
+            report.Merge(serializer.Save(CurrentScreen, Metadata));
+
+            if (report.HasErrors)
+                Debug.LogError("[NexUI Designer] " + report.Details());
+            else if (report.HasWarnings)
+                Debug.LogWarning("[NexUI Designer] " + report.Details());
+            else
+                Debug.Log("[NexUI Designer] " + report.Details());
+
+            LastSaveReport = report;
+            SaveCompleted?.Invoke(report);
+            Validate();
+            return report;
         }
 
         public void Validate()
         {
+            _validationIssues.Clear();
+            _validationIssues.AddRange(DesignerValidationService.Validate(CurrentScreen, Metadata));
+
             _validationMessages.Clear();
-            if (CurrentScreen == null)
-                _validationMessages.Add("message.noScreenSelected");
-            else
+            ErrorCount = 0;
+            WarningCount = 0;
+            foreach (var issue in _validationIssues)
             {
-                if (string.IsNullOrEmpty(CurrentScreen.ScreenId))
-                    _validationMessages.Add("validation.error: screenId");
-                if (CurrentScreen.backendAsset.asset == null)
-                    _validationMessages.Add("validation.warning: backend asset");
-                if (!DesignerBackendRegistry.TryGet(CurrentScreen.backendAsset.backend, out _))
-                    _validationMessages.Add("validation.error: backend");
+                _validationMessages.Add(issue.ToString());
+                if (issue.Severity == DesignerValidationSeverity.Error) ErrorCount++;
+                else if (issue.Severity == DesignerValidationSeverity.Warning) WarningCount++;
             }
-            if (Metadata != null)
-            {
-                var ids = new HashSet<string>();
-                for (int i = 0; i < Metadata.elements.Count; i++)
-                {
-                    var element = Metadata.elements[i];
-                    if (element == null) continue;
-                    if (string.IsNullOrEmpty(element.elementId))
-                        _validationMessages.Add("validation.error: empty element id");
-                    else if (!ids.Add(element.elementId))
-                        _validationMessages.Add("validation.warning: duplicate element id " + element.elementId);
-                    if (element.rect.width < 32f || element.rect.height < 24f)
-                        _validationMessages.Add("validation.warning: small touch target " + element.elementId);
-                    if (string.Equals(element.elementType, "Button", StringComparison.OrdinalIgnoreCase) && string.IsNullOrEmpty(element.binding.commandKey))
-                        _validationMessages.Add("validation.warning: button without command " + element.elementId);
-                }
-            }
+
             ValidationChanged?.Invoke();
         }
 
@@ -243,6 +256,69 @@ namespace emiteat.NexUI.Designer.Editor
             return handle != null;
         }
 
+        /// <summary>
+        /// Adds metadata entries for named backend elements (UXML names / prefab GameObject
+        /// names) that have no metadata yet. Returns the number of elements added.
+        /// </summary>
+        public int SyncMetadataFromBackend()
+        {
+            if (Metadata == null || CurrentScreen == null) return 0;
+            var asset = CurrentScreen.backendAsset.asset;
+            var added = 0;
+
+            if (CurrentScreen.backendAsset.backend == UIRenderBackend.UIToolkit && asset is UnityEngine.UIElements.VisualTreeAsset vta)
+            {
+                added = UIToolkitAssetSerializer.SyncMetadataFromUxml(Metadata, vta);
+            }
+            else if (CurrentScreen.backendAsset.backend == UIRenderBackend.UGUI && asset is GameObject prefab)
+            {
+                Undo.RecordObject(Metadata, "Sync Metadata From Prefab");
+                foreach (var t in prefab.GetComponentsInChildren<Transform>(true))
+                {
+                    if (t == prefab.transform) continue;
+                    if (Metadata.Find(t.name) != null) continue;
+                    Metadata.elements.Add(new DesignerElementMetadata { elementId = t.name, displayName = t.name, elementType = "Custom" });
+                    added++;
+                }
+                if (added > 0) EditorUtility.SetDirty(Metadata);
+            }
+
+            if (added > 0)
+            {
+                MetadataChanged?.Invoke(Metadata);
+                MetadataSelectionChanged?.Invoke(SelectedMetadata);
+            }
+            CanvasChanged?.Invoke();
+            Validate();
+            return added;
+        }
+
+        /// <summary>
+        /// Applies Designer metadata to the live preview surface only (names, classes,
+        /// position, size, visibility, binding). This is preview-only and is NOT written to
+        /// disk until the user saves.
+        /// </summary>
+        public void ApplyMetadataToPreview()
+        {
+            if (Metadata == null || CurrentBackend == null || PreviewSurface == null) return;
+            foreach (var element in Metadata.elements)
+            {
+                if (element == null || string.IsNullOrEmpty(element.elementId)) continue;
+                if (!TryFindElement(element.elementId, out var handle))
+                    handle = CurrentBackend.CreateElement(PreviewSurface, element.parentId,
+                        new DesignerElementCreateInfo { elementId = element.elementId, displayName = element.displayName });
+                if (handle == null) continue;
+
+                CurrentBackend.SetPosition(handle, element.rect.position);
+                CurrentBackend.SetSize(handle, element.rect.size);
+                CurrentBackend.SetVisible(handle, !element.hiddenInDesigner);
+                CurrentBackend.SetBinding(handle, element.binding);
+                foreach (var cls in element.classes)
+                    CurrentBackend.AddClass(handle, cls);
+            }
+            PreviewRebuilt?.Invoke();
+        }
+
         public DesignerElementMetadata CreateMetadataElement(DesignerElementType type)
         {
             if (Metadata == null) return null;
@@ -286,6 +362,7 @@ namespace emiteat.NexUI.Designer.Editor
                 displayName = string.IsNullOrEmpty(src.displayName) ? src.elementId + " Copy" : src.displayName + " Copy",
                 elementType = src.elementType,
                 rect = new Rect(src.rect.x + GridSize * 2f, src.rect.y + GridSize * 2f, src.rect.width, src.rect.height),
+                anchorPreset = src.anchorPreset,
                 text = src.text,
                 tint = src.tint,
                 textColor = src.textColor,
@@ -312,6 +389,22 @@ namespace emiteat.NexUI.Designer.Editor
             RecordMetadata("Edit NexUI Element Rect");
             SelectedMetadata.rect = SnapRect(rect);
             MarkMetadataDirty();
+        }
+
+        /// <summary>
+        /// Persists an anchor preset on the selected element's metadata (undo-tracked) and,
+        /// when a matching live element exists, applies it to the preview surface through the
+        /// backend so the viewport reflects the choice immediately. The saved prefab picks up
+        /// the same preset via <c>UGUIAssetSerializer.ApplyRect</c>.
+        /// </summary>
+        public void SetSelectedAnchor(DesignerAnchorPreset preset)
+        {
+            if (SelectedMetadata == null) return;
+            RecordMetadata("Set NexUI Element Anchor");
+            SelectedMetadata.anchorPreset = preset;
+            MarkMetadataDirty();
+            if (CurrentBackend != null && TryFindElement(SelectedMetadata.elementId, out var handle))
+                CurrentBackend.SetAnchor(handle, preset);
         }
 
         public void MoveSelected(Vector2 delta)
@@ -354,6 +447,21 @@ namespace emiteat.NexUI.Designer.Editor
             RecordMetadata(undoName);
             change(SelectedMetadata);
             MarkMetadataDirty();
+        }
+
+        /// <summary>
+        /// Screen-level counterpart to <see cref="UpdateSelectedElement"/>. Mutates the open
+        /// <see cref="UIScreenDefinition"/> (e.g. its <c>policy</c> struct) under undo, marks it
+        /// dirty and re-validates. Mirrors the element-level record/dirty idiom used above.
+        /// </summary>
+        public void UpdateScreen(Action<UIScreenDefinition> change, string undoName)
+        {
+            if (CurrentScreen == null || change == null) return;
+            Undo.RecordObject(CurrentScreen, undoName);
+            change(CurrentScreen);
+            EditorUtility.SetDirty(CurrentScreen);
+            CanvasChanged?.Invoke();
+            Validate();
         }
 
         public Rect SnapRect(Rect rect)

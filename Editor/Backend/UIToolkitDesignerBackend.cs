@@ -60,13 +60,38 @@ namespace emiteat.NexUI.Designer.Editor.Backend
         public Vector2 GetSize(IUIElementHandle handle) => handle?.Native is VisualElement ve ? new Vector2(ve.resolvedStyle.width, ve.resolvedStyle.height) : Vector2.zero;
         public void SetPosition(IUIElementHandle handle, Vector2 position) { var cap = handle?.As<IUITransformCapability>(); if (cap != null) cap.Position = position; }
         public void SetSize(IUIElementHandle handle, Vector2 size) { if (handle?.Native is VisualElement ve) { ve.style.width = size.x; ve.style.height = size.y; } }
-        public void SetAnchor(IUIElementHandle handle, DesignerAnchorPreset preset) { }
+        // UI Toolkit layout is USS / flex driven, so absolute anchor presets do not map
+        // 1:1 to a VisualElement. We translate the preset into an absolute-position hint on
+        // the inline style so the preview reflects intent; USS authored in UI Builder wins at
+        // runtime. Validation explains this to the user.
+        public void SetAnchor(IUIElementHandle handle, DesignerAnchorPreset preset)
+        {
+            if (!(handle?.Native is VisualElement ve)) return;
+            ve.style.position = Position.Absolute;
+            switch (preset)
+            {
+                case DesignerAnchorPreset.TopLeft: ve.style.left = 0; ve.style.top = 0; break;
+                case DesignerAnchorPreset.TopRight: ve.style.right = 0; ve.style.top = 0; break;
+                case DesignerAnchorPreset.BottomLeft: ve.style.left = 0; ve.style.bottom = 0; break;
+                case DesignerAnchorPreset.BottomRight: ve.style.right = 0; ve.style.bottom = 0; break;
+                case DesignerAnchorPreset.Stretch:
+                    ve.style.left = 0; ve.style.top = 0; ve.style.right = 0; ve.style.bottom = 0; break;
+            }
+        }
         public void SetVisible(IUIElementHandle handle, bool visible) { var cap = handle?.As<IUIVisibilityCapability>(); if (cap != null) cap.Visible = visible; }
         public void SetName(IUIElementHandle handle, string elementId) { (handle as DesignerElementHandle)?.Rename(elementId); if (handle?.Native is VisualElement ve) ve.name = elementId; }
         public void AddClass(IUIElementHandle handle, string className) { if (handle?.Native is VisualElement ve) ve.AddToClassList(className); handle?.As<IUIStyleCapability>()?.SetClass(className, true); }
         public void RemoveClass(IUIElementHandle handle, string className) { if (handle?.Native is VisualElement ve) ve.RemoveFromClassList(className); handle?.As<IUIStyleCapability>()?.SetClass(className, false); }
-        public void SetBinding(IUIElementHandle handle, DesignerBindingMetadata binding) { }
-        public DesignerBindingMetadata GetBinding(IUIElementHandle handle) => new DesignerBindingMetadata();
+        public void SetBinding(IUIElementHandle handle, DesignerBindingMetadata binding)
+        {
+            if (!(handle is DesignerElementHandle h) || binding == null) return;
+            h.Binding = binding;
+            // Mirror the runtime-facing keys onto the VisualElement's viewDataKey so the
+            // preview element carries a stable, inspectable trace of its binding intent.
+            if (h.Native is VisualElement ve && !string.IsNullOrEmpty(binding.valueKey))
+                ve.viewDataKey = binding.valueKey;
+        }
+        public DesignerBindingMetadata GetBinding(IUIElementHandle handle) => (handle as DesignerElementHandle)?.Binding ?? new DesignerBindingMetadata();
         public void Save(UIScreenDefinition definition, IUISurface surface) { if (definition != null) EditorUtility.SetDirty(definition); }
 
         private static void Index(VisualElement element, DesignerSurface surface)

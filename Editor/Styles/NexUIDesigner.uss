@@ -200,11 +200,12 @@
 }
 
 .nexui-bottom-panel {
-    height: 34px;
-    min-height: 34px;
-    max-height: 34px;
+    height: 64px;
+    min-height: 64px;
+    max-height: 64px;
     padding-left: 6px;
     padding-right: 6px;
+    padding-top: 4px;
     padding-bottom: 4px;
     overflow: hidden;
 }
@@ -342,9 +343,9 @@
 }
 
 .nexui-bottom-card {
-    height: 28px;
-    min-height: 28px;
-    max-height: 28px;
+    height: 56px;
+    min-height: 56px;
+    max-height: 56px;
     margin-right: 6px;
     margin-bottom: 0;
     min-width: 0;

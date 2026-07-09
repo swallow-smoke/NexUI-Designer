@@ -24,12 +24,14 @@ Tools/NexUI/Designer
 - `Tools/NexUI/Designer/Save Current Screen`
 - `Tools/NexUI/Designer/Language/Korean`
 - `Tools/NexUI/Designer/Language/English`
+- `Tools/NexUI/Designer/Motion Clip Editor`
 
 ## 기능
 
 - `UIScreenDefinition` 에셋을 위한 시각적 작업 공간
 - UI Toolkit과 uGUI를 위한 디자이너 백엔드 추상화
 - 계층, 뷰포트, 인스펙터, 검증, 상태, 커맨드, 화면 그래프 패널
+- Motion Graph Editor(스텝 기반)와 Motion Clip Editor(멀티 요소 키프레임 타임라인 기반)
 - element id, binding, localization link, variant, validation hint를 저장하는 디자이너 메타데이터
 - snapshot, diff, cleanup, profiling, contract, responsive rule, refactoring을 위한 에디터 서비스
 - 한국어/영어 에디터 UI 문자열
@@ -43,3 +45,5 @@ Tools/NexUI/Designer
 - [API 레퍼런스](Documentation~/api-reference.md)
 - [개발 가이드](Documentation~/development.md)
 - [레시피](Documentation~/recipes.md)
+- [Motion Graph Editor](Documentation~/motion-graph-editor.md)
+- [Motion Clip Editor](Documentation~/motion-clip-editor.md)

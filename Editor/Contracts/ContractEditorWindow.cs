@@ -52,6 +52,12 @@ namespace emiteat.NexUI.Designer.Editor.Contracts
                 _checkMessages = ContractService.CheckSatisfaction(_asset);
             if (GUILayout.Button("Export UIScreenContract", GUILayout.Width(200)))
                 ExportContractAsset(contract);
+            if (GUILayout.Button("Generate C# Constants", GUILayout.Width(200)))
+            {
+                var written = ContractCodeGenerator.Generate(_asset);
+                if (!string.IsNullOrEmpty(written))
+                    Debug.Log($"[NexUI Designer] Generated constants at {written}");
+            }
             EditorGUILayout.EndHorizontal();
 
             if (_validation != null && _validation.Count > 0)
