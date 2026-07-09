@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using emiteat.NexUI.Core;
 using emiteat.NexUI.Designer.Editor.Localization;
 using emiteat.NexUI.Designer.Editor.Viewport;
@@ -21,8 +22,12 @@ namespace emiteat.NexUI.Designer.Editor.Panels
             var bottomRow = new VisualElement();
             bottomRow.AddToClassList("nexui-toolbar-row");
             bottomRow.AddToClassList("nexui-toolbar-row-secondary");
+            var selectionRow = new VisualElement();
+            selectionRow.AddToClassList("nexui-toolbar-row");
+            selectionRow.AddToClassList("nexui-toolbar-row-secondary");
             Add(topRow);
             Add(bottomRow);
+            Add(selectionRow);
 
             var brand = new VisualElement();
             brand.AddToClassList("nexui-toolbar-brand");
@@ -96,6 +101,56 @@ namespace emiteat.NexUI.Designer.Editor.Panels
             bottomRow.Add(MakeButton(context.RebuildPreview, "Rebuild", "nexui-button-secondary"));
             bottomRow.Add(MakeButton(() => context.Save(), DesignerLocalization.T("toolbar.save"), "nexui-button-primary"));
             bottomRow.Add(MakeButton(context.Validate, DesignerLocalization.T("toolbar.validate"), "nexui-button-secondary"));
+
+            var alignButtons = new List<ToolbarButton>();
+            var distributeButtons = new List<ToolbarButton>();
+
+            void AddAlign(string label, string mode)
+            {
+                var button = MakeButton(() => context.AlignSelection(mode), label, "nexui-button-secondary");
+                alignButtons.Add(button);
+                selectionRow.Add(button);
+            }
+
+            AddAlign("⇤", "left");
+            AddAlign("⇔x", "centerX");
+            AddAlign("⇥", "right");
+            AddAlign("⇡", "top");
+            AddAlign("⇕y", "centerY");
+            AddAlign("⇣", "bottom");
+
+            var distributeH = MakeButton(context.DistributeSelectionHorizontal, "⋯H", "nexui-button-secondary");
+            var distributeV = MakeButton(context.DistributeSelectionVertical, "⋮V", "nexui-button-secondary");
+            distributeButtons.Add(distributeH);
+            distributeButtons.Add(distributeV);
+            selectionRow.Add(distributeH);
+            selectionRow.Add(distributeV);
+
+            var layerButtons = new List<ToolbarButton>();
+            var bringForward = MakeButton(context.BringSelectionForward, "Fwd", "nexui-button-secondary");
+            var sendBackward = MakeButton(context.SendSelectionBackward, "Back", "nexui-button-secondary");
+            var bringToFront = MakeButton(context.BringSelectionToFront, "Front", "nexui-button-secondary");
+            var sendToBack = MakeButton(context.SendSelectionToBack, "Bottom", "nexui-button-secondary");
+            layerButtons.Add(bringForward);
+            layerButtons.Add(sendBackward);
+            layerButtons.Add(bringToFront);
+            layerButtons.Add(sendToBack);
+            selectionRow.Add(bringForward);
+            selectionRow.Add(sendBackward);
+            selectionRow.Add(bringToFront);
+            selectionRow.Add(sendToBack);
+
+            void RefreshSelectionButtons(IReadOnlyList<DesignerElementMetadata> selection)
+            {
+                var hasSelection = selection != null && selection.Count > 0;
+                var canDistribute = selection != null && selection.Count >= 3;
+                foreach (var button in alignButtons) button.SetEnabled(hasSelection);
+                foreach (var button in layerButtons) button.SetEnabled(hasSelection);
+                foreach (var button in distributeButtons) button.SetEnabled(canDistribute);
+            }
+
+            context.MultiSelectionChanged += RefreshSelectionButtons;
+            RefreshSelectionButtons(context.SelectedElements);
 
             context.ScreenChanged += _ => RefreshStatus(context);
             context.ValidationChanged += () => RefreshStatus(context);

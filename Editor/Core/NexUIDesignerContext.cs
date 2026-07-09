@@ -17,13 +17,27 @@ namespace emiteat.NexUI.Designer.Editor
     {
         private readonly List<string> _validationMessages = new List<string>();
         private readonly List<DesignerValidationIssue> _validationIssues = new List<DesignerValidationIssue>();
+        private readonly List<DesignerElementMetadata> _selection = new List<DesignerElementMetadata>();
+        private readonly List<DesignerElementMetadata> _clipboard = new List<DesignerElementMetadata>();
         private int _elementCounter = 1;
+        private int _groupCounter = 1;
 
         public UIScreenDefinition CurrentScreen { get; private set; }
         public DesignerMetadataAsset Metadata { get; private set; }
         public IUISurface PreviewSurface { get; private set; }
         public IUIElementHandle SelectedElement { get; private set; }
-        public DesignerElementMetadata SelectedMetadata { get; private set; }
+
+        /// <summary>All currently selected elements. Empty when nothing is selected.</summary>
+        public IReadOnlyList<DesignerElementMetadata> SelectedElements => _selection;
+
+        /// <summary>
+        /// The "primary" selected element - the last one added to the selection. Kept for every
+        /// pre-existing single-select caller (inspectors, rect/anchor edits); resolves to the
+        /// same element a single click would have selected before multi-select existed.
+        /// </summary>
+        public DesignerElementMetadata SelectedMetadata => _selection.Count > 0 ? _selection[_selection.Count - 1] : null;
+
+        public bool HasClipboard => _clipboard.Count > 0;
         public UIRenderBackend Backend { get; private set; }
         public UIStateStore PreviewStateStore { get; private set; }
         public IUIMotionPlayer PreviewMotionPlayer { get; private set; }
@@ -46,6 +60,7 @@ namespace emiteat.NexUI.Designer.Editor
         public event Action<DesignerMetadataAsset> MetadataChanged;
         public event Action<IUIElementHandle> SelectionChanged;
         public event Action<DesignerElementMetadata> MetadataSelectionChanged;
+        public event Action<IReadOnlyList<DesignerElementMetadata>> MultiSelectionChanged;
         public event Action PreviewRebuilt;
         public event Action ValidationChanged;
         public event Action CanvasChanged;
@@ -77,9 +92,8 @@ namespace emiteat.NexUI.Designer.Editor
             Metadata = metadata;
             if (Metadata != null && CurrentScreen != null && string.IsNullOrEmpty(Metadata.screenId))
                 Metadata.screenId = CurrentScreen.ScreenId;
-            SelectedMetadata = null;
+            ClearSelection();
             MetadataChanged?.Invoke(metadata);
-            MetadataSelectionChanged?.Invoke(null);
             CanvasChanged?.Invoke();
             Validate();
         }
@@ -112,26 +126,99 @@ namespace emiteat.NexUI.Designer.Editor
             SelectionChanged?.Invoke(handle);
         }
 
+        /// <summary>Replaces the whole selection with a single element (or clears it if null).</summary>
         public void SelectMetadata(DesignerElementMetadata element)
         {
-            SelectedMetadata = element;
-            if (element != null && TryFindElement(element.elementId, out var handle))
-                SelectedElement = handle;
-            else
-                SelectedElement = null;
-            SelectionChanged?.Invoke(SelectedElement);
-            MetadataSelectionChanged?.Invoke(element);
+            _selection.Clear();
+            if (element != null)
+                _selection.Add(element);
+            RaiseSelectionChanged();
         }
 
         public void SelectMetadata(string elementId)
             => SelectMetadata(Metadata != null ? Metadata.Find(elementId) : null);
 
+        /// <summary>Alias of <see cref="SelectMetadata(DesignerElementMetadata)"/> matching the requested selection-service shape.</summary>
+        public void Select(DesignerElementMetadata element) => SelectMetadata(element);
+
+        public void AddToSelection(DesignerElementMetadata element)
+        {
+            if (element == null || _selection.Contains(element)) return;
+            _selection.Add(element);
+            RaiseSelectionChanged();
+        }
+
+        public void RemoveFromSelection(DesignerElementMetadata element)
+        {
+            if (element == null || !_selection.Remove(element)) return;
+            RaiseSelectionChanged();
+        }
+
+        public void ToggleSelection(DesignerElementMetadata element)
+        {
+            if (element == null) return;
+            if (!_selection.Remove(element))
+                _selection.Add(element);
+            RaiseSelectionChanged();
+        }
+
+        public void SelectMany(IEnumerable<DesignerElementMetadata> elements)
+        {
+            _selection.Clear();
+            if (elements != null)
+                foreach (var e in elements)
+                    if (e != null && !_selection.Contains(e))
+                        _selection.Add(e);
+            RaiseSelectionChanged();
+        }
+
+        public void SelectAll()
+        {
+            if (Metadata == null) return;
+            SelectMany(Metadata.elements);
+        }
+
+        public bool IsSelected(DesignerElementMetadata element) => element != null && _selection.Contains(element);
+
+        public List<DesignerElementMetadata> GetChildren(DesignerElementMetadata element)
+        {
+            var result = new List<DesignerElementMetadata>();
+            if (Metadata == null || element == null) return result;
+            foreach (var e in Metadata.elements)
+                if (e != null && e.parentId == element.elementId)
+                    result.Add(e);
+            return result;
+        }
+
+        public void SelectChildren(DesignerElementMetadata element)
+        {
+            var children = GetChildren(element);
+            if (children.Count > 0)
+                SelectMany(children);
+        }
+
+        public void SelectParent(DesignerElementMetadata element)
+        {
+            if (Metadata == null || element == null || string.IsNullOrEmpty(element.parentId)) return;
+            var parent = Metadata.Find(element.parentId);
+            if (parent != null)
+                SelectMetadata(parent);
+        }
+
         public void ClearSelection()
         {
-            SelectedElement = null;
-            SelectedMetadata = null;
-            SelectionChanged?.Invoke(null);
-            MetadataSelectionChanged?.Invoke(null);
+            if (_selection.Count == 0 && SelectedElement == null) return;
+            _selection.Clear();
+            RaiseSelectionChanged();
+        }
+
+        private void RaiseSelectionChanged()
+        {
+            var primary = SelectedMetadata;
+            SelectedElement = primary != null && TryFindElement(primary.elementId, out var handle) ? handle : null;
+            SelectionChanged?.Invoke(SelectedElement);
+            MetadataSelectionChanged?.Invoke(primary);
+            MultiSelectionChanged?.Invoke(_selection);
         }
 
         public void RebuildPreview()
@@ -340,28 +427,29 @@ namespace emiteat.NexUI.Designer.Editor
             return element;
         }
 
+        /// <summary>Deletes every currently selected element (multi-select aware).</summary>
         public void DeleteSelectedMetadata()
         {
-            if (Metadata == null || SelectedMetadata == null) return;
+            if (Metadata == null || _selection.Count == 0) return;
             RecordMetadata("Delete NexUI Element");
-            Metadata.elements.Remove(SelectedMetadata);
-            SelectedMetadata = null;
+            foreach (var element in _selection)
+                Metadata.elements.Remove(element);
+            _selection.Clear();
             MarkMetadataDirty();
-            ClearSelection();
+            RaiseSelectionChanged();
         }
 
-        public DesignerElementMetadata DuplicateSelectedMetadata()
+        public void DeleteSelection() => DeleteSelectedMetadata();
+
+        private static DesignerElementMetadata CloneElement(DesignerElementMetadata src, string elementId, Vector2 offset)
         {
-            if (Metadata == null || SelectedMetadata == null) return null;
-            RecordMetadata("Duplicate NexUI Element");
-            var src = SelectedMetadata;
             var copy = new DesignerElementMetadata
             {
-                elementId = UniqueElementId(src.elementId + "Copy"),
+                elementId = elementId,
                 parentId = src.parentId,
                 displayName = string.IsNullOrEmpty(src.displayName) ? src.elementId + " Copy" : src.displayName + " Copy",
                 elementType = src.elementType,
-                rect = new Rect(src.rect.x + GridSize * 2f, src.rect.y + GridSize * 2f, src.rect.width, src.rect.height),
+                rect = new Rect(src.rect.x + offset.x, src.rect.y + offset.y, src.rect.width, src.rect.height),
                 anchorPreset = src.anchorPreset,
                 text = src.text,
                 tint = src.tint,
@@ -377,17 +465,71 @@ namespace emiteat.NexUI.Designer.Editor
             copy.binding.visibilityKey = src.binding.visibilityKey;
             copy.binding.classKey = src.binding.classKey;
             copy.binding.interactableKey = src.binding.interactableKey;
-            Metadata.elements.Add(copy);
-            MarkMetadataDirty();
-            SelectMetadata(copy);
             return copy;
         }
 
-        public void UpdateSelectedRect(Rect rect)
+        public DesignerElementMetadata DuplicateSelectedMetadata()
         {
-            if (SelectedMetadata == null) return;
+            var copies = DuplicateSelection();
+            return copies.Count > 0 ? copies[copies.Count - 1] : null;
+        }
+
+        /// <summary>Duplicates every selected element (offset by two grid cells) and selects the copies.</summary>
+        public List<DesignerElementMetadata> DuplicateSelection()
+        {
+            var copies = new List<DesignerElementMetadata>();
+            if (Metadata == null || _selection.Count == 0) return copies;
+            RecordMetadata("Duplicate NexUI Element");
+            var offset = new Vector2(GridSize * 2f, GridSize * 2f);
+            foreach (var src in _selection)
+            {
+                var copy = CloneElement(src, UniqueElementId(src.elementId + "Copy"), offset);
+                Metadata.elements.Add(copy);
+                copies.Add(copy);
+            }
+            MarkMetadataDirty();
+            SelectMany(copies);
+            return copies;
+        }
+
+        /// <summary>Copies the current selection into an in-memory clipboard (survives across Paste calls).</summary>
+        public void CopySelection()
+        {
+            _clipboard.Clear();
+            foreach (var e in _selection)
+                _clipboard.Add(e);
+        }
+
+        /// <summary>Pastes the clipboard as new elements offset from their originals, and selects the pasted copies.</summary>
+        public List<DesignerElementMetadata> PasteSelection()
+        {
+            var copies = new List<DesignerElementMetadata>();
+            if (Metadata == null || _clipboard.Count == 0) return copies;
+            RecordMetadata("Paste NexUI Element");
+            var offset = new Vector2(GridSize * 2f, GridSize * 2f);
+            foreach (var src in _clipboard)
+            {
+                var copy = CloneElement(src, UniqueElementId(src.elementId + "Copy"), offset);
+                Metadata.elements.Add(copy);
+                copies.Add(copy);
+            }
+            MarkMetadataDirty();
+            SelectMany(copies);
+            return copies;
+        }
+
+        public void UpdateSelectedRect(Rect rect) => UpdateElementRect(SelectedMetadata, rect);
+
+        /// <summary>
+        /// Rect update targeted at a specific element rather than the "primary" selection - used
+        /// by the viewport's resize/move-drag commit, where the dragged element isn't always the
+        /// primary selection (e.g. dragging a non-primary member of an existing multi-selection).
+        /// </summary>
+        public void UpdateElementRect(DesignerElementMetadata element, Rect rect)
+        {
+            if (element == null || element.locked) return;
             RecordMetadata("Edit NexUI Element Rect");
-            SelectedMetadata.rect = SnapRect(rect);
+            element.rect = SnapRect(rect);
             MarkMetadataDirty();
         }
 
@@ -413,6 +555,153 @@ namespace emiteat.NexUI.Designer.Editor
             var r = SelectedMetadata.rect;
             r.position += delta;
             UpdateSelectedRect(r);
+        }
+
+        /// <summary>Moves every selected (and unlocked) element by the same delta as a single undo step.</summary>
+        public void MoveSelection(Vector2 delta)
+        {
+            if (_selection.Count == 0) return;
+            var rects = new Dictionary<DesignerElementMetadata, Rect>();
+            foreach (var element in _selection)
+            {
+                if (element.locked) continue;
+                var r = element.rect;
+                r.position += delta;
+                rects[element] = r;
+            }
+            SetElementsRects(rects, "Move NexUI Elements");
+        }
+
+        /// <summary>
+        /// Applies a batch of rect changes (from group move, align, or distribute) as a single
+        /// undo step. All elements live on the same <see cref="Metadata"/> asset, so one
+        /// <c>Undo.RecordObject</c> call before the loop is enough to collapse the whole batch.
+        /// </summary>
+        public void SetElementsRects(IReadOnlyDictionary<DesignerElementMetadata, Rect> rects, string undoName)
+        {
+            if (Metadata == null || rects == null || rects.Count == 0) return;
+            RecordMetadata(undoName);
+            foreach (var pair in rects)
+            {
+                if (pair.Key == null || pair.Key.locked) continue;
+                pair.Key.rect = SnapRect(pair.Value);
+            }
+            MarkMetadataDirty();
+        }
+
+        public void AlignSelection(string mode)
+        {
+            if (_selection.Count == 0) return;
+            if (_selection.Count == 1)
+            {
+                AlignSelected(mode);
+                return;
+            }
+
+            var bounds = UIAlignmentUtility.GetBounds(_selection);
+            Dictionary<DesignerElementMetadata, Rect> rects = mode switch
+            {
+                "left" => UIAlignmentUtility.AlignLeft(_selection, bounds),
+                "centerX" => UIAlignmentUtility.AlignCenterX(_selection, bounds),
+                "right" => UIAlignmentUtility.AlignRight(_selection, bounds),
+                "top" => UIAlignmentUtility.AlignTop(_selection, bounds),
+                "centerY" => UIAlignmentUtility.AlignCenterY(_selection, bounds),
+                "bottom" => UIAlignmentUtility.AlignBottom(_selection, bounds),
+                _ => null
+            };
+            if (rects != null)
+                SetElementsRects(rects, "Align NexUI Elements");
+        }
+
+        public void DistributeSelectionHorizontal()
+            => SetElementsRects(UIAlignmentUtility.DistributeHorizontal(_selection), "Distribute NexUI Elements Horizontally");
+
+        public void DistributeSelectionVertical()
+            => SetElementsRects(UIAlignmentUtility.DistributeVertical(_selection), "Distribute NexUI Elements Vertically");
+
+        public void BringSelectionForward()
+        {
+            if (_selection.Count == 0) return;
+            RecordMetadata("Bring Forward");
+            UIElementLayerOrder.BringForward(Metadata, _selection);
+            MarkMetadataDirty();
+        }
+
+        public void SendSelectionBackward()
+        {
+            if (_selection.Count == 0) return;
+            RecordMetadata("Send Backward");
+            UIElementLayerOrder.SendBackward(Metadata, _selection);
+            MarkMetadataDirty();
+        }
+
+        public void BringSelectionToFront()
+        {
+            if (_selection.Count == 0) return;
+            RecordMetadata("Bring To Front");
+            UIElementLayerOrder.BringToFront(Metadata, _selection);
+            MarkMetadataDirty();
+        }
+
+        public void SendSelectionToBack()
+        {
+            if (_selection.Count == 0) return;
+            RecordMetadata("Send To Back");
+            UIElementLayerOrder.SendToBack(Metadata, _selection);
+            MarkMetadataDirty();
+        }
+
+        /// <summary>
+        /// Wraps the current selection in a new Panel element sized to their bounding box and
+        /// reassigns their <c>parentId</c> to it. Rects stay in the same absolute canvas space
+        /// the viewport already renders in (element rects are not parent-relative), so no
+        /// coordinate conversion is needed - grouping only changes the saved hierarchy.
+        /// </summary>
+        public DesignerElementMetadata GroupSelection()
+        {
+            if (Metadata == null || _selection.Count < 2) return null;
+            RecordMetadata("Group NexUI Elements");
+
+            var bounds = UIAlignmentUtility.GetBounds(_selection);
+            var group = new DesignerElementMetadata
+            {
+                elementId = UniqueElementId("group" + _groupCounter++),
+                displayName = "Group",
+                elementType = "Panel",
+                rect = bounds,
+                tint = new Color(0f, 0f, 0f, 0f)
+            };
+
+            var members = new List<DesignerElementMetadata>(_selection);
+            var insertIndex = int.MaxValue;
+            foreach (var member in members)
+                insertIndex = Mathf.Min(insertIndex, Metadata.elements.IndexOf(member));
+            if (insertIndex == int.MaxValue || insertIndex > Metadata.elements.Count)
+                insertIndex = Metadata.elements.Count;
+
+            Metadata.elements.Insert(insertIndex, group);
+            foreach (var member in members)
+                member.parentId = group.elementId;
+
+            MarkMetadataDirty();
+            SelectMetadata(group);
+            return group;
+        }
+
+        /// <summary>Removes the group's parentId from its direct children and deletes the group wrapper.</summary>
+        public void UngroupSelection()
+        {
+            if (Metadata == null || SelectedMetadata == null) return;
+            var group = SelectedMetadata;
+            var children = Metadata.elements.FindAll(e => e != null && e.parentId == group.elementId);
+            if (children.Count == 0) return;
+
+            RecordMetadata("Ungroup NexUI Elements");
+            foreach (var child in children)
+                child.parentId = group.parentId;
+            Metadata.elements.Remove(group);
+            MarkMetadataDirty();
+            SelectMany(children);
         }
 
         public void ResizeSelected(Vector2 delta)
@@ -442,10 +731,14 @@ namespace emiteat.NexUI.Designer.Editor
         }
 
         public void UpdateSelectedElement(Action<DesignerElementMetadata> change, string undoName)
+            => UpdateElement(SelectedMetadata, change, undoName);
+
+        /// <summary>Element-targeted counterpart to <see cref="UpdateSelectedElement"/> (see <see cref="UpdateElementRect"/>).</summary>
+        public void UpdateElement(DesignerElementMetadata element, Action<DesignerElementMetadata> change, string undoName)
         {
-            if (SelectedMetadata == null || change == null) return;
+            if (element == null || change == null) return;
             RecordMetadata(undoName);
-            change(SelectedMetadata);
+            change(element);
             MarkMetadataDirty();
         }
 

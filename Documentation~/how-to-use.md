@@ -86,6 +86,66 @@ Tools/NexUI/Designer/Language/English
 
 에디터 UI는 디자이너 로컬라이제이션 테이블을 사용합니다. 누락된 문자열은 창을 깨뜨리지 않고 키 또는 기본 문자열로 표시됩니다.
 
+## 다중 선택 & 정렬 (Figma/Photoshop 스타일)
+
+뷰포트가 이제 단일 선택뿐 아니라 다중 선택, 드래그 박스 선택, 우클릭 메뉴, 정렬/분배, 레이어 순서 변경을 지원합니다.
+
+### 선택하기
+
+- 빈 캔버스에서 드래그하면 사각형 영역과 겹치는 요소가 모두 선택됩니다.
+- `Shift` + 클릭/드래그: 기존 선택에 추가
+- `Ctrl` + 클릭/드래그: 선택 토글
+- 계층(Hierarchy) 패널도 다중 선택을 지원하며 캔버스 선택과 양방향으로 동기화됩니다.
+
+### 그룹 이동
+
+- 다중 선택된 요소 중 하나를 드래그하면 선택된 요소 전체가 함께 이동합니다.
+- 드래그 중 `Shift`를 누르면 이동량이 더 큰 축으로 고정됩니다(축 고정 이동).
+- 리사이즈 핸들(우하단)을 드래그하면 그 요소 하나만 리사이즈됩니다.
+
+### 우클릭 메뉴
+
+빈 캔버스와 요소 각각에 대해 다른 메뉴가 뜹니다. 클릭 지점에 요소가 여러 개 겹쳐 있으면 메뉴 상단에 `Select Element/<이름>` 목록이 추가되어, 가장 위에 있는 요소만이 아니라 겹친 요소 중 원하는 것을 정확히 고를 수 있습니다.
+
+요소 메뉴에는 Select/Add to Selection/Select Children/Select Parent, Duplicate/Delete/Rename, Bring Forward/Send Backward/Bring To Front/Send To Back, Align, Distribute, Group/Ungroup, Create Motion Clip From Selection이 포함됩니다.
+
+### 정렬 / 분배
+
+툴바 하단 행의 정렬/분배/레이어 버튼, 또는 우클릭 메뉴의 Align/Distribute 서브메뉴, 또는 단축키로 실행합니다. 2개 이상 선택 시 선택된 요소들의 bounding box를 기준으로 정렬하고, 1개만 선택했을 때는 기존처럼 캔버스 해상도를 기준으로 정렬합니다. Distribute는 3개 이상 선택했을 때 동작합니다.
+
+### 레이어 순서
+
+`Metadata.elements` 리스트 순서가 곧 z-order이며, uGUI/UI Toolkit 저장 시 sibling 순서에도 그대로 반영됩니다. Bring Forward/Send Backward/Bring To Front/Send To Back으로 조작합니다.
+
+### 그룹
+
+2개 이상 선택 후 Group을 실행하면 선택 영역의 bounding box 크기를 가진 새 Panel 요소가 만들어지고, 선택된 요소들의 `parentId`가 그 그룹으로 재지정됩니다(좌표는 절대 캔버스 좌표를 그대로 유지). Ungroup은 그룹의 자식들을 그룹의 부모로 되돌리고 그룹 요소를 삭제합니다.
+
+### 단축키
+
+| 단축키 | 동작 |
+| --- | --- |
+| `Ctrl+A` | Select All |
+| `Esc` | Clear Selection |
+| `Delete` / `Backspace` | Delete Selection |
+| `Ctrl+D` | Duplicate Selection |
+| `Ctrl+C` / `Ctrl+V` | Copy / Paste |
+| `Ctrl+G` / `Ctrl+Shift+G` | Group / Ungroup |
+| 방향키 | 1px 이동 |
+| `Shift` + 방향키 | 10px 이동 |
+| `Ctrl+]` / `Ctrl+[` | Bring Forward / Send Backward |
+| `Ctrl+Shift+]` / `Ctrl+Shift+[` | Bring To Front / Send To Back |
+| `Alt+H` / `Alt+V` | Distribute Horizontal / Vertical |
+| `Ctrl+Z` / `Ctrl+Y` | Undo / Redo (Unity 기본 단축키를 그대로 사용) |
+
+단축키는 `UIDesignerShortcutRegistry`(`Editor/Core/Commands/UIDesignerShortcut.cs`)에 정의되어 있고 `EditorPrefs`에 저장되어 재바인딩이 가능한 구조입니다. 다만 재바인딩 UI 패널은 아직 없습니다(TODO).
+
+### 알려진 제한 (TODO)
+
+- 정렬 기준은 항상 선택 bounding box이며, Figma처럼 마지막 선택 요소(key object)를 기준으로 정렬하는 기능은 아직 없습니다.
+- `Alt` 드래그로 이동 중 복제하는 기능은 아직 없습니다.
+- 단축키 재바인딩 UI 패널은 아직 없습니다.
+
 ## 권장 작업 흐름
 
 1. `com.emiteat.nexui`에서 런타임 화면 데이터를 정의합니다.

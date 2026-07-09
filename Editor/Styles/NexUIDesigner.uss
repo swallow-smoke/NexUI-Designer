@@ -527,3 +527,23 @@
     color: #93a4b7;
     margin-top: 4px;
 }
+
+.nexui-selection-rect {
+    border-width: 1px;
+    border-color: #7dd3fc;
+    background-color: rgba(125, 211, 252, 0.12);
+}
+
+.nexui-rename-field {
+    background-color: #10151b;
+    border-width: 2px;
+    border-color: #7dd3fc;
+    border-radius: 6px;
+    padding: 2px 4px;
+}
+
+.nexui-multiselect-summary {
+    -unity-font-style: bold;
+    color: #f8fbff;
+    margin-bottom: 4px;
+}

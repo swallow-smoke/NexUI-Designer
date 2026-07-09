@@ -12,6 +12,7 @@
   "panel.screenGraph": "Screen Graph",
   "panel.motionGraph": "Motion Graph",
   "panel.viewport": "Viewport",
+  "inspector.multiSelection": "Selection",
   "inspector.layout": "Layout",
   "inspector.style": "Style",
   "inspector.binding": "Binding",

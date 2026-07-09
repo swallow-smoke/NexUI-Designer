@@ -10,6 +10,7 @@ namespace emiteat.NexUI.Designer.Editor.Panels
         {
             AddToClassList("nexui-inspector");
             Add(new Label(DesignerLocalization.T("panel.inspector")) { name = "PanelTitle" });
+            Add(new MultiSelectionInspector(context));
             Add(new ScreenDefinitionInspector(context));
             Add(new LayoutInspector(context));
             Add(new StyleInspector(context));

@@ -24,6 +24,7 @@ namespace emiteat.NexUI.Designer.Editor.Panels
             _list = new ListView();
             _list.AddToClassList("nexui-list");
             _list.style.flexGrow = 1;
+            _list.selectionType = SelectionType.Multiple;
             _list.makeItem = () =>
             {
                 var row = new Label();
@@ -42,30 +43,41 @@ namespace emiteat.NexUI.Designer.Editor.Panels
 
             context.MetadataChanged += _ => Refresh();
             context.CanvasChanged += Refresh;
-            context.MetadataSelectionChanged += SelectInList;
+            context.MultiSelectionChanged += SyncListSelection;
             Refresh();
         }
 
         private void OnSelectionChanged(IEnumerable<object> items)
         {
+            var selected = new List<DesignerElementMetadata>();
             foreach (var item in items)
-            {
-                _context.SelectMetadata(item as DesignerElementMetadata);
-                break;
-            }
+                if (item is DesignerElementMetadata element)
+                    selected.Add(element);
+
+            if (_syncingFromContext) return;
+            _context.SelectMany(selected);
         }
 
-        private void SelectInList(DesignerElementMetadata element)
+        private bool _syncingFromContext;
+
+        private void SyncListSelection(IReadOnlyList<DesignerElementMetadata> selection)
         {
-            if (element == null)
+            _syncingFromContext = true;
+            if (selection == null || selection.Count == 0)
             {
                 _list.ClearSelection();
-                return;
             }
-
-            var index = _context.Metadata != null ? _context.Metadata.elements.IndexOf(element) : -1;
-            if (index >= 0 && _list.selectedIndex != index)
-                _list.SetSelection(index);
+            else
+            {
+                var indices = new List<int>();
+                foreach (var element in selection)
+                {
+                    var index = _context.Metadata != null ? _context.Metadata.elements.IndexOf(element) : -1;
+                    if (index >= 0) indices.Add(index);
+                }
+                _list.SetSelectionWithoutNotify(indices);
+            }
+            _syncingFromContext = false;
         }
 
         private void Refresh()

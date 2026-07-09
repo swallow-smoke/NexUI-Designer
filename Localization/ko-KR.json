@@ -12,6 +12,7 @@
   "panel.screenGraph": "스크린 그래프",
   "panel.motionGraph": "모션 그래프",
   "panel.viewport": "뷰포트",
+  "inspector.multiSelection": "선택",
   "inspector.layout": "레이아웃",
   "inspector.style": "스타일",
   "inspector.binding": "바인딩",

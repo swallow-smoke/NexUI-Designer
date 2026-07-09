@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using emiteat.NexUI.Designer.Editor.Commands;
 using emiteat.NexUI.Designer.Editor.Localization;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -15,13 +16,25 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
         private readonly VisualElement _previewCanvas;
         private readonly VisualElement _gridLayer;
         private readonly VisualElement _elementLayer;
+        private readonly VisualElement _selectionRectOverlay;
         private readonly Label _emptyState;
         private readonly Dictionary<DesignerElementMetadata, VisualElement> _views = new Dictionary<DesignerElementMetadata, VisualElement>();
+
+        // Single element drag/resize state (also used as the "grabbed" element during a group move).
         private DesignerElementMetadata _dragElement;
         private Vector2 _dragStart;
         private Rect _dragStartRect;
         private Rect _pendingDragRect;
         private bool _resizing;
+        private Vector2 _lastDragDelta;
+        private Dictionary<DesignerElementMetadata, Rect> _groupDragStartRects;
+
+        // Drag-box (rectangle) selection state, in unscaled canvas coordinates.
+        private Vector2? _boxSelectStart;
+        private bool _boxSelectShift;
+        private bool _boxSelectCtrl;
+
+        private TextField _renameField;
 
         public NexUIDesignerViewport(NexUIDesignerContext context)
         {
@@ -61,17 +74,26 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
             _gridLayer.AddToClassList("nexui-grid-layer");
             _elementLayer = new VisualElement();
             _elementLayer.AddToClassList("nexui-element-layer");
+            _selectionRectOverlay = new VisualElement();
+            _selectionRectOverlay.AddToClassList("nexui-selection-rect");
+            _selectionRectOverlay.style.position = Position.Absolute;
+            _selectionRectOverlay.style.display = DisplayStyle.None;
+            _selectionRectOverlay.pickingMode = PickingMode.Ignore;
             _emptyState = new Label();
             _emptyState.AddToClassList("nexui-canvas-empty-state");
 
             _previewCanvas.Add(_gridLayer);
             _previewCanvas.Add(_elementLayer);
+            _previewCanvas.Add(_selectionRectOverlay);
             _previewCanvas.Add(_emptyState);
             _previewFrame.Add(_previewCanvas);
             Add(_previewFrame);
 
             _previewFrame.RegisterCallback<WheelEvent>(OnWheel);
             _previewCanvas.RegisterCallback<PointerDownEvent>(OnCanvasPointerDown);
+            _previewCanvas.RegisterCallback<PointerMoveEvent>(OnCanvasPointerMove);
+            _previewCanvas.RegisterCallback<PointerUpEvent>(OnCanvasPointerUp);
+            _previewCanvas.RegisterCallback<ContextClickEvent>(OnCanvasContextClick);
             RegisterCallback<KeyDownEvent>(OnKeyDown);
 
             context.PreviewRebuilt += RefreshAll;
@@ -217,27 +239,41 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
             view.style.height = Mathf.Max(16, rect.height * _context.Zoom);
         }
 
-        private void OnCanvasPointerDown(PointerDownEvent evt)
-        {
-            Focus();
-            if (evt.target == _previewCanvas || evt.target == _gridLayer || evt.target == _elementLayer)
-                _context.ClearSelection();
-        }
+        // ---- Element drag/resize (also drives group move when the dragged element is part of a
+        // multi-selection) ------------------------------------------------------------------
 
         private void BeginDrag(PointerDownEvent evt, DesignerElementMetadata element, VisualElement view)
         {
             if (evt.button != 0) return;
             Focus();
-            _context.SelectMetadata(element);
+
+            if (evt.shiftKey)
+                _context.AddToSelection(element);
+            else if (evt.ctrlKey || evt.commandKey)
+                _context.ToggleSelection(element);
+            else if (!_context.IsSelected(element))
+                _context.SelectMetadata(element);
+
+            if (!_context.IsSelected(element)) return; // e.g. a ctrl-click just removed it
             if (element.locked) return;
 
             _dragElement = element;
             _dragStart = new Vector2(evt.position.x, evt.position.y);
             _dragStartRect = element.rect;
             _pendingDragRect = element.rect;
+            _lastDragDelta = Vector2.zero;
 
             var local = view.WorldToLocal(evt.position);
             _resizing = local.x >= view.resolvedStyle.width - 16f && local.y >= view.resolvedStyle.height - 16f;
+
+            _groupDragStartRects = null;
+            if (!_resizing && _context.SelectedElements.Count > 1)
+            {
+                _groupDragStartRects = new Dictionary<DesignerElementMetadata, Rect>();
+                foreach (var selected in _context.SelectedElements)
+                    _groupDragStartRects[selected] = selected.rect;
+            }
+
             view.CapturePointer(evt.pointerId);
             evt.StopPropagation();
         }
@@ -248,20 +284,44 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
 
             var current = new Vector2(evt.position.x, evt.position.y);
             var delta = (current - _dragStart) / Mathf.Max(0.01f, _context.Zoom);
-            var rect = _dragStartRect;
+
             if (_resizing)
             {
+                var rect = _dragStartRect;
                 rect.width = Mathf.Max(24f, rect.width + delta.x);
                 rect.height = Mathf.Max(24f, rect.height + delta.y);
+                _pendingDragRect = _context.SnapRect(rect);
+                ApplyRect(view, _pendingDragRect);
             }
             else
             {
-                rect.x += delta.x;
-                rect.y += delta.y;
+                // Shift held while moving locks the drag to whichever axis has the larger delta.
+                if (evt.shiftKey)
+                {
+                    if (Mathf.Abs(delta.x) >= Mathf.Abs(delta.y)) delta.y = 0f;
+                    else delta.x = 0f;
+                }
+                _lastDragDelta = delta;
+
+                if (_groupDragStartRects != null)
+                {
+                    foreach (var pair in _groupDragStartRects)
+                    {
+                        var r = pair.Value;
+                        r.position += delta;
+                        if (_views.TryGetValue(pair.Key, out var elementView))
+                            ApplyRect(elementView, r);
+                    }
+                }
+                else
+                {
+                    var rect = _dragStartRect;
+                    rect.position += delta;
+                    _pendingDragRect = _context.SnapRect(rect);
+                    ApplyRect(view, _pendingDragRect);
+                }
             }
 
-            _pendingDragRect = _context.SnapRect(rect);
-            ApplyRect(view, _pendingDragRect);
             evt.StopPropagation();
         }
 
@@ -279,21 +339,175 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
                 view.ReleasePointer(evt.pointerId);
             _dragElement = null;
             _resizing = false;
+            _groupDragStartRects = null;
             evt.StopPropagation();
         }
 
         private void CommitDrag()
         {
             if (_dragElement != null)
-                _context.UpdateSelectedRect(_pendingDragRect);
+            {
+                if (_groupDragStartRects != null)
+                {
+                    var rects = new Dictionary<DesignerElementMetadata, Rect>();
+                    foreach (var pair in _groupDragStartRects)
+                    {
+                        var r = pair.Value;
+                        r.position += _lastDragDelta;
+                        rects[pair.Key] = r;
+                    }
+                    _context.SetElementsRects(rects, "Move NexUI Elements");
+                }
+                else
+                {
+                    _context.UpdateElementRect(_dragElement, _pendingDragRect);
+                }
+            }
+
             _dragElement = null;
             _resizing = false;
+            _groupDragStartRects = null;
+            _lastDragDelta = Vector2.zero;
         }
+
+        // ---- Drag-box (rectangle) selection --------------------------------------------------
+
+        private void OnCanvasPointerDown(PointerDownEvent evt)
+        {
+            Focus();
+            if (evt.button != 0) return;
+            if (evt.target != _previewCanvas && evt.target != _gridLayer && evt.target != _elementLayer) return;
+
+            _boxSelectStart = _previewCanvas.WorldToLocal(evt.position);
+            _boxSelectShift = evt.shiftKey;
+            _boxSelectCtrl = evt.ctrlKey || evt.commandKey;
+            _previewCanvas.CapturePointer(evt.pointerId);
+            ShowSelectionRect(_boxSelectStart.Value, _boxSelectStart.Value);
+            evt.StopPropagation();
+        }
+
+        private void OnCanvasPointerMove(PointerMoveEvent evt)
+        {
+            if (!_boxSelectStart.HasValue || !_previewCanvas.HasPointerCapture(evt.pointerId)) return;
+            ShowSelectionRect(_boxSelectStart.Value, _previewCanvas.WorldToLocal(evt.position));
+            evt.StopPropagation();
+        }
+
+        private void OnCanvasPointerUp(PointerUpEvent evt)
+        {
+            if (!_boxSelectStart.HasValue) return;
+            if (_previewCanvas.HasPointerCapture(evt.pointerId))
+                _previewCanvas.ReleasePointer(evt.pointerId);
+
+            var start = _boxSelectStart.Value;
+            var current = _previewCanvas.WorldToLocal(evt.position);
+            _boxSelectStart = null;
+            HideSelectionRect();
+
+            if (Vector2.Distance(start, current) < 3f)
+            {
+                // A plain click (no drag) on empty canvas clears the selection unless a modifier is held.
+                if (!_boxSelectShift && !_boxSelectCtrl)
+                    _context.ClearSelection();
+                evt.StopPropagation();
+                return;
+            }
+
+            var selectionRect = Rect.MinMaxRect(
+                Mathf.Min(start.x, current.x), Mathf.Min(start.y, current.y),
+                Mathf.Max(start.x, current.x), Mathf.Max(start.y, current.y));
+            var matches = HitTestRect(selectionRect);
+
+            if (_boxSelectShift)
+                foreach (var element in matches) _context.AddToSelection(element);
+            else if (_boxSelectCtrl)
+                foreach (var element in matches) _context.ToggleSelection(element);
+            else
+                _context.SelectMany(matches);
+
+            evt.StopPropagation();
+        }
+
+        private List<DesignerElementMetadata> HitTestRect(Rect selectionRectScaled)
+        {
+            var result = new List<DesignerElementMetadata>();
+            if (_context.Metadata == null) return result;
+            foreach (var element in _context.Metadata.elements)
+            {
+                if (element == null || element.hiddenInDesigner) continue;
+                var scaled = new Rect(
+                    element.rect.x * _context.Zoom, element.rect.y * _context.Zoom,
+                    element.rect.width * _context.Zoom, element.rect.height * _context.Zoom);
+                if (scaled.Overlaps(selectionRectScaled))
+                    result.Add(element);
+            }
+            return result;
+        }
+
+        private void ShowSelectionRect(Vector2 a, Vector2 b)
+        {
+            _selectionRectOverlay.style.display = DisplayStyle.Flex;
+            _selectionRectOverlay.style.left = Mathf.Min(a.x, b.x);
+            _selectionRectOverlay.style.top = Mathf.Min(a.y, b.y);
+            _selectionRectOverlay.style.width = Mathf.Abs(a.x - b.x);
+            _selectionRectOverlay.style.height = Mathf.Abs(a.y - b.y);
+        }
+
+        private void HideSelectionRect() => _selectionRectOverlay.style.display = DisplayStyle.None;
+
+        // ---- Context menu + rename ------------------------------------------------------------
+
+        private void OnCanvasContextClick(ContextClickEvent evt)
+        {
+            var local = _previewCanvas.WorldToLocal(evt.mousePosition);
+            var canvasPoint = local / Mathf.Max(0.01f, _context.Zoom);
+            NexUIDesignerContextMenu.Show(_context, canvasPoint, BeginRename);
+            evt.StopPropagation();
+        }
+
+        private void BeginRename(DesignerElementMetadata element)
+        {
+            if (element == null || !_views.TryGetValue(element, out var view)) return;
+
+            _renameField?.RemoveFromHierarchy();
+            var field = new TextField { value = string.IsNullOrEmpty(element.displayName) ? element.elementId : element.displayName };
+            field.AddToClassList("nexui-rename-field");
+            field.style.position = Position.Absolute;
+            field.style.left = view.style.left;
+            field.style.top = view.style.top;
+            field.style.width = view.style.width;
+
+            void Commit()
+            {
+                var newName = field.value;
+                field.RemoveFromHierarchy();
+                if (_renameField == field) _renameField = null;
+                if (!string.IsNullOrEmpty(newName) && newName != element.displayName)
+                    _context.UpdateElement(element, m => m.displayName = newName, "Rename NexUI Element");
+            }
+
+            field.RegisterCallback<FocusOutEvent>(_ => Commit());
+            field.RegisterCallback<KeyDownEvent>(e =>
+            {
+                if (e.keyCode == KeyCode.Return || e.keyCode == KeyCode.KeypadEnter || e.keyCode == KeyCode.Escape)
+                {
+                    Commit();
+                    e.StopPropagation();
+                }
+            });
+
+            _renameField = field;
+            _elementLayer.Add(field);
+            field.Focus();
+            field.SelectAll();
+        }
+
+        // ---- Selection styling / zoom / shortcuts ---------------------------------------------
 
         private void RefreshSelection()
         {
             foreach (var pair in _views)
-                pair.Value.EnableInClassList("is-selected", pair.Key == _context.SelectedMetadata);
+                pair.Value.EnableInClassList("is-selected", _context.IsSelected(pair.Key));
         }
 
         private void OnWheel(WheelEvent evt)
@@ -305,17 +519,13 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
 
         private void OnKeyDown(KeyDownEvent evt)
         {
-            if (evt.keyCode == KeyCode.Delete || evt.keyCode == KeyCode.Backspace)
+            if (UIDesignerCommandDispatcher.TryDispatch(evt, _context))
             {
-                _context.DeleteSelectedMetadata();
                 evt.StopPropagation();
+                return;
             }
-            else if ((evt.ctrlKey || evt.commandKey) && evt.keyCode == KeyCode.D)
-            {
-                _context.DuplicateSelectedMetadata();
-                evt.StopPropagation();
-            }
-            else if (evt.keyCode == KeyCode.F && _context.SelectedMetadata != null)
+
+            if (evt.keyCode == KeyCode.F && _context.SelectedMetadata != null)
             {
                 var r = _context.SelectedMetadata.rect;
                 _previewFrame.scrollOffset = new Vector2(
