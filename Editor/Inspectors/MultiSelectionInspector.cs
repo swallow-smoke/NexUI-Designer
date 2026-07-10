@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using emiteat.NexUI.Designer.Editor.Localization;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -20,14 +21,14 @@ namespace emiteat.NexUI.Designer.Editor.Inspectors
 
         public MultiSelectionInspector(NexUIDesignerContext context) : base(context, "inspector.multiSelection")
         {
-            _summary = new Label();
+            _summary = new Label { tooltip = DesignerLocalization.T("tooltip.multiSelection.summary") };
             _summary.AddToClassList("nexui-multiselect-summary");
             Add(_summary);
-            _position = new Label();
+            _position = new Label { tooltip = DesignerLocalization.T("tooltip.multiSelection.position") };
             Add(_position);
-            _size = new Label();
+            _size = new Label { tooltip = DesignerLocalization.T("tooltip.multiSelection.size") };
             Add(_size);
-            _layer = new Label();
+            _layer = new Label { tooltip = DesignerLocalization.T("tooltip.multiSelection.layer") };
             Add(_layer);
 
             context.MultiSelectionChanged += _ => Refresh();

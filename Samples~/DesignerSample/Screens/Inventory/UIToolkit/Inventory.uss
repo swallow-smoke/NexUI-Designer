@@ -1,0 +1,89 @@
+.nexui-element#panel, #panel {
+    position: absolute;
+    left: 460px;
+    top: 90px;
+    width: 1000px;
+    height: 900px;
+    background-color: rgba(20, 25, 35, 0.96);
+}
+
+.nexui-element#title, #title {
+    position: absolute;
+    left: 500px;
+    top: 130px;
+    width: 400px;
+    height: 60px;
+    background-color: rgba(33, 40, 56, 0.0);
+}
+
+.nexui-element#grid, #grid {
+    position: absolute;
+    left: 500px;
+    top: 220px;
+    width: 920px;
+    height: 400px;
+    background-color: rgba(33, 40, 56, 0.0);
+}
+
+.nexui-element#slot1, #slot1 {
+    position: absolute;
+    left: 500px;
+    top: 220px;
+    width: 180px;
+    height: 180px;
+    background-color: rgba(51, 61, 81, 1.0);
+}
+
+.nexui-element#slot2, #slot2 {
+    position: absolute;
+    left: 700px;
+    top: 220px;
+    width: 180px;
+    height: 180px;
+    background-color: rgba(51, 61, 81, 1.0);
+}
+
+.nexui-element#slot3, #slot3 {
+    position: absolute;
+    left: 900px;
+    top: 220px;
+    width: 180px;
+    height: 180px;
+    background-color: rgba(51, 61, 81, 1.0);
+}
+
+.nexui-element#slot4, #slot4 {
+    position: absolute;
+    left: 500px;
+    top: 420px;
+    width: 180px;
+    height: 180px;
+    background-color: rgba(51, 61, 81, 1.0);
+}
+
+.nexui-element#slot5, #slot5 {
+    position: absolute;
+    left: 700px;
+    top: 420px;
+    width: 180px;
+    height: 180px;
+    background-color: rgba(51, 61, 81, 1.0);
+}
+
+.nexui-element#slot6, #slot6 {
+    position: absolute;
+    left: 900px;
+    top: 420px;
+    width: 180px;
+    height: 180px;
+    background-color: rgba(51, 61, 81, 1.0);
+}
+
+.nexui-element#closeButton, #closeButton {
+    position: absolute;
+    left: 500px;
+    top: 900px;
+    width: 200px;
+    height: 64px;
+    background-color: rgba(40, 114, 229, 1.0);
+}

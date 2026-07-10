@@ -1,0 +1,44 @@
+.nexui-element#panel, #panel {
+    position: absolute;
+    left: 710px;
+    top: 380px;
+    width: 500px;
+    height: 320px;
+    background-color: rgba(20, 25, 35, 0.96);
+}
+
+.nexui-element#title, #title {
+    position: absolute;
+    left: 750px;
+    top: 420px;
+    width: 420px;
+    height: 50px;
+    background-color: rgba(33, 40, 56, 0.0);
+}
+
+.nexui-element#message, #message {
+    position: absolute;
+    left: 750px;
+    top: 480px;
+    width: 420px;
+    height: 80px;
+    background-color: rgba(33, 40, 56, 0.0);
+}
+
+.nexui-element#confirmButton, #confirmButton {
+    position: absolute;
+    left: 750px;
+    top: 620px;
+    width: 190px;
+    height: 56px;
+    background-color: rgba(40, 114, 229, 1.0);
+}
+
+.nexui-element#cancelButton, #cancelButton {
+    position: absolute;
+    left: 970px;
+    top: 620px;
+    width: 190px;
+    height: 56px;
+    background-color: rgba(51, 61, 81, 1.0);
+}

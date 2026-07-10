@@ -15,12 +15,12 @@ namespace emiteat.NexUI.Designer.Editor.Panels
             AddToClassList("nexui-panel");
             AddToClassList("nexui-bottom-card");
             style.flexGrow = 1;
-            Add(new Label(DesignerLocalization.T("panel.command")) { name = "PanelTitle" });
+            Add(new Label(DesignerLocalization.T("panel.command")) { name = "PanelTitle", tooltip = DesignerLocalization.T("tooltip.command.title") });
             var row = new VisualElement();
             row.AddToClassList("nexui-inline-row");
-            _command = new TextField("Command");
+            _command = new TextField("Command") { tooltip = DesignerLocalization.T("tooltip.command.field") };
             row.Add(_command);
-            row.Add(new Button(Run) { text = "Run" });
+            row.Add(new Button(Run) { text = "Run", tooltip = DesignerLocalization.T("tooltip.command.run") });
             _result = new Label();
             _result.AddToClassList("nexui-bottom-text");
             Add(_result);

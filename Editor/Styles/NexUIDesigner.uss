@@ -1,6 +1,13 @@
+/* =====================================================================================
+   NexUI Designer — visual theme
+   Palette: cool near-black neutrals + violet brand accent + teal selection accent.
+   Spacing follows the 8pt/4pt scale (see NexUIProjectAssetCreator's space.* theme tokens).
+   Keep DesignerColors.cs (IMGUI mirror for the Advanced tool windows) in sync by eye.
+   ===================================================================================== */
+
 .nexui-designer-root {
-    background-color: #171a1f;
-    color: #d9e2ec;
+    background-color: #121317;
+    color: #d7dbe2;
     min-height: 0;
 }
 
@@ -10,11 +17,11 @@
 .nexui-designer-root TextField,
 .nexui-designer-root ObjectField,
 .nexui-designer-root PopupField {
-    color: #d9e2ec;
+    color: #d7dbe2;
 }
 
 .nexui-designer-root TextElement {
-    color: #d9e2ec;
+    color: #d7dbe2;
 }
 
 .nexui-designer-root .unity-label,
@@ -22,19 +29,24 @@
 .nexui-designer-root .unity-text-element,
 .nexui-designer-root .unity-base-field__label,
 .nexui-designer-root .unity-base-field__input {
-    color: #d9e2ec;
+    color: #d7dbe2;
 }
 
+/* ---------------------------------------------------------------------------- toolbar */
+
 .nexui-toolbar {
-    height: 68px;
+    /* No fixed height: the toolbar now has 3 rows (top/bottom/selection) - a hardcoded height
+       let the selection row (Align/Distribute/Layer) spill past the toolbar's box and overlap
+       the panels below it. flex-shrink: 0 keeps it from being squeezed if the window is short. */
     flex-direction: column;
+    flex-shrink: 0;
     padding-left: 8px;
     padding-right: 8px;
     padding-top: 4px;
-    padding-bottom: 4px;
-    border-bottom-width: 1px;
-    border-bottom-color: #28313c;
-    background-color: #1f2630;
+    padding-bottom: 6px;
+    border-bottom-width: 2px;
+    border-bottom-color: #6d5efc;
+    background-color: #17181d;
 }
 
 .nexui-toolbar-row {
@@ -50,39 +62,45 @@
 .nexui-toolbar-brand {
     width: 72px;
     min-width: 72px;
-    margin-right: 6px;
+    margin-right: 8px;
 }
 
 #BrandTitle {
-    font-size: 12px;
+    font-size: 13px;
     -unity-font-style: bold;
-    color: #f3f7fb;
+    color: #f5f6f8;
+    letter-spacing: 0.5px;
 }
 
 #BrandSubtitle {
     font-size: 9px;
-    color: #7dd3fc;
+    color: #a78bfa;
     margin-top: -2px;
 }
 
 .nexui-screen-field {
     width: 210px;
-    margin-right: 5px;
+    margin-right: 6px;
 }
 
 .nexui-metadata-field {
     width: 230px;
-    margin-right: 5px;
+    margin-right: 6px;
 }
 
 .nexui-resolution-field {
     width: 124px;
-    margin-right: 5px;
+    margin-right: 6px;
 }
 
 .nexui-compact-popup {
     width: 104px;
-    margin-right: 5px;
+    margin-right: 6px;
+}
+
+.nexui-compact-field {
+    flex-grow: 1;
+    margin-right: 6px;
 }
 
 .nexui-toolbar-toggle {
@@ -97,34 +115,54 @@
     padding-bottom: 4px;
     margin-left: 4px;
     margin-right: 4px;
-    border-radius: 6px;
+    border-radius: 999px;
     font-size: 10px;
+    -unity-font-style: bold;
     min-width: 72px;
     max-width: 160px;
+    -unity-text-align: middle-center;
 }
 
 .nexui-toolbar-status.is-muted {
-    background-color: #2a3038;
-    color: #93a4b7;
+    background-color: #23262c;
+    color: #9aa1ab;
 }
 
 .nexui-toolbar-status.is-ok {
-    background-color: #123626;
-    color: #8df2bd;
+    background-color: #0f2b21;
+    color: #4ade80;
 }
 
 .nexui-toolbar-status.is-warning {
-    background-color: #3b2b12;
-    color: #ffd27a;
+    background-color: #2e2410;
+    color: #fbbf24;
+}
+
+.nexui-toolbar-divider {
+    width: 1px;
+    margin-left: 6px;
+    margin-right: 6px;
+    margin-top: 2px;
+    margin-bottom: 2px;
+    background-color: #2a2e35;
+}
+
+.nexui-toolbar-group-label {
+    font-size: 9px;
+    color: #6a707a;
+    -unity-text-align: middle-left;
+    margin-right: 4px;
 }
 
 .nexui-toolbar-button {
     height: 22px;
     margin-left: 3px;
-    padding-left: 7px;
-    padding-right: 7px;
+    padding-left: 8px;
+    padding-right: 8px;
     border-radius: 6px;
     font-size: 10px;
+    transition-property: background-color;
+    transition-duration: 0.1s;
 }
 
 .nexui-toolbar .unity-base-field {
@@ -136,118 +174,173 @@
     min-width: 44px;
     width: 44px;
     font-size: 10px;
+    color: #9aa1ab;
 }
 
 .nexui-toolbar .unity-base-field__input {
     min-width: 42px;
 }
 
+/* ---------------------------------------------------------------------------- buttons */
+
 .nexui-button-primary {
-    background-color: #2563eb;
+    background-color: #6d5efc;
     color: #ffffff;
+    border-width: 0;
+    border-radius: 6px;
 }
 
-.nexui-button-primary TextElement {
-    color: #ffffff;
+.nexui-button-primary:hover {
+    background-color: #7c6dff;
 }
 
+.nexui-button-primary:active {
+    background-color: #5a4de0;
+}
+
+.nexui-button-primary TextElement,
 .nexui-button-primary .unity-button__text {
     color: #ffffff;
 }
 
 .nexui-button-secondary {
-    background-color: #2d3642;
-    color: #d9e2ec;
+    background-color: #262a31;
+    color: #d7dbe2;
+    border-width: 1px;
+    border-color: #33383f;
+    border-radius: 6px;
 }
 
-.nexui-button-secondary TextElement {
-    color: #d9e2ec;
+.nexui-button-secondary:hover {
+    background-color: #2e333b;
+    border-color: #6d5efc;
 }
 
+.nexui-button-secondary:active {
+    background-color: #20242a;
+}
+
+.nexui-button-secondary TextElement,
 .nexui-button-secondary .unity-button__text {
-    color: #d9e2ec;
+    color: #d7dbe2;
 }
+
+/* ---------------------------------------------------------------------------- layout shell */
 
 .nexui-designer-body {
-    padding: 6px;
+    padding: 8px;
     min-height: 0;
 }
 
 .nexui-side-panel {
-    background-color: #202731;
-    border-radius: 8px;
+    background-color: #1a1d22;
+    border-radius: 10px;
     border-width: 1px;
-    border-color: #2d3744;
-    padding: 6px;
+    border-color: #2a2e35;
+    padding: 8px;
     min-height: 0;
 }
 
+/* Widths/heights below are floors only - the panels sit inside TwoPaneSplitView panes now
+   (see NexUIDesignerWindow.Rebuild), so the user drags the actual size; these just stop a
+   panel from being dragged down to something unusable. */
 .nexui-left-panel {
-    margin-right: 6px;
-    min-width: 150px;
-    max-width: 180px;
+    margin-right: 4px;
+    min-width: 120px;
 }
 
 .nexui-right-panel {
-    margin-left: 6px;
-    min-width: 220px;
-    max-width: 260px;
+    margin-left: 4px;
+    min-width: 180px;
 }
 
 .nexui-center-panel {
-    min-width: 220px;
+    min-width: 200px;
     min-height: 0;
 }
 
 .nexui-bottom-panel {
-    height: 64px;
-    min-height: 64px;
-    max-height: 64px;
-    padding-left: 6px;
-    padding-right: 6px;
+    min-height: 40px;
+    padding-left: 8px;
+    padding-right: 8px;
     padding-top: 4px;
     padding-bottom: 4px;
     overflow: hidden;
 }
 
+/* TwoPaneSplitView drag handles, recolored to match the theme (default Unity styling is a
+   thin near-invisible line otherwise). */
+.unity-two-pane-split-view__dragline-anchor {
+    background-color: transparent;
+}
+
+.unity-two-pane-split-view__dragline {
+    background-color: #2a2e35;
+}
+
+.unity-two-pane-split-view__dragline-anchor:hover .unity-two-pane-split-view__dragline {
+    background-color: #6d5efc;
+}
+
 .nexui-panel {
-    background-color: #202731;
-    border-radius: 8px;
+    background-color: #1a1d22;
+    border-radius: 10px;
     border-width: 1px;
-    border-color: #2d3744;
-    padding: 6px;
-    margin-bottom: 6px;
+    border-color: #2a2e35;
+    padding: 8px;
+    margin-bottom: 8px;
 }
 
 #PanelTitle {
     font-size: 12px;
     -unity-font-style: bold;
-    color: #f3f7fb;
+    color: #f5f6f8;
     margin-bottom: 6px;
+    padding-bottom: 4px;
+    border-bottom-width: 1px;
+    border-bottom-color: #262a31;
 }
 
 #PanelSubtitle {
     font-size: 11px;
-    color: #92a4b8;
+    color: #9aa1ab;
     margin-bottom: 8px;
 }
 
 #EmptyStateText {
-    color: #6f8195;
+    color: #6a707a;
     font-size: 11px;
 }
 
+/* ---------------------------------------------------------------------------- lists / hierarchy */
+
 .nexui-list {
-    background-color: #1a2028;
+    background-color: #131418;
     border-radius: 6px;
     border-width: 1px;
-    border-color: #2c3541;
+    border-color: #262a31;
     min-height: 70px;
+}
+
+.nexui-list .unity-collection-view__item,
+.nexui-list .unity-list-view__item {
+    border-radius: 4px;
+}
+
+.nexui-list .unity-collection-view__item:hover,
+.nexui-list .unity-list-view__item:hover {
+    background-color: #1e222a;
+}
+
+.nexui-list .unity-collection-view__item--selected,
+.nexui-list .unity-list-view__item--selected {
+    background-color: #362a66;
 }
 
 .nexui-hierarchy-row {
     height: 22px;
-    color: #dce7f3;
+    color: #dfe3ea;
+    -unity-text-align: middle-left;
 }
 
 .nexui-hierarchy-panel {
@@ -257,15 +350,85 @@
 
 .nexui-empty-note {
     white-space: normal;
-    color: #7f8fa3;
+    color: #767c87;
     font-size: 11px;
     margin-bottom: 8px;
+}
+
+/* ---------------------------------------------------------------------------- palette */
+
+.nexui-palette {
+    flex-shrink: 0;
 }
 
 .nexui-palette-grid,
 .nexui-align-grid {
     flex-direction: column;
     margin-bottom: 8px;
+}
+
+.nexui-palette-category {
+    margin-bottom: 6px;
+}
+
+.nexui-palette-category > .unity-fold-out__toggle .unity-toggle__input {
+    margin-right: 4px;
+}
+
+.nexui-palette-category Toggle {
+    -unity-font-style: bold;
+    font-size: 10px;
+    color: #9aa1ab;
+}
+
+.nexui-palette-category > .unity-fold-out__content {
+    margin-left: 2px;
+    padding-left: 6px;
+    border-left-width: 1px;
+    border-left-color: #262a31;
+}
+
+.nexui-palette-category .nexui-palette-button {
+    margin-bottom: 3px;
+    margin-right: 0;
+}
+
+/* Vertical Align/Distribute/Layer strip, docked beside the Palette (see
+   NexUIDesignerAlignPanel) instead of a third toolbar row. */
+.nexui-align-panel {
+    width: 60px;
+    min-width: 60px;
+    flex-shrink: 0;
+    margin-left: 6px;
+}
+
+.nexui-align-panel-button {
+    height: 22px;
+    margin-bottom: 4px;
+    border-radius: 6px;
+    border-width: 1px;
+    border-color: #2a2e35;
+    background-color: #1e2128;
+    color: #d7dbe2;
+    font-size: 10px;
+    transition-property: background-color, border-color;
+    transition-duration: 0.1s;
+}
+
+.nexui-align-panel-button:hover {
+    background-color: #262a31;
+    border-color: #6d5efc;
+}
+
+.nexui-align-panel-button:active {
+    background-color: #362a66;
+}
+
+.nexui-align-panel-divider {
+    height: 1px;
+    margin-top: 4px;
+    margin-bottom: 6px;
+    background-color: #262a31;
 }
 
 .nexui-palette-row {
@@ -280,14 +443,31 @@
     height: 22px;
     margin-right: 4px;
     border-radius: 6px;
-    background-color: #263140;
-    color: #d9e2ec;
+    border-width: 1px;
+    border-color: #2a2e35;
+    background-color: #1e2128;
+    color: #d7dbe2;
     font-size: 10px;
+    transition-property: background-color, border-color;
+    transition-duration: 0.1s;
+}
+
+.nexui-palette-button:hover,
+.nexui-align-button:hover {
+    background-color: #262a31;
+    border-color: #6d5efc;
+}
+
+.nexui-palette-button:active,
+.nexui-align-button:active {
+    background-color: #362a66;
 }
 
 .nexui-align-button {
     font-size: 10px;
 }
+
+/* ---------------------------------------------------------------------------- inspector */
 
 .nexui-inspector {
     flex-grow: 1;
@@ -303,6 +483,7 @@
     width: auto;
     min-width: 0;
     font-size: 10px;
+    color: #9aa1ab;
     margin-bottom: 1px;
 }
 
@@ -310,43 +491,83 @@
     min-width: 0;
 }
 
+.nexui-inspector Button:hover {
+    background-color: #2e333b;
+}
+
 .nexui-inspector-section {
-    background-color: #1b222b;
-    border-radius: 7px;
+    background-color: #15171b;
+    border-radius: 8px;
     border-width: 1px;
-    border-color: #2a3440;
-    padding: 6px;
-    margin-bottom: 6px;
+    border-color: #262a31;
+    padding: 8px;
+    margin-bottom: 8px;
 }
 
 #SectionTitle {
     -unity-font-style: bold;
-    color: #b7d7ff;
+    color: #b8a9ff;
     margin-bottom: 6px;
+    font-size: 11px;
 }
+
+/* ---------------------------------------------------------------------------- validation */
 
 .nexui-validation-panel {
     min-height: 78px;
+    border-left-width: 3px;
+    border-left-color: #2a2e35;
 }
 
 .nexui-validation-panel.is-valid {
-    border-color: #1f8f58;
+    border-left-color: #22c55e;
 }
 
 .nexui-validation-panel.has-issues {
-    border-color: #b7791f;
+    border-left-color: #f59e0b;
+}
+
+.nexui-validation-summary {
+    font-size: 11px;
+    -unity-font-style: bold;
+    margin-bottom: 4px;
+    color: #d7dbe2;
 }
 
 .nexui-validation-content {
     white-space: normal;
-    color: #c8d5e3;
+    color: #c3c9d3;
 }
+
+.nexui-validation-item {
+    white-space: normal;
+    color: #c3c9d3;
+    font-size: 10px;
+    padding-top: 2px;
+    padding-bottom: 2px;
+    border-bottom-width: 1px;
+    border-bottom-color: #21242a;
+}
+
+/* ---------------------------------------------------------------------------- history panel */
+
+.nexui-history-panel {
+    border-left-width: 3px;
+    border-left-color: #6d5efc;
+    max-height: 220px;
+}
+
+.nexui-history-panel .nexui-list {
+    min-height: 90px;
+}
+
+/* ---------------------------------------------------------------------------- bottom dock */
 
 .nexui-bottom-card {
     height: 56px;
     min-height: 56px;
     max-height: 56px;
-    margin-right: 6px;
+    margin-right: 8px;
     margin-bottom: 0;
     min-width: 0;
     padding-top: 4px;
@@ -364,7 +585,7 @@
 }
 
 .nexui-bottom-text {
-    color: #c8d5e3;
+    color: #c3c9d3;
     white-space: nowrap;
     font-size: 10px;
     margin-left: 6px;
@@ -373,18 +594,22 @@
 .nexui-bottom-card #PanelTitle {
     font-size: 10px;
     margin-bottom: 0;
+    border-bottom-width: 0;
+    padding-bottom: 0;
 }
 
 .nexui-bottom-card #PanelSubtitle {
     display: none;
 }
 
+/* ---------------------------------------------------------------------------- viewport / canvas */
+
 .nexui-viewport {
-    background-color: #11151b;
-    border-radius: 8px;
+    background-color: #0e0f12;
+    border-radius: 10px;
     border-width: 1px;
-    border-color: #2d3744;
-    padding: 10px;
+    border-color: #2a2e35;
+    padding: 12px;
     min-height: 0;
 }
 
@@ -396,12 +621,12 @@
 .nexui-viewport-title {
     font-size: 15px;
     -unity-font-style: bold;
-    color: #f8fbff;
+    color: #f5f6f8;
 }
 
 .nexui-viewport-hint {
     font-size: 10px;
-    color: #8ca0b6;
+    color: #8a909b;
     margin-top: 2px;
     margin-bottom: 10px;
 }
@@ -411,32 +636,34 @@
     padding-right: 10px;
     padding-top: 5px;
     padding-bottom: 5px;
-    border-radius: 6px;
-    background-color: #1e2937;
-    color: #b7d7ff;
+    border-radius: 999px;
+    background-color: #1e2128;
+    color: #b8a9ff;
+    font-size: 10px;
+    -unity-font-style: bold;
 }
 
 .nexui-preview-frame {
     flex-grow: 1;
     min-height: 0;
-    background-color: #0e1217;
+    background-color: #0a0b0d;
     border-radius: 8px;
     border-width: 1px;
-    border-color: #222c38;
+    border-color: #202329;
     padding: 12px;
 }
 
 .nexui-preview-canvas {
-    background-color: #202936;
+    background-color: #1c1f26;
     border-width: 1px;
-    border-color: #3b82f6;
+    border-color: #6d5efc;
     border-radius: 8px;
     overflow: hidden;
 }
 
 .nexui-preview-canvas.is-empty {
-    border-color: #3a4654;
-    background-color: #1a2028;
+    border-color: #33383f;
+    background-color: #16181d;
 }
 
 .nexui-grid-layer,
@@ -449,46 +676,203 @@
 }
 
 .nexui-grid-layer {
-    background-color: #18202b;
+    background-color: #17191f;
 }
 
 .nexui-grid-line,
 .nexui-grid-line-major {
     position: absolute;
-    background-color: #2c3745;
+    background-color: #24272e;
 }
 
 .nexui-grid-line-major {
-    background-color: #3c4a5c;
+    background-color: #33383f;
 }
 
 .nexui-canvas-empty-state {
     position: absolute;
     left: 32px;
     top: 32px;
-    color: #93a4b7;
+    color: #8a909b;
     white-space: normal;
 }
 
 .nexui-design-element {
     border-width: 1px;
-    border-radius: 8px;
+    border-color: #33383f;
     padding: 8px;
     overflow: hidden;
 }
 
+/* Designer-canvas preview shape (see DesignerElementShape / StyleInspector's Shape field).
+   Pill uses a fixed radius far larger than any element's half-height so the renderer clamps
+   it down to a true stadium shape regardless of size; Circle uses 50% so it becomes a true
+   circle on a square rect and an ellipse otherwise. */
+.shape-rectangle {
+    border-radius: 0;
+}
+
+.shape-rounded {
+    border-radius: 8px;
+}
+
+.shape-pill {
+    border-radius: 999px;
+}
+
+.shape-circle {
+    border-radius: 50%;
+}
+
+/* Type-specific internal preview structure (see NexUIDesignerViewport.AddTypeSpecificPreview) -
+   ProgressBar/StatBar/RadialFill/Spinner/ChoiceList/List/Grid/Skeleton get an actual mock of
+   their internal parts instead of a bare tinted box. */
+.nexui-preview-fill-track {
+    position: absolute;
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+    height: 10px;
+    background-color: rgba(0, 0, 0, 0.35);
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+/* Vertical fill (BottomToTop/TopToBottom): a thin tall track on the right edge instead of a
+   wide short one along the bottom. */
+.nexui-preview-fill-track.is-vertical {
+    left: auto;
+    right: 8px;
+    top: 22px;
+    bottom: 8px;
+    width: 10px;
+    height: auto;
+}
+
+.nexui-preview-fill-bar {
+    border-radius: 5px;
+}
+
+.nexui-preview-icon {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    left: 50%;
+    top: 50%;
+    margin-left: -12px;
+    margin-top: -12px;
+}
+
+.nexui-preview-radial {
+    position: absolute;
+    left: 8px;
+    right: 8px;
+    top: 22px;
+    bottom: 8px;
+}
+
+.nexui-preview-choice-list {
+    position: absolute;
+    left: 8px;
+    right: 8px;
+    top: 22px;
+    bottom: 8px;
+    flex-direction: column;
+}
+
+.nexui-preview-choice-row {
+    flex-direction: row;
+    align-items: center;
+    height: 18px;
+    margin-bottom: 4px;
+}
+
+.nexui-preview-choice-box {
+    width: 14px;
+    height: 14px;
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.4);
+    border-radius: 3px;
+    background-color: rgba(0, 0, 0, 0.25);
+}
+
+.nexui-preview-choice-box.is-checked {
+    background-color: #43e6c2;
+    border-color: #43e6c2;
+}
+
+.nexui-preview-list {
+    position: absolute;
+    left: 8px;
+    right: 8px;
+    top: 22px;
+    bottom: 8px;
+    flex-direction: column;
+}
+
+.nexui-preview-list-row {
+    flex-grow: 1;
+    background-color: rgba(255, 255, 255, 0.08);
+    border-radius: 4px;
+    margin-bottom: 4px;
+}
+
+.nexui-preview-grid {
+    position: absolute;
+    left: 8px;
+    right: 8px;
+    top: 22px;
+    bottom: 8px;
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+.nexui-preview-grid-cell {
+    width: 30%;
+    height: 45%;
+    margin: 1.5%;
+    background-color: rgba(255, 255, 255, 0.08);
+    border-radius: 4px;
+}
+
+.nexui-preview-skeleton {
+    position: absolute;
+    left: 8px;
+    right: 8px;
+    top: 22px;
+    bottom: 8px;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.nexui-preview-skeleton-bar {
+    height: 10px;
+    margin-bottom: 6px;
+    border-radius: 5px;
+    background-color: rgba(255, 255, 255, 0.25);
+}
+
 .nexui-design-element.is-selected {
     border-width: 2px;
-    border-color: #7dd3fc;
+    border-color: #43e6c2;
 }
 
 .nexui-design-element.is-locked {
     opacity: 0.68;
 }
 
+/* C1: visible style-apply feedback - briefly highlights an element after any property change
+   (see NexUIDesignerContext.ElementChanged / NexUIDesignerViewport.FlashElement). */
+.nexui-element-flash {
+    border-width: 2px;
+    border-color: #facc15;
+    transition-property: border-color;
+    transition-duration: 0.3s;
+}
+
 .nexui-element-name {
     -unity-font-style: bold;
-    color: #f8fbff;
+    color: #f5f6f8;
     font-size: 11px;
 }
 
@@ -502,7 +886,7 @@
     position: absolute;
     left: 8px;
     bottom: 6px;
-    color: #8ca0b6;
+    color: #8a909b;
     font-size: 10px;
 }
 
@@ -514,36 +898,36 @@
     height: 11px;
     border-right-width: 2px;
     border-bottom-width: 2px;
-    border-color: #7dd3fc;
+    border-color: #43e6c2;
 }
 
 .nexui-canvas-title {
     font-size: 20px;
     -unity-font-style: bold;
-    color: #e5f0ff;
+    color: #f5f6f8;
 }
 
 .nexui-canvas-meta {
-    color: #93a4b7;
+    color: #8a909b;
     margin-top: 4px;
 }
 
 .nexui-selection-rect {
     border-width: 1px;
-    border-color: #7dd3fc;
-    background-color: rgba(125, 211, 252, 0.12);
+    border-color: #43e6c2;
+    background-color: rgba(67, 230, 194, 0.12);
 }
 
 .nexui-rename-field {
-    background-color: #10151b;
+    background-color: #0e0f12;
     border-width: 2px;
-    border-color: #7dd3fc;
+    border-color: #43e6c2;
     border-radius: 6px;
     padding: 2px 4px;
 }
 
 .nexui-multiselect-summary {
     -unity-font-style: bold;
-    color: #f8fbff;
+    color: #f5f6f8;
     margin-bottom: 4px;
 }

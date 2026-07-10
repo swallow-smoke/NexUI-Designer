@@ -1,0 +1,8 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd">
+    <Style src="ConfirmDialog.uss" />
+    <ui:VisualElement name="panel" class="nexui-modal" />
+    <ui:Label name="title" class="nexui-label" text="Confirm" />
+    <ui:Label name="message" class="nexui-label" text="Are you sure?" />
+    <ui:Button name="confirmButton" class="nexui-button" text="Confirm" />
+    <ui:Button name="cancelButton" class="nexui-button" text="Cancel" />
+</ui:UXML>

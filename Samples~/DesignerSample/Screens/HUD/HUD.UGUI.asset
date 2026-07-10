@@ -1,0 +1,51 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 153797a47fbb3d646a9afb5fd5349e83, type: 3}
+  m_Name: HUD.UGUI
+  m_EditorClassIdentifier:
+  identity:
+    screenId: HUD
+    priority: 0
+  backendAsset:
+    backend: 1
+    asset: {fileID: 100002, guid: 1ee5fc3012147e8acc2916f63941bee8, type: 3}
+    styleAssets: []
+  layer:
+    layerType: 20
+    openPolicy: 0
+  motion:
+    openMotion: {fileID: 0}
+    closeMotion: {fileID: 0}
+  policy:
+    blockInputBehind: 0
+    pauseGameBehind: 0
+    closeOnBack: 0
+    cursorPolicy: 1
+    timePolicy: 0
+    focusPolicy: 0
+    conflictPolicy: 0
+    lifetimePolicy: 0
+  focus:
+    defaultFocusElementId: 
+    trapFocus: 0
+    restoreFocusOnClose: 1
+  relations:
+    opensWith: []
+    closes: []
+    parentScreenId:
+  validation:
+    requireDefaultFocusForModal: 1
+    warnOnMissingMotion: 0
+    treatWarningsAsErrors: 0
+  loadStrategy: 0
+  variants: []
+  responsiveRules: []

@@ -1,4 +1,5 @@
 using emiteat.NexUI.Designer.Editor.Graph;
+using emiteat.NexUI.Designer.Editor.Localization;
 using emiteat.NexUI.Designer.Editor.MotionClipEditor;
 using emiteat.NexUI.Motion;
 using UnityEditor.UIElements;
@@ -28,16 +29,16 @@ namespace emiteat.NexUI.Designer.Editor.Inspectors
 
         public MotionInspector(NexUIDesignerContext context) : base(context, "inspector.motion")
         {
-            _preset = new ObjectField("Motion Preset") { objectType = typeof(UIMotionPreset), allowSceneObjects = false };
-            _motionId = new TextField("Motion Id");
-            _initial = new TextField("Initial Variant");
-            _animate = new TextField("Animate Variant");
-            _exit = new TextField("Exit Variant");
-            _hover = new TextField("Hover Variant");
-            _pressed = new TextField("Pressed Variant");
-            _focus = new TextField("Focus Variant");
-            _openGraph = new Button(OpenGraph) { text = "Open Motion Graph" };
-            _openClipEditor = new Button(OpenClipEditor) { text = "Open Motion Clip Editor" };
+            _preset = new ObjectField("Motion Preset") { objectType = typeof(UIMotionPreset), allowSceneObjects = false, tooltip = DesignerLocalization.T("tooltip.motion.preset") };
+            _motionId = new TextField("Motion Id") { tooltip = DesignerLocalization.T("tooltip.motion.motionId") };
+            _initial = new TextField("Initial Variant") { tooltip = DesignerLocalization.T("tooltip.motion.initial") };
+            _animate = new TextField("Animate Variant") { tooltip = DesignerLocalization.T("tooltip.motion.animate") };
+            _exit = new TextField("Exit Variant") { tooltip = DesignerLocalization.T("tooltip.motion.exit") };
+            _hover = new TextField("Hover Variant") { tooltip = DesignerLocalization.T("tooltip.motion.hover") };
+            _pressed = new TextField("Pressed Variant") { tooltip = DesignerLocalization.T("tooltip.motion.pressed") };
+            _focus = new TextField("Focus Variant") { tooltip = DesignerLocalization.T("tooltip.motion.focus") };
+            _openGraph = new Button(OpenGraph) { text = DesignerLocalization.T("button.openMotionGraph"), tooltip = DesignerLocalization.T("tooltip.motion.openGraph") };
+            _openClipEditor = new Button(OpenClipEditor) { text = DesignerLocalization.T("button.openMotionClipEditor"), tooltip = DesignerLocalization.T("tooltip.motion.openClipEditor") };
             _noPresetHelp = new HelpBox("Assign a Motion Preset to edit its graph.", HelpBoxMessageType.Info);
 
             Add(_preset);

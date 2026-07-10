@@ -19,8 +19,30 @@ namespace emiteat.NexUI.Designer.Editor
         private readonly List<DesignerValidationIssue> _validationIssues = new List<DesignerValidationIssue>();
         private readonly List<DesignerElementMetadata> _selection = new List<DesignerElementMetadata>();
         private readonly List<DesignerElementMetadata> _clipboard = new List<DesignerElementMetadata>();
+        private readonly List<string> _recentActions = new List<string>();
         private int _elementCounter = 1;
         private int _groupCounter = 1;
+        private const int MaxRecentActions = 50;
+
+        /// <summary>
+        /// C2: read-only log of the last <see cref="MaxRecentActions"/> undo-recorded edit
+        /// names, newest first - session-only (cleared on domain reload), not a jump-to-any-
+        /// point history. Unity's public Undo API does not expose an enumerable/random-access
+        /// undo stack, so this is visibility into what changed rather than a true steppable
+        /// history browser.
+        /// </summary>
+        public IReadOnlyList<string> RecentActions => _recentActions;
+
+        public event Action RecentActionsChanged;
+
+        private void LogAction(string name)
+        {
+            if (string.IsNullOrEmpty(name)) return;
+            _recentActions.Insert(0, name);
+            if (_recentActions.Count > MaxRecentActions)
+                _recentActions.RemoveAt(_recentActions.Count - 1);
+            RecentActionsChanged?.Invoke();
+        }
 
         public UIScreenDefinition CurrentScreen { get; private set; }
         public DesignerMetadataAsset Metadata { get; private set; }
@@ -64,6 +86,15 @@ namespace emiteat.NexUI.Designer.Editor
         public event Action PreviewRebuilt;
         public event Action ValidationChanged;
         public event Action CanvasChanged;
+
+        /// <summary>
+        /// C1 (visible style-apply feedback): raised whenever a single element's fields change
+        /// through <see cref="UpdateElement"/>/<see cref="UpdateSelectedElement"/> (style, theme,
+        /// binding, accessibility, policy, motion - every per-element Inspector routes through
+        /// here). The Viewport uses this to briefly flash the affected element so "did that
+        /// apply?" is never in doubt.
+        /// </summary>
+        public event Action<DesignerElementMetadata> ElementChanged;
 
         public NexUIDesignerContext()
         {
@@ -260,6 +291,15 @@ namespace emiteat.NexUI.Designer.Editor
             var serializer = DesignerSerializerRegistry.Get(CurrentScreen.backendAsset.backend);
             report.Merge(serializer.Save(CurrentScreen, Metadata));
 
+            // B8: keep the git-friendly companion JSON in sync with every save so it's always
+            // the reviewable diff for a PR, never stale relative to the .asset.
+            if (Metadata != null)
+            {
+                var jsonPath = DesignerMetadataJsonSerializer.Export(Metadata);
+                if (!string.IsNullOrEmpty(jsonPath))
+                    report.MarkChanged($"Companion JSON: {jsonPath}");
+            }
+
             if (report.HasErrors)
                 Debug.LogError("[NexUI Designer] " + report.Details());
             else if (report.HasWarnings)
@@ -381,6 +421,26 @@ namespace emiteat.NexUI.Designer.Editor
         }
 
         /// <summary>
+        /// B8: overwrites <see cref="Metadata"/> with the contents of its companion JSON file
+        /// (Undo-tracked) - use after resolving a Git merge conflict in the JSON to push the
+        /// merged result back into the <c>.asset</c>. Returns false if there's no JSON file yet
+        /// (nothing has been saved through this screen) or it failed to parse.
+        /// </summary>
+        public bool SyncMetadataFromJson()
+        {
+            if (Metadata == null) return false;
+            var applied = DesignerMetadataJsonSerializer.Import(Metadata);
+            if (applied)
+            {
+                MetadataChanged?.Invoke(Metadata);
+                MetadataSelectionChanged?.Invoke(SelectedMetadata);
+                CanvasChanged?.Invoke();
+                Validate();
+            }
+            return applied;
+        }
+
+        /// <summary>
         /// Applies Designer metadata to the live preview surface only (names, classes,
         /// position, size, visibility, binding). This is preview-only and is NOT written to
         /// disk until the user saves.
@@ -418,6 +478,7 @@ namespace emiteat.NexUI.Designer.Editor
                 rect = DefaultRectFor(type),
                 text = DefaultTextFor(type),
                 tint = DefaultTintFor(type),
+                shape = DefaultShapeFor(type),
                 textColor = Color.white,
                 fontSize = type == DesignerElementType.Label ? 18 : 14
             };
@@ -531,6 +592,7 @@ namespace emiteat.NexUI.Designer.Editor
             RecordMetadata("Edit NexUI Element Rect");
             element.rect = SnapRect(rect);
             MarkMetadataDirty();
+            ElementChanged?.Invoke(element);
         }
 
         /// <summary>
@@ -740,6 +802,7 @@ namespace emiteat.NexUI.Designer.Editor
             RecordMetadata(undoName);
             change(element);
             MarkMetadataDirty();
+            ElementChanged?.Invoke(element);
         }
 
         /// <summary>
@@ -753,6 +816,7 @@ namespace emiteat.NexUI.Designer.Editor
             Undo.RecordObject(CurrentScreen, undoName);
             change(CurrentScreen);
             EditorUtility.SetDirty(CurrentScreen);
+            LogAction(undoName);
             CanvasChanged?.Invoke();
             Validate();
         }
@@ -771,6 +835,7 @@ namespace emiteat.NexUI.Designer.Editor
         {
             if (Metadata != null)
                 Undo.RecordObject(Metadata, name);
+            LogAction(name);
         }
 
         private void MarkMetadataDirty()
@@ -835,6 +900,23 @@ namespace emiteat.NexUI.Designer.Editor
                 case DesignerElementType.Modal: return new Color(0.08f, 0.1f, 0.14f, 0.96f);
                 case DesignerElementType.Image: return new Color(0.19f, 0.25f, 0.34f, 1f);
                 default: return new Color(0.13f, 0.18f, 0.26f, 1f);
+            }
+        }
+
+        /// <summary>Gives naturally round/pill-shaped component types a matching canvas preview shape by default, instead of every new element starting as the same rounded box.</summary>
+        private static DesignerElementShape DefaultShapeFor(DesignerElementType type)
+        {
+            switch (type)
+            {
+                case DesignerElementType.Spinner:
+                case DesignerElementType.RadialFill:
+                    return DesignerElementShape.Circle;
+                case DesignerElementType.Toast:
+                case DesignerElementType.Tooltip:
+                case DesignerElementType.IconButton:
+                    return DesignerElementShape.Pill;
+                default:
+                    return DesignerElementShape.Rounded;
             }
         }
 

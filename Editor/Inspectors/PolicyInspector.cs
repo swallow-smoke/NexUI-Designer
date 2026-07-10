@@ -1,4 +1,5 @@
 using emiteat.NexUI.Core;
+using emiteat.NexUI.Designer.Editor.Localization;
 using UnityEditor.UIElements;
 using UnityEngine.UIElements;
 
@@ -23,14 +24,14 @@ namespace emiteat.NexUI.Designer.Editor.Inspectors
 
         public PolicyInspector(NexUIDesignerContext context) : base(context, "inspector.policy")
         {
-            _inputBlocking = new Toggle("Input Blocking");
-            _pauseGameBehind = new Toggle("Pause Game Behind");
-            _closeOnBack = new Toggle("Close On Back");
-            _cursorPolicy = new EnumField("Cursor Policy", CursorPolicy.Unchanged);
-            _timePolicy = new EnumField("Time Policy", UITimePolicy.Unchanged);
-            _focusPolicy = new EnumField("Focus Policy", UIFocusPolicy.None);
-            _conflictPolicy = new EnumField("Conflict Policy", UITransitionConflictPolicy.Wait);
-            _lifetimePolicy = new EnumField("Lifetime Policy", UILifetimePolicy.DestroyOnClose);
+            _inputBlocking = new Toggle("Input Blocking") { tooltip = DesignerLocalization.T("tooltip.policy.inputBlocking") };
+            _pauseGameBehind = new Toggle("Pause Game Behind") { tooltip = DesignerLocalization.T("tooltip.policy.pauseGameBehind") };
+            _closeOnBack = new Toggle("Close On Back") { tooltip = DesignerLocalization.T("tooltip.policy.closeOnBack") };
+            _cursorPolicy = new EnumField("Cursor Policy", CursorPolicy.Unchanged) { tooltip = DesignerLocalization.T("tooltip.policy.cursorPolicy") };
+            _timePolicy = new EnumField("Time Policy", UITimePolicy.Unchanged) { tooltip = DesignerLocalization.T("tooltip.policy.timePolicy") };
+            _focusPolicy = new EnumField("Focus Policy", UIFocusPolicy.None) { tooltip = DesignerLocalization.T("tooltip.policy.focusPolicy") };
+            _conflictPolicy = new EnumField("Conflict Policy", UITransitionConflictPolicy.Wait) { tooltip = DesignerLocalization.T("tooltip.policy.conflictPolicy") };
+            _lifetimePolicy = new EnumField("Lifetime Policy", UILifetimePolicy.DestroyOnClose) { tooltip = DesignerLocalization.T("tooltip.policy.lifetimePolicy") };
 
             Add(_inputBlocking);
             Add(_pauseGameBehind);

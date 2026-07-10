@@ -1,3 +1,4 @@
+using emiteat.NexUI.Designer.Editor.Localization;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -14,10 +15,10 @@ namespace emiteat.NexUI.Designer.Editor.Inspectors
 
         public LayoutInspector(NexUIDesignerContext context) : base(context, "inspector.layout")
         {
-            _position = new Vector2Field("Position");
-            _size = new Vector2Field("Size");
-            _anchor = new EnumField("Anchor", DesignerAnchorPreset.TopLeft);
-            _locked = new Toggle("Locked");
+            _position = new Vector2Field("Position") { tooltip = DesignerLocalization.T("tooltip.layout.position") };
+            _size = new Vector2Field("Size") { tooltip = DesignerLocalization.T("tooltip.layout.size") };
+            _anchor = new EnumField("Anchor", DesignerAnchorPreset.TopLeft) { tooltip = DesignerLocalization.T("tooltip.layout.anchor") };
+            _locked = new Toggle("Locked") { tooltip = DesignerLocalization.T("tooltip.layout.locked") };
             Add(_position);
             Add(_size);
             Add(_anchor);

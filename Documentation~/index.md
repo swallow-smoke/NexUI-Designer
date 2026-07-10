@@ -27,18 +27,23 @@ com.emiteat.nexui.designer/
 
 ## 요구 사항
 
-- Unity 2022.3 이상
+- Unity 6000.4 이상
 - `com.emiteat.nexui`
 - Unity Editor의 UI Toolkit 패키지 지원
 
 ## 진입점
 
-- `Tools/NexUI/Designer`
+- `Tools/NexUI/Designer` — 메인 디자이너 창
 - `Tools/NexUI/Designer/Open Selected Screen`
 - `Tools/NexUI/Designer/Rebuild Preview`
 - `Tools/NexUI/Designer/Validate Current Screen`
 - `Tools/NexUI/Designer/Save Current Screen`
+- `Tools/NexUI/Designer/Language/Korean` / `English`
+- `Tools/NexUI/Designer/Advanced/Figma Bridge` — Figma 연결(진행 중, [사용법](how-to-use.md#figma-브리지-진행-중) 참고)
+- `Tools/NexUI/Migration Wizard` — 버전 업 시 옛 네임스페이스/패키지 ID 참조 일괄 치환
+
+전체 패널 구성, 단축키, 인스펙터 필드는 [사용법](how-to-use.md) 문서에서 처음부터 끝까지 다룹니다.
 
 ## 현재 범위
 
-이 패키지는 에디터 셸, 메타데이터 모델, 백엔드 추상화, 검증 패널, 프리뷰 패널, 로컬라이제이션 헬퍼, 프로파일링 헬퍼, 확장 지점을 제공합니다. 실제 런타임 렌더링은 대체하지 않으며, 런타임 동작은 `com.emiteat.nexui`에 남겨둡니다.
+이 패키지는 에디터 셸, 메타데이터 모델, 백엔드 추상화, 검증 패널, 프리뷰 패널(도형/값 기반 컴포넌트 미리보기/이미지 미리보기 포함), 로컬라이제이션 헬퍼(UI 전체 툴팁 포함), 프로파일링 헬퍼, 확장 지점을 제공합니다. 실제 런타임 렌더링은 대체하지 않으며, 런타임 동작은 `com.emiteat.nexui`에 남겨둡니다.

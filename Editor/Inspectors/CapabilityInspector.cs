@@ -9,7 +9,7 @@ namespace emiteat.NexUI.Designer.Editor.Inspectors
 
         public CapabilityInspector(NexUIDesignerContext context) : base(context, "inspector.capability")
         {
-            _capabilities = new Label();
+            _capabilities = new Label { tooltip = DesignerLocalization.T("tooltip.capability.list") };
             Add(_capabilities);
             context.SelectionChanged += _ => Refresh();
             Refresh();

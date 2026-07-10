@@ -1,0 +1,369 @@
+{
+    "screenId": "Settings",
+    "elements": [
+        {
+            "elementId": "panel",
+            "parentId": "",
+            "displayName": "panel",
+            "elementType": "Panel",
+            "rect": {
+                "x": 560,
+                "y": 140,
+                "width": 800,
+                "height": 800
+            },
+            "anchorPreset": "TopLeft",
+            "text": "",
+            "tint": {
+                "r": 0.08,
+                "g": 0.1,
+                "b": 0.14,
+                "a": 0.96
+            },
+            "textColor": {
+                "r": 1,
+                "g": 1,
+                "b": 1,
+                "a": 1
+            },
+            "fontSize": 14,
+            "classes": [],
+            "binding": {
+                "textKey": "",
+                "valueKey": "",
+                "visibilityKey": "",
+                "classKey": "",
+                "commandKey": "",
+                "interactableKey": ""
+            },
+            "motion": {
+                "motionPresetGuid": "",
+                "motionId": "",
+                "initialVariant": "",
+                "animateVariant": ""
+            },
+            "theme": {
+                "themeRefGuid": "",
+                "themeId": "",
+                "classes": [],
+                "tokenOverrides": []
+            },
+            "locked": false,
+            "hiddenInDesigner": false,
+            "accessibilityLabel": "",
+            "accessibilityRole": "None"
+        },
+        {
+            "elementId": "title",
+            "parentId": "",
+            "displayName": "title",
+            "elementType": "Label",
+            "rect": {
+                "x": 600,
+                "y": 180,
+                "width": 400,
+                "height": 60
+            },
+            "anchorPreset": "TopLeft",
+            "text": "Settings",
+            "tint": {
+                "r": 0.13,
+                "g": 0.16,
+                "b": 0.22,
+                "a": 0.0
+            },
+            "textColor": {
+                "r": 1,
+                "g": 1,
+                "b": 1,
+                "a": 1
+            },
+            "fontSize": 28,
+            "classes": [],
+            "binding": {
+                "textKey": "",
+                "valueKey": "",
+                "visibilityKey": "",
+                "classKey": "",
+                "commandKey": "",
+                "interactableKey": ""
+            },
+            "motion": {
+                "motionPresetGuid": "",
+                "motionId": "",
+                "initialVariant": "",
+                "animateVariant": ""
+            },
+            "theme": {
+                "themeRefGuid": "",
+                "themeId": "",
+                "classes": [],
+                "tokenOverrides": []
+            },
+            "locked": false,
+            "hiddenInDesigner": false,
+            "accessibilityLabel": "",
+            "accessibilityRole": "None"
+        },
+        {
+            "elementId": "rowMaster",
+            "parentId": "",
+            "displayName": "rowMaster",
+            "elementType": "Label",
+            "rect": {
+                "x": 600,
+                "y": 280,
+                "width": 300,
+                "height": 48
+            },
+            "anchorPreset": "TopLeft",
+            "text": "Master Volume",
+            "tint": {
+                "r": 0.13,
+                "g": 0.16,
+                "b": 0.22,
+                "a": 0.0
+            },
+            "textColor": {
+                "r": 1,
+                "g": 1,
+                "b": 1,
+                "a": 1
+            },
+            "fontSize": 14,
+            "classes": [],
+            "binding": {
+                "textKey": "",
+                "valueKey": "",
+                "visibilityKey": "",
+                "classKey": "",
+                "commandKey": "",
+                "interactableKey": ""
+            },
+            "motion": {
+                "motionPresetGuid": "",
+                "motionId": "",
+                "initialVariant": "",
+                "animateVariant": ""
+            },
+            "theme": {
+                "themeRefGuid": "",
+                "themeId": "",
+                "classes": [],
+                "tokenOverrides": []
+            },
+            "locked": false,
+            "hiddenInDesigner": false,
+            "accessibilityLabel": "",
+            "accessibilityRole": "None"
+        },
+        {
+            "elementId": "rowMusic",
+            "parentId": "",
+            "displayName": "rowMusic",
+            "elementType": "Label",
+            "rect": {
+                "x": 600,
+                "y": 340,
+                "width": 300,
+                "height": 48
+            },
+            "anchorPreset": "TopLeft",
+            "text": "Music Volume",
+            "tint": {
+                "r": 0.13,
+                "g": 0.16,
+                "b": 0.22,
+                "a": 0.0
+            },
+            "textColor": {
+                "r": 1,
+                "g": 1,
+                "b": 1,
+                "a": 1
+            },
+            "fontSize": 14,
+            "classes": [],
+            "binding": {
+                "textKey": "",
+                "valueKey": "",
+                "visibilityKey": "",
+                "classKey": "",
+                "commandKey": "",
+                "interactableKey": ""
+            },
+            "motion": {
+                "motionPresetGuid": "",
+                "motionId": "",
+                "initialVariant": "",
+                "animateVariant": ""
+            },
+            "theme": {
+                "themeRefGuid": "",
+                "themeId": "",
+                "classes": [],
+                "tokenOverrides": []
+            },
+            "locked": false,
+            "hiddenInDesigner": false,
+            "accessibilityLabel": "",
+            "accessibilityRole": "None"
+        },
+        {
+            "elementId": "rowSfx",
+            "parentId": "",
+            "displayName": "rowSfx",
+            "elementType": "Label",
+            "rect": {
+                "x": 600,
+                "y": 400,
+                "width": 300,
+                "height": 48
+            },
+            "anchorPreset": "TopLeft",
+            "text": "SFX Volume",
+            "tint": {
+                "r": 0.13,
+                "g": 0.16,
+                "b": 0.22,
+                "a": 0.0
+            },
+            "textColor": {
+                "r": 1,
+                "g": 1,
+                "b": 1,
+                "a": 1
+            },
+            "fontSize": 14,
+            "classes": [],
+            "binding": {
+                "textKey": "",
+                "valueKey": "",
+                "visibilityKey": "",
+                "classKey": "",
+                "commandKey": "",
+                "interactableKey": ""
+            },
+            "motion": {
+                "motionPresetGuid": "",
+                "motionId": "",
+                "initialVariant": "",
+                "animateVariant": ""
+            },
+            "theme": {
+                "themeRefGuid": "",
+                "themeId": "",
+                "classes": [],
+                "tokenOverrides": []
+            },
+            "locked": false,
+            "hiddenInDesigner": false,
+            "accessibilityLabel": "",
+            "accessibilityRole": "None"
+        },
+        {
+            "elementId": "backButton",
+            "parentId": "",
+            "displayName": "backButton",
+            "elementType": "Button",
+            "rect": {
+                "x": 600,
+                "y": 820,
+                "width": 200,
+                "height": 64
+            },
+            "anchorPreset": "TopLeft",
+            "text": "Back",
+            "tint": {
+                "r": 0.16,
+                "g": 0.45,
+                "b": 0.9,
+                "a": 1.0
+            },
+            "textColor": {
+                "r": 1,
+                "g": 1,
+                "b": 1,
+                "a": 1
+            },
+            "fontSize": 14,
+            "classes": [],
+            "binding": {
+                "textKey": "",
+                "valueKey": "",
+                "visibilityKey": "",
+                "classKey": "",
+                "commandKey": "nexui.close",
+                "interactableKey": ""
+            },
+            "motion": {
+                "motionPresetGuid": "",
+                "motionId": "",
+                "initialVariant": "",
+                "animateVariant": ""
+            },
+            "theme": {
+                "themeRefGuid": "",
+                "themeId": "",
+                "classes": [],
+                "tokenOverrides": []
+            },
+            "locked": false,
+            "hiddenInDesigner": false,
+            "accessibilityLabel": "",
+            "accessibilityRole": "None"
+        },
+        {
+            "elementId": "applyButton",
+            "parentId": "",
+            "displayName": "applyButton",
+            "elementType": "Button",
+            "rect": {
+                "x": 1120,
+                "y": 820,
+                "width": 200,
+                "height": 64
+            },
+            "anchorPreset": "TopLeft",
+            "text": "Apply",
+            "tint": {
+                "r": 0.16,
+                "g": 0.45,
+                "b": 0.9,
+                "a": 1.0
+            },
+            "textColor": {
+                "r": 1,
+                "g": 1,
+                "b": 1,
+                "a": 1
+            },
+            "fontSize": 14,
+            "classes": [],
+            "binding": {
+                "textKey": "",
+                "valueKey": "",
+                "visibilityKey": "",
+                "classKey": "",
+                "commandKey": "template.settings.apply",
+                "interactableKey": ""
+            },
+            "motion": {
+                "motionPresetGuid": "",
+                "motionId": "",
+                "initialVariant": "",
+                "animateVariant": ""
+            },
+            "theme": {
+                "themeRefGuid": "",
+                "themeId": "",
+                "classes": [],
+                "tokenOverrides": []
+            },
+            "locked": false,
+            "hiddenInDesigner": false,
+            "accessibilityLabel": "",
+            "accessibilityRole": "None"
+        }
+    ]
+}

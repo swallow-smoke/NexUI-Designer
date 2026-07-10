@@ -1,0 +1,62 @@
+.nexui-element#panel, #panel {
+    position: absolute;
+    left: 560px;
+    top: 140px;
+    width: 800px;
+    height: 800px;
+    background-color: rgba(20, 25, 35, 0.96);
+}
+
+.nexui-element#title, #title {
+    position: absolute;
+    left: 600px;
+    top: 180px;
+    width: 400px;
+    height: 60px;
+    background-color: rgba(33, 40, 56, 0.0);
+}
+
+.nexui-element#rowMaster, #rowMaster {
+    position: absolute;
+    left: 600px;
+    top: 280px;
+    width: 300px;
+    height: 48px;
+    background-color: rgba(33, 40, 56, 0.0);
+}
+
+.nexui-element#rowMusic, #rowMusic {
+    position: absolute;
+    left: 600px;
+    top: 340px;
+    width: 300px;
+    height: 48px;
+    background-color: rgba(33, 40, 56, 0.0);
+}
+
+.nexui-element#rowSfx, #rowSfx {
+    position: absolute;
+    left: 600px;
+    top: 400px;
+    width: 300px;
+    height: 48px;
+    background-color: rgba(33, 40, 56, 0.0);
+}
+
+.nexui-element#backButton, #backButton {
+    position: absolute;
+    left: 600px;
+    top: 820px;
+    width: 200px;
+    height: 64px;
+    background-color: rgba(40, 114, 229, 1.0);
+}
+
+.nexui-element#applyButton, #applyButton {
+    position: absolute;
+    left: 1120px;
+    top: 820px;
+    width: 200px;
+    height: 64px;
+    background-color: rgba(40, 114, 229, 1.0);
+}

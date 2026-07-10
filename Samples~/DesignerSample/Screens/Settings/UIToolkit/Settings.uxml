@@ -1,0 +1,10 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd">
+    <Style src="Settings.uss" />
+    <ui:VisualElement name="panel" class="nexui-panel" />
+    <ui:Label name="title" class="nexui-label" text="Settings" />
+    <ui:Label name="rowMaster" class="nexui-label" text="Master Volume" />
+    <ui:Label name="rowMusic" class="nexui-label" text="Music Volume" />
+    <ui:Label name="rowSfx" class="nexui-label" text="SFX Volume" />
+    <ui:Button name="backButton" class="nexui-button" text="Back" />
+    <ui:Button name="applyButton" class="nexui-button" text="Apply" />
+</ui:UXML>

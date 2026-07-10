@@ -100,10 +100,25 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
             context.MetadataChanged += _ => RefreshAll();
             context.MetadataSelectionChanged += _ => RefreshSelection();
             context.CanvasChanged += RefreshAll;
+            context.ElementChanged += FlashElement;
             RefreshAll();
         }
 
         public NexUIDesignerContext Context => _context;
+
+        /// <summary>
+        /// C1: briefly highlights the element's viewport view so a property/style/theme change
+        /// is visibly confirmed instead of relying on the user to notice a value changed in an
+        /// inspector field. <see cref="MarkMetadataDirty"/> already rebuilt <see cref="_views"/>
+        /// synchronously before this fires (via CanvasChanged), so the lookup below always sees
+        /// the current view.
+        /// </summary>
+        private void FlashElement(DesignerElementMetadata element)
+        {
+            if (element == null || !_views.TryGetValue(element, out var view) || view == null) return;
+            view.AddToClassList("nexui-element-flash");
+            view.schedule.Execute(() => view.RemoveFromClassList("nexui-element-flash")).ExecuteLater(300);
+        }
 
         private void RefreshAll()
         {
@@ -194,6 +209,7 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
             var view = new VisualElement();
             view.AddToClassList("nexui-design-element");
             view.AddToClassList("type-" + element.elementType.ToLowerInvariant());
+            view.AddToClassList("shape-" + element.shape.ToString().ToLowerInvariant());
             view.EnableInClassList("is-locked", element.locked);
             view.style.position = Position.Absolute;
             ApplyRect(view, element.rect);
@@ -202,6 +218,8 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
             view.style.borderRightColor = new StyleColor(Lighten(element.tint, 0.18f));
             view.style.borderBottomColor = new StyleColor(Darken(element.tint, 0.18f));
             view.style.borderLeftColor = new StyleColor(Lighten(element.tint, 0.18f));
+
+            AddTypeSpecificPreview(view, element);
 
             var name = new Label(string.IsNullOrEmpty(element.displayName) ? element.elementId : element.displayName);
             name.AddToClassList("nexui-element-name");
@@ -229,6 +247,185 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
             view.RegisterCallback<PointerUpEvent>(evt => EndDrag(evt, view));
             view.RegisterCallback<PointerCancelEvent>(evt => CancelDrag(evt, view));
             return view;
+        }
+
+        /// <summary>
+        /// Builds type-specific internal preview structure so the canvas shows an actual
+        /// filled progress bar / radial ring / list rows instead of the same bare tinted box
+        /// for every component type. All fills use percentage sizing so they stay correct as
+        /// the element is resized, without any per-drag recomputation.
+        /// </summary>
+        private void AddTypeSpecificPreview(VisualElement view, DesignerElementMetadata element)
+        {
+            switch (element.elementType)
+            {
+                case "ProgressBar":
+                case "StatBar":
+                    AddLinearFill(view, element);
+                    break;
+                case "RadialFill":
+                    AddRadialFill(view, element, spin: false);
+                    break;
+                case "Spinner":
+                    AddRadialFill(view, element, spin: true);
+                    break;
+                case "ChoiceList":
+                    AddChoiceRows(view);
+                    break;
+                case "List":
+                    AddListRows(view, grid: false);
+                    break;
+                case "Grid":
+                    AddListRows(view, grid: true);
+                    break;
+                case "Skeleton":
+                    AddSkeletonBars(view);
+                    break;
+                case "Image":
+                    ApplyPreviewImage(view, element, fullBleed: true);
+                    break;
+                case "IconButton":
+                    ApplyPreviewImage(view, element, fullBleed: false);
+                    break;
+            }
+        }
+
+        private void AddLinearFill(VisualElement view, DesignerElementMetadata element)
+        {
+            var direction = element.fill.direction;
+            var horizontal = direction == DesignerFillDirection.LeftToRight || direction == DesignerFillDirection.RightToLeft;
+
+            var track = new VisualElement();
+            track.AddToClassList("nexui-preview-fill-track");
+            track.EnableInClassList("is-vertical", !horizontal);
+            view.Add(track);
+
+            var fraction = Mathf.Clamp01(Mathf.InverseLerp(element.fill.minValue, element.fill.maxValue, element.previewValue));
+
+            var fillBar = new VisualElement();
+            fillBar.AddToClassList("nexui-preview-fill-bar");
+            fillBar.style.position = Position.Absolute;
+            fillBar.style.backgroundColor = new StyleColor(Lighten(element.tint, 0.4f));
+
+            // Unity-Image-style fill: anchor two opposite sides at 0, set the free axis's
+            // explicit percent size, and clear the *other* inset on that axis to Auto so the
+            // bar grows/shrinks from the correct edge instead of stretching both ways.
+            if (horizontal)
+            {
+                fillBar.style.top = 0;
+                fillBar.style.bottom = 0;
+                fillBar.style.width = new Length(fraction * 100f, LengthUnit.Percent);
+                if (direction == DesignerFillDirection.RightToLeft)
+                {
+                    fillBar.style.right = 0;
+                    fillBar.style.left = StyleKeyword.Auto;
+                }
+                else
+                {
+                    fillBar.style.left = 0;
+                    fillBar.style.right = StyleKeyword.Auto;
+                }
+            }
+            else
+            {
+                fillBar.style.left = 0;
+                fillBar.style.right = 0;
+                fillBar.style.height = new Length(fraction * 100f, LengthUnit.Percent);
+                if (direction == DesignerFillDirection.TopToBottom)
+                {
+                    fillBar.style.top = 0;
+                    fillBar.style.bottom = StyleKeyword.Auto;
+                }
+                else
+                {
+                    fillBar.style.bottom = 0;
+                    fillBar.style.top = StyleKeyword.Auto;
+                }
+            }
+            track.Add(fillBar);
+        }
+
+        private void AddRadialFill(VisualElement view, DesignerElementMetadata element, bool spin)
+        {
+            var ring = new RadialFillPreview
+            {
+                Value = element.previewValue,
+                Spin = spin,
+                Clockwise = element.fill.clockwise,
+                FillColor = Lighten(element.tint, 0.4f)
+            };
+            ring.AddToClassList("nexui-preview-radial");
+            view.Add(ring);
+        }
+
+        /// <summary>Real Texture2D preview for Image (full-bleed background) / IconButton (small centered icon) - no sprite/atlas needed, just a direct texture assignment.</summary>
+        private static void ApplyPreviewImage(VisualElement view, DesignerElementMetadata element, bool fullBleed)
+        {
+            if (element.previewImage == null) return;
+
+            if (fullBleed)
+            {
+                view.style.backgroundImage = new StyleBackground(element.previewImage);
+                view.style.unityBackgroundScaleMode = new StyleEnum<ScaleMode>(ScaleMode.ScaleToFit);
+                return;
+            }
+
+            var icon = new VisualElement();
+            icon.AddToClassList("nexui-preview-icon");
+            icon.style.backgroundImage = new StyleBackground(element.previewImage);
+            icon.style.unityBackgroundScaleMode = new StyleEnum<ScaleMode>(ScaleMode.ScaleToFit);
+            view.Add(icon);
+        }
+
+        private static void AddChoiceRows(VisualElement view)
+        {
+            var list = new VisualElement();
+            list.AddToClassList("nexui-preview-choice-list");
+            for (int i = 0; i < 3; i++)
+            {
+                var row = new VisualElement();
+                row.AddToClassList("nexui-preview-choice-row");
+                var box = new VisualElement();
+                box.AddToClassList("nexui-preview-choice-box");
+                box.EnableInClassList("is-checked", i == 0);
+                row.Add(box);
+                list.Add(row);
+            }
+            view.Add(list);
+        }
+
+        private static void AddListRows(VisualElement view, bool grid)
+        {
+            var container = new VisualElement();
+            container.AddToClassList(grid ? "nexui-preview-grid" : "nexui-preview-list");
+            var count = grid ? 6 : 3;
+            for (int i = 0; i < count; i++)
+            {
+                var cell = new VisualElement();
+                cell.AddToClassList(grid ? "nexui-preview-grid-cell" : "nexui-preview-list-row");
+                container.Add(cell);
+            }
+            view.Add(container);
+        }
+
+        private static void AddSkeletonBars(VisualElement view)
+        {
+            var container = new VisualElement();
+            container.AddToClassList("nexui-preview-skeleton");
+            for (int i = 0; i < 3; i++)
+            {
+                var bar = new VisualElement();
+                bar.AddToClassList("nexui-preview-skeleton-bar");
+                container.Add(bar);
+
+                var dim = false;
+                bar.schedule.Execute(() =>
+                {
+                    dim = !dim;
+                    bar.style.opacity = dim ? 0.35f : 0.85f;
+                }).Every(450);
+            }
+            view.Add(container);
         }
 
         private void ApplyRect(VisualElement view, Rect rect)

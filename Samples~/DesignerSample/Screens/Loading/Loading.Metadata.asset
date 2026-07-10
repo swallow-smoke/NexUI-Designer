@@ -1,0 +1,168 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 94342bf2327db7647ae183535c99668f, type: 3}
+  m_Name: Loading.Metadata
+  m_EditorClassIdentifier:
+  screenId: Loading
+  elements:
+  - elementId: panel
+    parentId: 
+    displayName: panel
+    elementType: Panel
+    rect:
+      serializedVersion: 2
+      x: 0
+      y: 0
+      width: 1920
+      height: 1080
+    anchorPreset: 0
+    text: 
+    tint: {r: 0.08, g: 0.1, b: 0.14, a: 0.96}
+    textColor: {r: 1, g: 1, b: 1, a: 1}
+    fontSize: 14
+    classes: []
+    binding:
+      textKey:
+      valueKey:
+      visibilityKey:
+      classKey:
+      commandKey: 
+      interactableKey:
+    motion:
+      motionPreset: {fileID: 0}
+      motionId:
+      initialVariant:
+      animateVariant:
+    theme:
+      themeRef: {fileID: 0}
+      themeId:
+      classes: []
+      tokenOverrides: []
+    locked: 0
+    hiddenInDesigner: 0
+  - elementId: title
+    parentId: 
+    displayName: title
+    elementType: Label
+    rect:
+      serializedVersion: 2
+      x: 860
+      y: 460
+      width: 200
+      height: 50
+    anchorPreset: 0
+    text: Loading...
+    tint: {r: 0.13, g: 0.16, b: 0.22, a: 0.0}
+    textColor: {r: 1, g: 1, b: 1, a: 1}
+    fontSize: 24
+    classes: []
+    binding:
+      textKey:
+      valueKey:
+      visibilityKey:
+      classKey:
+      commandKey: 
+      interactableKey:
+    motion:
+      motionPreset: {fileID: 0}
+      motionId:
+      initialVariant:
+      animateVariant:
+    theme:
+      themeRef: {fileID: 0}
+      themeId:
+      classes: []
+      tokenOverrides: []
+    locked: 0
+    hiddenInDesigner: 0
+  - elementId: progressBarBg
+    parentId: 
+    displayName: progressBarBg
+    elementType: ProgressBar
+    rect:
+      serializedVersion: 2
+      x: 760
+      y: 540
+      width: 400
+      height: 24
+    anchorPreset: 0
+    text: 
+    tint: {r: 0.1, g: 0.12, b: 0.16, a: 1.0}
+    textColor: {r: 1, g: 1, b: 1, a: 1}
+    fontSize: 14
+    classes: []
+    binding:
+      textKey:
+      valueKey:
+      visibilityKey:
+      classKey:
+      commandKey: 
+      interactableKey:
+    motion:
+      motionPreset: {fileID: 0}
+      motionId:
+      initialVariant:
+      animateVariant:
+    theme:
+      themeRef: {fileID: 0}
+      themeId:
+      classes: []
+      tokenOverrides: []
+    locked: 0
+    hiddenInDesigner: 0
+  - elementId: progressLabel
+    parentId: 
+    displayName: progressLabel
+    elementType: Label
+    rect:
+      serializedVersion: 2
+      x: 920
+      y: 580
+      width: 80
+      height: 30
+    anchorPreset: 0
+    text: 0%
+    tint: {r: 0.13, g: 0.16, b: 0.22, a: 0.0}
+    textColor: {r: 1, g: 1, b: 1, a: 1}
+    fontSize: 14
+    classes: []
+    binding:
+      textKey:
+      valueKey:
+      visibilityKey:
+      classKey:
+      commandKey: 
+      interactableKey:
+    motion:
+      motionPreset: {fileID: 0}
+      motionId:
+      initialVariant:
+      animateVariant:
+    theme:
+      themeRef: {fileID: 0}
+      themeId:
+      classes: []
+      tokenOverrides: []
+    locked: 0
+    hiddenInDesigner: 0
+  variants: []
+  responsiveRules: []
+  contract:
+    requiredElementIds: []
+    requiredBindings: []
+  snapshots:
+    entries: []
+  localization:
+    entries: []
+  prompts:
+    entries: []
+  recipes: []

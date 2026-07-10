@@ -74,6 +74,13 @@ namespace emiteat.NexUI.Designer.Editor.Commands
 
             new UIDesignerShortcut("distributeHorizontal", KeyCode.H, alt: true),
             new UIDesignerShortcut("distributeVertical", KeyCode.V, alt: true),
+
+            new UIDesignerShortcut("alignLeft", KeyCode.L, alt: true),
+            new UIDesignerShortcut("alignCenterX", KeyCode.C, alt: true),
+            new UIDesignerShortcut("alignRight", KeyCode.R, alt: true),
+            new UIDesignerShortcut("alignTop", KeyCode.T, alt: true),
+            new UIDesignerShortcut("alignCenterY", KeyCode.M, alt: true),
+            new UIDesignerShortcut("alignBottom", KeyCode.B, alt: true),
         };
 
         private static List<UIDesignerShortcut> _current;

@@ -23,7 +23,7 @@ namespace emiteat.NexUI.Designer.Editor.Menu
     /// </summary>
     public static class AdvancedValidationMenu
     {
-        [MenuItem("Tools/NexUI/Designer/Run Advanced Validation")]
+        [MenuItem("Tools/NexUI/Designer/QA/Run Advanced Validation")]
         public static void RunAdvancedValidation()
         {
             var sb = new StringBuilder();
@@ -61,7 +61,7 @@ namespace emiteat.NexUI.Designer.Editor.Menu
                 $"{errors} error(s), {warnings} finding(s).\nSee Console for details.", "OK");
         }
 
-        [MenuItem("Tools/NexUI/Designer/Export Agent Manifest")]
+        [MenuItem("Tools/NexUI/Designer/Advanced/Export Agent Manifest")]
         public static void ExportAgentManifest()
         {
             string folder = EditorUtility.SaveFolderPanel("Export Agent Manifest", "", "");
@@ -74,7 +74,7 @@ namespace emiteat.NexUI.Designer.Editor.Menu
             Debug.Log($"[NexUI] Agent manifest exported to {folder}");
         }
 
-        [MenuItem("Tools/NexUI/Designer/Run Snapshot Tests")]
+        [MenuItem("Tools/NexUI/Designer/QA/Run Snapshot Tests")]
         public static void RunSnapshotTests()
         {
             var sb = new StringBuilder();

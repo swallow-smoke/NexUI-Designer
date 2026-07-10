@@ -1,0 +1,213 @@
+{
+    "screenId": "Loading",
+    "elements": [
+        {
+            "elementId": "panel",
+            "parentId": "",
+            "displayName": "panel",
+            "elementType": "Panel",
+            "rect": {
+                "x": 0,
+                "y": 0,
+                "width": 1920,
+                "height": 1080
+            },
+            "anchorPreset": "TopLeft",
+            "text": "",
+            "tint": {
+                "r": 0.08,
+                "g": 0.1,
+                "b": 0.14,
+                "a": 0.96
+            },
+            "textColor": {
+                "r": 1,
+                "g": 1,
+                "b": 1,
+                "a": 1
+            },
+            "fontSize": 14,
+            "classes": [],
+            "binding": {
+                "textKey": "",
+                "valueKey": "",
+                "visibilityKey": "",
+                "classKey": "",
+                "commandKey": "",
+                "interactableKey": ""
+            },
+            "motion": {
+                "motionPresetGuid": "",
+                "motionId": "",
+                "initialVariant": "",
+                "animateVariant": ""
+            },
+            "theme": {
+                "themeRefGuid": "",
+                "themeId": "",
+                "classes": [],
+                "tokenOverrides": []
+            },
+            "locked": false,
+            "hiddenInDesigner": false,
+            "accessibilityLabel": "",
+            "accessibilityRole": "None"
+        },
+        {
+            "elementId": "title",
+            "parentId": "",
+            "displayName": "title",
+            "elementType": "Label",
+            "rect": {
+                "x": 860,
+                "y": 460,
+                "width": 200,
+                "height": 50
+            },
+            "anchorPreset": "TopLeft",
+            "text": "Loading...",
+            "tint": {
+                "r": 0.13,
+                "g": 0.16,
+                "b": 0.22,
+                "a": 0.0
+            },
+            "textColor": {
+                "r": 1,
+                "g": 1,
+                "b": 1,
+                "a": 1
+            },
+            "fontSize": 24,
+            "classes": [],
+            "binding": {
+                "textKey": "",
+                "valueKey": "",
+                "visibilityKey": "",
+                "classKey": "",
+                "commandKey": "",
+                "interactableKey": ""
+            },
+            "motion": {
+                "motionPresetGuid": "",
+                "motionId": "",
+                "initialVariant": "",
+                "animateVariant": ""
+            },
+            "theme": {
+                "themeRefGuid": "",
+                "themeId": "",
+                "classes": [],
+                "tokenOverrides": []
+            },
+            "locked": false,
+            "hiddenInDesigner": false,
+            "accessibilityLabel": "",
+            "accessibilityRole": "None"
+        },
+        {
+            "elementId": "progressBarBg",
+            "parentId": "",
+            "displayName": "progressBarBg",
+            "elementType": "ProgressBar",
+            "rect": {
+                "x": 760,
+                "y": 540,
+                "width": 400,
+                "height": 24
+            },
+            "anchorPreset": "TopLeft",
+            "text": "",
+            "tint": {
+                "r": 0.1,
+                "g": 0.12,
+                "b": 0.16,
+                "a": 1.0
+            },
+            "textColor": {
+                "r": 1,
+                "g": 1,
+                "b": 1,
+                "a": 1
+            },
+            "fontSize": 14,
+            "classes": [],
+            "binding": {
+                "textKey": "",
+                "valueKey": "",
+                "visibilityKey": "",
+                "classKey": "",
+                "commandKey": "",
+                "interactableKey": ""
+            },
+            "motion": {
+                "motionPresetGuid": "",
+                "motionId": "",
+                "initialVariant": "",
+                "animateVariant": ""
+            },
+            "theme": {
+                "themeRefGuid": "",
+                "themeId": "",
+                "classes": [],
+                "tokenOverrides": []
+            },
+            "locked": false,
+            "hiddenInDesigner": false,
+            "accessibilityLabel": "",
+            "accessibilityRole": "None"
+        },
+        {
+            "elementId": "progressLabel",
+            "parentId": "",
+            "displayName": "progressLabel",
+            "elementType": "Label",
+            "rect": {
+                "x": 920,
+                "y": 580,
+                "width": 80,
+                "height": 30
+            },
+            "anchorPreset": "TopLeft",
+            "text": "0%",
+            "tint": {
+                "r": 0.13,
+                "g": 0.16,
+                "b": 0.22,
+                "a": 0.0
+            },
+            "textColor": {
+                "r": 1,
+                "g": 1,
+                "b": 1,
+                "a": 1
+            },
+            "fontSize": 14,
+            "classes": [],
+            "binding": {
+                "textKey": "",
+                "valueKey": "",
+                "visibilityKey": "",
+                "classKey": "",
+                "commandKey": "",
+                "interactableKey": ""
+            },
+            "motion": {
+                "motionPresetGuid": "",
+                "motionId": "",
+                "initialVariant": "",
+                "animateVariant": ""
+            },
+            "theme": {
+                "themeRefGuid": "",
+                "themeId": "",
+                "classes": [],
+                "tokenOverrides": []
+            },
+            "locked": false,
+            "hiddenInDesigner": false,
+            "accessibilityLabel": "",
+            "accessibilityRole": "None"
+        }
+    ]
+}

@@ -22,7 +22,12 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
             new DesignerResolutionPreset("2560x1440", 2560, 1440),
             new DesignerResolutionPreset("Steam Deck", 1280, 800),
             new DesignerResolutionPreset("Mobile Portrait", 1080, 1920),
-            new DesignerResolutionPreset("Mobile Landscape", 1920, 1080)
+            new DesignerResolutionPreset("Mobile Landscape", 1920, 1080),
+            // C1: responsive breakpoint preview - phone/tablet/desktop without leaving the
+            // Designer. Tablet sizes were the missing rung between "Mobile Portrait/Landscape"
+            // and the desktop presets above.
+            new DesignerResolutionPreset("Tablet Portrait", 1536, 2048),
+            new DesignerResolutionPreset("Tablet Landscape", 2048, 1536)
         };
     }
 }

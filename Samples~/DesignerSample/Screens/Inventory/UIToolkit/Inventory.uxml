@@ -1,0 +1,13 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd">
+    <Style src="Inventory.uss" />
+    <ui:VisualElement name="panel" class="nexui-panel" />
+    <ui:Label name="title" class="nexui-label" text="Inventory" />
+    <ui:VisualElement name="grid" class="nexui-grid" />
+    <ui:VisualElement name="slot1" class="nexui-slot" />
+    <ui:VisualElement name="slot2" class="nexui-slot" />
+    <ui:VisualElement name="slot3" class="nexui-slot" />
+    <ui:VisualElement name="slot4" class="nexui-slot" />
+    <ui:VisualElement name="slot5" class="nexui-slot" />
+    <ui:VisualElement name="slot6" class="nexui-slot" />
+    <ui:Button name="closeButton" class="nexui-button" text="Close" />
+</ui:UXML>

@@ -1,0 +1,7 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd">
+    <Style src="Loading.uss" />
+    <ui:VisualElement name="panel" class="nexui-panel" />
+    <ui:Label name="title" class="nexui-label" text="Loading..." />
+    <ui:VisualElement name="progressBarBg" class="nexui-progressbar" />
+    <ui:Label name="progressLabel" class="nexui-label" text="0%" />
+</ui:UXML>

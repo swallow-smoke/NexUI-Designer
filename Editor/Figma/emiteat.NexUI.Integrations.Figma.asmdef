@@ -1,0 +1,22 @@
+{
+    "name": "emiteat.NexUI.Integrations.Figma",
+    "rootNamespace": "emiteat.NexUI.Integrations.Figma",
+    "references": [
+        "emiteat.NexUI.Abstractions",
+        "emiteat.NexUI.Core",
+        "emiteat.NexUI.Designer.Runtime",
+        "emiteat.NexUI.Designer.Editor",
+        "UniTask"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

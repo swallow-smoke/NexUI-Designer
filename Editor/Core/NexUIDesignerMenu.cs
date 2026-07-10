@@ -35,6 +35,16 @@ namespace emiteat.NexUI.Designer.Editor
             Debug.Log($"[NexUI Designer] Synced metadata from backend: {added} element(s) added.");
         }
 
+        [MenuItem("Tools/NexUI/Designer/Backend/Sync Metadata From JSON")]
+        public static void SyncMetadataFromJson()
+        {
+            var context = NexUIDesigner.Open().Context;
+            var applied = context.SyncMetadataFromJson();
+            Debug.Log(applied
+                ? "[NexUI Designer] Metadata synced from companion JSON."
+                : "[NexUI Designer] No companion JSON found (or it failed to parse) for the current metadata asset - save the screen once to create it.");
+        }
+
         [MenuItem("Tools/NexUI/Designer/Backend/Apply Metadata To Preview")]
         public static void ApplyMetadataToPreview()
         {

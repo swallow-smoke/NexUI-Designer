@@ -1,0 +1,238 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 94342bf2327db7647ae183535c99668f, type: 3}
+  m_Name: HUD.Metadata
+  m_EditorClassIdentifier:
+  screenId: HUD
+  elements:
+  - elementId: healthBarLabel
+    parentId: 
+    displayName: healthBarLabel
+    elementType: Label
+    rect:
+      serializedVersion: 2
+      x: 40
+      y: 10
+      width: 100
+      height: 26
+    anchorPreset: 0
+    text: HP
+    tint: {r: 0.13, g: 0.16, b: 0.22, a: 0.0}
+    textColor: {r: 1, g: 1, b: 1, a: 1}
+    fontSize: 16
+    classes: []
+    binding:
+      textKey:
+      valueKey:
+      visibilityKey:
+      classKey:
+      commandKey: 
+      interactableKey:
+    motion:
+      motionPreset: {fileID: 0}
+      motionId:
+      initialVariant:
+      animateVariant:
+    theme:
+      themeRef: {fileID: 0}
+      themeId:
+      classes: []
+      tokenOverrides: []
+    locked: 0
+    hiddenInDesigner: 0
+  - elementId: healthBarBg
+    parentId: 
+    displayName: healthBarBg
+    elementType: StatBar
+    rect:
+      serializedVersion: 2
+      x: 40
+      y: 40
+      width: 300
+      height: 32
+    anchorPreset: 0
+    text: 
+    tint: {r: 0.1, g: 0.12, b: 0.16, a: 1.0}
+    textColor: {r: 1, g: 1, b: 1, a: 1}
+    fontSize: 14
+    classes: []
+    binding:
+      textKey:
+      valueKey:
+      visibilityKey:
+      classKey:
+      commandKey: 
+      interactableKey:
+    motion:
+      motionPreset: {fileID: 0}
+      motionId:
+      initialVariant:
+      animateVariant:
+    theme:
+      themeRef: {fileID: 0}
+      themeId:
+      classes: []
+      tokenOverrides: []
+    locked: 0
+    hiddenInDesigner: 0
+  - elementId: healthBarFill
+    parentId: healthBarBg
+    displayName: healthBarFill
+    elementType: StatBar
+    rect:
+      serializedVersion: 2
+      x: 44
+      y: 44
+      width: 220
+      height: 24
+    anchorPreset: 0
+    text: 
+    tint: {r: 0.8, g: 0.2, b: 0.2, a: 1.0}
+    textColor: {r: 1, g: 1, b: 1, a: 1}
+    fontSize: 14
+    classes: []
+    binding:
+      textKey:
+      valueKey:
+      visibilityKey:
+      classKey:
+      commandKey: 
+      interactableKey:
+    motion:
+      motionPreset: {fileID: 0}
+      motionId:
+      initialVariant:
+      animateVariant:
+    theme:
+      themeRef: {fileID: 0}
+      themeId:
+      classes: []
+      tokenOverrides: []
+    locked: 0
+    hiddenInDesigner: 0
+  - elementId: resourceBarLabel
+    parentId: 
+    displayName: resourceBarLabel
+    elementType: Label
+    rect:
+      serializedVersion: 2
+      x: 40
+      y: 80
+      width: 100
+      height: 26
+    anchorPreset: 0
+    text: MP
+    tint: {r: 0.13, g: 0.16, b: 0.22, a: 0.0}
+    textColor: {r: 1, g: 1, b: 1, a: 1}
+    fontSize: 16
+    classes: []
+    binding:
+      textKey:
+      valueKey:
+      visibilityKey:
+      classKey:
+      commandKey: 
+      interactableKey:
+    motion:
+      motionPreset: {fileID: 0}
+      motionId:
+      initialVariant:
+      animateVariant:
+    theme:
+      themeRef: {fileID: 0}
+      themeId:
+      classes: []
+      tokenOverrides: []
+    locked: 0
+    hiddenInDesigner: 0
+  - elementId: resourceBarBg
+    parentId: 
+    displayName: resourceBarBg
+    elementType: StatBar
+    rect:
+      serializedVersion: 2
+      x: 40
+      y: 110
+      width: 300
+      height: 32
+    anchorPreset: 0
+    text: 
+    tint: {r: 0.1, g: 0.12, b: 0.16, a: 1.0}
+    textColor: {r: 1, g: 1, b: 1, a: 1}
+    fontSize: 14
+    classes: []
+    binding:
+      textKey:
+      valueKey:
+      visibilityKey:
+      classKey:
+      commandKey: 
+      interactableKey:
+    motion:
+      motionPreset: {fileID: 0}
+      motionId:
+      initialVariant:
+      animateVariant:
+    theme:
+      themeRef: {fileID: 0}
+      themeId:
+      classes: []
+      tokenOverrides: []
+    locked: 0
+    hiddenInDesigner: 0
+  - elementId: resourceBarFill
+    parentId: resourceBarBg
+    displayName: resourceBarFill
+    elementType: StatBar
+    rect:
+      serializedVersion: 2
+      x: 44
+      y: 114
+      width: 180
+      height: 24
+    anchorPreset: 0
+    text: 
+    tint: {r: 0.2, g: 0.45, b: 0.85, a: 1.0}
+    textColor: {r: 1, g: 1, b: 1, a: 1}
+    fontSize: 14
+    classes: []
+    binding:
+      textKey:
+      valueKey:
+      visibilityKey:
+      classKey:
+      commandKey: 
+      interactableKey:
+    motion:
+      motionPreset: {fileID: 0}
+      motionId:
+      initialVariant:
+      animateVariant:
+    theme:
+      themeRef: {fileID: 0}
+      themeId:
+      classes: []
+      tokenOverrides: []
+    locked: 0
+    hiddenInDesigner: 0
+  variants: []
+  responsiveRules: []
+  contract:
+    requiredElementIds: []
+    requiredBindings: []
+  snapshots:
+    entries: []
+  localization:
+    entries: []
+  prompts:
+    entries: []
+  recipes: []

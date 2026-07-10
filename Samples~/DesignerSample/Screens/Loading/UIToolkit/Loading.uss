@@ -1,0 +1,35 @@
+.nexui-element#panel, #panel {
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    width: 1920px;
+    height: 1080px;
+    background-color: rgba(20, 25, 35, 0.96);
+}
+
+.nexui-element#title, #title {
+    position: absolute;
+    left: 860px;
+    top: 460px;
+    width: 200px;
+    height: 50px;
+    background-color: rgba(33, 40, 56, 0.0);
+}
+
+.nexui-element#progressBarBg, #progressBarBg {
+    position: absolute;
+    left: 760px;
+    top: 540px;
+    width: 400px;
+    height: 24px;
+    background-color: rgba(25, 30, 40, 1.0);
+}
+
+.nexui-element#progressLabel, #progressLabel {
+    position: absolute;
+    left: 920px;
+    top: 580px;
+    width: 80px;
+    height: 30px;
+    background-color: rgba(33, 40, 56, 0.0);
+}

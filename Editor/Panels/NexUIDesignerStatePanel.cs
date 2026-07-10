@@ -16,14 +16,14 @@ namespace emiteat.NexUI.Designer.Editor.Panels
             AddToClassList("nexui-panel");
             AddToClassList("nexui-bottom-card");
             style.flexGrow = 1;
-            Add(new Label(DesignerLocalization.T("panel.state")) { name = "PanelTitle" });
+            Add(new Label(DesignerLocalization.T("panel.state")) { name = "PanelTitle", tooltip = DesignerLocalization.T("tooltip.state.title") });
             _summary = new Label();
             _summary.name = "PanelSubtitle";
             Add(_summary);
-            _filter = new TextField("Filter");
+            _filter = new TextField("Filter") { tooltip = DesignerLocalization.T("tooltip.state.filter") };
             _filter.AddToClassList("nexui-compact-field");
             _filter.RegisterValueChangedCallback(_ => Refresh());
-            _keys = new Label();
+            _keys = new Label { tooltip = DesignerLocalization.T("tooltip.state.keys") };
             _keys.AddToClassList("nexui-bottom-text");
             Add(_keys);
 

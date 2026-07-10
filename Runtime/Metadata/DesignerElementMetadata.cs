@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using emiteat.NexUI.Accessibility;
 using UnityEngine;
 
 namespace emiteat.NexUI.Designer
@@ -24,6 +25,21 @@ namespace emiteat.NexUI.Designer
         Stretch
     }
 
+    /// <summary>
+    /// Designer-canvas corner shape for an element's preview box. Rounded is value 0 so
+    /// elements authored before this field existed deserialize to the historical fixed-8px-
+    /// radius look. Purely a Designer preview concern - it does not change how the backend
+    /// (UXML/prefab) actually renders the element; USS/uGUI sprite radius is still up to the
+    /// user's own authored asset.
+    /// </summary>
+    public enum DesignerElementShape
+    {
+        Rounded,
+        Rectangle,
+        Pill,
+        Circle
+    }
+
     [Serializable]
     public sealed class DesignerElementMetadata
     {
@@ -33,6 +49,17 @@ namespace emiteat.NexUI.Designer
         public string elementType = "Panel";
         public Rect rect = new Rect(64, 64, 240, 96);
         public DesignerAnchorPreset anchorPreset = DesignerAnchorPreset.TopLeft;
+        public DesignerElementShape shape = DesignerElementShape.Rounded;
+        /// <summary>
+        /// 0-100 preview fill amount for value-driven component types (ProgressBar, StatBar,
+        /// RadialFill) so the Designer canvas shows an actual filled bar/ring instead of a bare
+        /// box - purely a Designer preview value, distinct from binding.valueKey (the runtime
+        /// UIStateStore key that drives the real value in-game).
+        /// </summary>
+        public float previewValue = 60f;
+        public DesignerFillMetadata fill = new DesignerFillMetadata();
+        /// <summary>Preview-only image source for Image/IconButton canvas previews. Does not affect the backend UXML/prefab's own sprite/texture reference.</summary>
+        public Texture2D previewImage;
         public string text;
         public Color tint = new Color(0.15f, 0.22f, 0.34f, 1f);
         public Color textColor = Color.white;
@@ -41,7 +68,13 @@ namespace emiteat.NexUI.Designer
         public DesignerBindingMetadata binding = new DesignerBindingMetadata();
         public DesignerMotionMetadata motion = new DesignerMotionMetadata();
         public DesignerThemeMetadata theme = new DesignerThemeMetadata();
+        public DesignerAutoLayoutMetadata autoLayout = new DesignerAutoLayoutMetadata();
+        public DesignerConstraintMetadata constraint = new DesignerConstraintMetadata();
         public bool locked;
         public bool hiddenInDesigner;
+
+        /// <summary>Screen-reader-facing label. Falls back to <see cref="text"/> or <see cref="displayName"/> at runtime when empty.</summary>
+        public string accessibilityLabel;
+        public AccessibilityRole accessibilityRole = AccessibilityRole.None;
     }
 }

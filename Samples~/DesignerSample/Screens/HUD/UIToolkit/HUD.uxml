@@ -1,0 +1,9 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd">
+    <Style src="HUD.uss" />
+    <ui:Label name="healthBarLabel" class="nexui-label" text="HP" />
+    <ui:VisualElement name="healthBarBg" class="nexui-statbar" />
+    <ui:VisualElement name="healthBarFill" class="nexui-statbar" />
+    <ui:Label name="resourceBarLabel" class="nexui-label" text="MP" />
+    <ui:VisualElement name="resourceBarBg" class="nexui-statbar" />
+    <ui:VisualElement name="resourceBarFill" class="nexui-statbar" />
+</ui:UXML>

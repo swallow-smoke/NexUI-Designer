@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using emiteat.NexUI.Core;
 using emiteat.NexUI.Designer.Editor.Localization;
 using emiteat.NexUI.Designer.Editor.Viewport;
@@ -22,12 +21,8 @@ namespace emiteat.NexUI.Designer.Editor.Panels
             var bottomRow = new VisualElement();
             bottomRow.AddToClassList("nexui-toolbar-row");
             bottomRow.AddToClassList("nexui-toolbar-row-secondary");
-            var selectionRow = new VisualElement();
-            selectionRow.AddToClassList("nexui-toolbar-row");
-            selectionRow.AddToClassList("nexui-toolbar-row-secondary");
             Add(topRow);
             Add(bottomRow);
-            Add(selectionRow);
 
             var brand = new VisualElement();
             brand.AddToClassList("nexui-toolbar-brand");
@@ -39,7 +34,8 @@ namespace emiteat.NexUI.Designer.Editor.Panels
             {
                 objectType = typeof(UIScreenDefinition),
                 allowSceneObjects = false,
-                label = "Screen"
+                label = "Screen",
+                tooltip = DesignerLocalization.T("tooltip.toolbar.screen")
             };
             objectField.AddToClassList("nexui-screen-field");
             objectField.RegisterValueChangedCallback(evt => context.Open(evt.newValue as UIScreenDefinition));
@@ -49,19 +45,42 @@ namespace emiteat.NexUI.Designer.Editor.Panels
             {
                 objectType = typeof(DesignerMetadataAsset),
                 allowSceneObjects = false,
-                label = "Metadata"
+                label = "Metadata",
+                tooltip = DesignerLocalization.T("tooltip.toolbar.metadata")
             };
             metadataField.AddToClassList("nexui-metadata-field");
             metadataField.RegisterValueChangedCallback(evt => context.SetMetadata(evt.newValue as DesignerMetadataAsset));
             topRow.Add(metadataField);
             context.MetadataChanged += metadata => metadataField.SetValueWithoutNotify(metadata);
-            topRow.Add(MakeButton(() => context.CreateMetadataAsset(), "New", "nexui-button-secondary"));
+            topRow.Add(MakeButton(() => context.CreateMetadataAsset(), "New", "nexui-button-secondary", DesignerLocalization.T("tooltip.toolbar.newMetadata")));
 
-            _status = new Label();
+            _status = new Label { tooltip = DesignerLocalization.T("tooltip.toolbar.status") };
             _status.AddToClassList("nexui-toolbar-status");
             topRow.Add(_status);
 
-            var resolution = new PopupField<string>("Preview");
+            var editModeToggle = new ToolbarButton(() =>
+                DesignerEditMode.Current = DesignerEditMode.IsAdvanced ? DesignerMode.Simple : DesignerMode.Advanced)
+            {
+                tooltip = DesignerLocalization.T("tooltip.toolbar.modeToggle")
+            };
+            editModeToggle.AddToClassList("nexui-toolbar-button");
+            editModeToggle.AddToClassList("nexui-button-secondary");
+            var editModeHint = new Label { style = { fontSize = 9, color = new StyleColor(new Color(0.55f, 0.63f, 0.71f)) } };
+            void RefreshEditModeLabel()
+            {
+                var advanced = DesignerEditMode.IsAdvanced;
+                editModeToggle.text = advanced ? "Mode: Advanced" : "Mode: Simple";
+                // C3: "advanced option available" hint - subtle, so users discover Advanced
+                // mode organically instead of it being pushed on them.
+                editModeHint.text = advanced ? "" : "Theme/Motion/Policy hidden";
+                editModeHint.style.display = advanced ? DisplayStyle.None : DisplayStyle.Flex;
+            }
+            RefreshEditModeLabel();
+            DesignerEditMode.Changed += _ => RefreshEditModeLabel();
+            topRow.Add(editModeToggle);
+            topRow.Add(editModeHint);
+
+            var resolution = new PopupField<string>("Preview") { tooltip = DesignerLocalization.T("tooltip.toolbar.preview") };
             foreach (var preset in DesignerResolutionPreset.Defaults)
                 resolution.choices.Add(preset.Name);
             resolution.value = "1920x1080";
@@ -74,23 +93,31 @@ namespace emiteat.NexUI.Designer.Editor.Panels
             });
             bottomRow.Add(resolution);
 
-            var state = new PopupField<string>("State", new System.Collections.Generic.List<string> { "Normal", "Hover", "Pressed", "Disabled", "Focused" }, context.PreviewState);
+            var state = new PopupField<string>("State", new System.Collections.Generic.List<string> { "Normal", "Hover", "Pressed", "Disabled", "Focused" }, context.PreviewState)
+            {
+                tooltip = DesignerLocalization.T("tooltip.toolbar.state")
+            };
             state.AddToClassList("nexui-compact-popup");
             state.RegisterValueChangedCallback(evt => context.SetPreviewState(evt.newValue));
             bottomRow.Add(state);
 
-            var input = new PopupField<string>("Input", new System.Collections.Generic.List<string> { "Keyboard", "Gamepad", "Touch", "SteamDeck" }, context.InputMode);
+            var input = new PopupField<string>("Input", new System.Collections.Generic.List<string> { "Keyboard", "Gamepad", "Touch", "SteamDeck" }, context.InputMode)
+            {
+                tooltip = DesignerLocalization.T("tooltip.toolbar.input")
+            };
             input.AddToClassList("nexui-compact-popup");
             input.RegisterValueChangedCallback(evt => context.SetInputMode(evt.newValue));
             bottomRow.Add(input);
 
-            var snap = new Toggle("Snap") { value = context.SnapEnabled };
+            var snap = new Toggle("Snap") { value = context.SnapEnabled, tooltip = DesignerLocalization.T("tooltip.toolbar.snap") };
             snap.AddToClassList("nexui-toolbar-toggle");
             snap.RegisterValueChangedCallback(evt => context.SetSnap(evt.newValue));
             bottomRow.Add(snap);
 
-            var zoomOut = MakeButton(() => context.ZoomBy(-0.1f), "-", "nexui-button-secondary");
-            var zoomIn = MakeButton(() => context.ZoomBy(0.1f), "+", "nexui-button-secondary");
+            bottomRow.Add(MakeDivider());
+
+            var zoomOut = MakeButton(() => context.ZoomBy(-0.1f), "-", "nexui-button-secondary", DesignerLocalization.T("tooltip.toolbar.zoomOut"));
+            var zoomIn = MakeButton(() => context.ZoomBy(0.1f), "+", "nexui-button-secondary", DesignerLocalization.T("tooltip.toolbar.zoomIn"));
             bottomRow.Add(zoomOut);
             bottomRow.Add(zoomIn);
 
@@ -98,59 +125,12 @@ namespace emiteat.NexUI.Designer.Editor.Panels
             spacer.style.flexGrow = 1;
             bottomRow.Add(spacer);
 
-            bottomRow.Add(MakeButton(context.RebuildPreview, "Rebuild", "nexui-button-secondary"));
-            bottomRow.Add(MakeButton(() => context.Save(), DesignerLocalization.T("toolbar.save"), "nexui-button-primary"));
-            bottomRow.Add(MakeButton(context.Validate, DesignerLocalization.T("toolbar.validate"), "nexui-button-secondary"));
+            bottomRow.Add(MakeButton(context.RebuildPreview, "Rebuild", "nexui-button-secondary", DesignerLocalization.T("tooltip.toolbar.rebuild")));
+            bottomRow.Add(MakeButton(() => context.Save(), DesignerLocalization.T("toolbar.save"), "nexui-button-primary", DesignerLocalization.T("tooltip.toolbar.save")));
+            bottomRow.Add(MakeButton(context.Validate, DesignerLocalization.T("toolbar.validate"), "nexui-button-secondary", DesignerLocalization.T("tooltip.toolbar.validate")));
 
-            var alignButtons = new List<ToolbarButton>();
-            var distributeButtons = new List<ToolbarButton>();
-
-            void AddAlign(string label, string mode)
-            {
-                var button = MakeButton(() => context.AlignSelection(mode), label, "nexui-button-secondary");
-                alignButtons.Add(button);
-                selectionRow.Add(button);
-            }
-
-            AddAlign("⇤", "left");
-            AddAlign("⇔x", "centerX");
-            AddAlign("⇥", "right");
-            AddAlign("⇡", "top");
-            AddAlign("⇕y", "centerY");
-            AddAlign("⇣", "bottom");
-
-            var distributeH = MakeButton(context.DistributeSelectionHorizontal, "⋯H", "nexui-button-secondary");
-            var distributeV = MakeButton(context.DistributeSelectionVertical, "⋮V", "nexui-button-secondary");
-            distributeButtons.Add(distributeH);
-            distributeButtons.Add(distributeV);
-            selectionRow.Add(distributeH);
-            selectionRow.Add(distributeV);
-
-            var layerButtons = new List<ToolbarButton>();
-            var bringForward = MakeButton(context.BringSelectionForward, "Fwd", "nexui-button-secondary");
-            var sendBackward = MakeButton(context.SendSelectionBackward, "Back", "nexui-button-secondary");
-            var bringToFront = MakeButton(context.BringSelectionToFront, "Front", "nexui-button-secondary");
-            var sendToBack = MakeButton(context.SendSelectionToBack, "Bottom", "nexui-button-secondary");
-            layerButtons.Add(bringForward);
-            layerButtons.Add(sendBackward);
-            layerButtons.Add(bringToFront);
-            layerButtons.Add(sendToBack);
-            selectionRow.Add(bringForward);
-            selectionRow.Add(sendBackward);
-            selectionRow.Add(bringToFront);
-            selectionRow.Add(sendToBack);
-
-            void RefreshSelectionButtons(IReadOnlyList<DesignerElementMetadata> selection)
-            {
-                var hasSelection = selection != null && selection.Count > 0;
-                var canDistribute = selection != null && selection.Count >= 3;
-                foreach (var button in alignButtons) button.SetEnabled(hasSelection);
-                foreach (var button in layerButtons) button.SetEnabled(hasSelection);
-                foreach (var button in distributeButtons) button.SetEnabled(canDistribute);
-            }
-
-            context.MultiSelectionChanged += RefreshSelectionButtons;
-            RefreshSelectionButtons(context.SelectedElements);
+            // Align/Distribute/Layer moved to NexUIDesignerAlignPanel (docked beside the
+            // Palette) - a third toolbar row for them overlapped the panels below it.
 
             context.ScreenChanged += _ => RefreshStatus(context);
             context.ValidationChanged += () => RefreshStatus(context);
@@ -165,12 +145,20 @@ namespace emiteat.NexUI.Designer.Editor.Panels
             RefreshStatus(context);
         }
 
-        private static ToolbarButton MakeButton(System.Action action, string text, string className)
+        private static ToolbarButton MakeButton(System.Action action, string text, string className, string tooltip = null)
         {
-            var button = new ToolbarButton(action) { text = text };
+            var button = new ToolbarButton(action) { text = text, tooltip = tooltip };
             button.AddToClassList("nexui-toolbar-button");
             button.AddToClassList(className);
             return button;
+        }
+
+        /// <summary>Thin vertical rule separating logical toolbar groups (Align | Distribute | Layer, etc.).</summary>
+        private static VisualElement MakeDivider()
+        {
+            var divider = new VisualElement();
+            divider.AddToClassList("nexui-toolbar-divider");
+            return divider;
         }
 
         private void RefreshStatus(NexUIDesignerContext context)
