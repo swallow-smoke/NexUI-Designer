@@ -53,6 +53,12 @@ namespace emiteat.NexUI.Designer
         /// <see cref="DesignerMetadataAsset.elements"/> order) on load.
         /// </summary>
         public int siblingIndex;
+        /// <summary>
+        /// Which named slot of the parent this element occupies (e.g. Modal "header"/"content"/
+        /// "footer", Button "icon"/"content"). Empty/null is treated as the default
+        /// <c>"content"</c> slot, so metadata authored before slots existed loads unchanged.
+        /// </summary>
+        public string parentSlotId;
         public string displayName;
         public string elementType = "Panel";
         public Rect rect = new Rect(64, 64, 240, 96);
@@ -65,6 +71,17 @@ namespace emiteat.NexUI.Designer
         /// UIStateStore key that drives the real value in-game).
         /// </summary>
         public float previewValue = 60f;
+        /// <summary>
+        /// Number of generated preview items a collection component (List/Grid/Hotbar) shows on the
+        /// canvas. 0 ⇒ the renderer's default count. Generated items are virtual - never stored as
+        /// authored elements. Also doubles as the Hotbar slot count.
+        /// </summary>
+        public int previewItemCount;
+        /// <summary>
+        /// Inline option labels for a ChoiceList preview (empty ⇒ placeholder rows). Preview-only;
+        /// the real options come from the runtime collection binding at play time.
+        /// </summary>
+        public List<string> previewOptions = new List<string>();
         public DesignerFillMetadata fill = new DesignerFillMetadata();
         /// <summary>Preview-only image source for Image/IconButton canvas previews. Does not affect the backend UXML/prefab's own sprite/texture reference.</summary>
         public Texture2D previewImage;
