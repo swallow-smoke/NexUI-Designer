@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using emiteat.NexUI.Abstractions;
 using emiteat.NexUI.Core;
 using emiteat.NexUI.Designer.Editor.Backend;
+using emiteat.NexUI.Designer.Editor.Components;
 using emiteat.NexUI.Designer.Editor.Serialization;
 using TMPro;
 using UnityEngine;
@@ -191,17 +192,84 @@ namespace emiteat.NexUI.Designer.Editor.Validation
                 }
 
                 // Leaf-type element holding children ⇒ warn (allowed, but usually unintended).
-                if (!DesignerHierarchyUtility.IsContainerType(element.elementType) &&
+                if (!DesignerComponentRegistry.CanHaveChildren(element.elementType) &&
                     DesignerHierarchyUtility.CountChildren(metadata, element) > 0)
                     issues.Add(new DesignerValidationIssue(DesignerValidationSeverity.Warning, "leaf-with-children",
                         $"'{id}' is a {element.elementType} (a leaf type) but has children.",
                         "Wrap the children in a Panel/Container, or change this element's type.", screenId, id));
 
+                // Binding key set on a channel the component doesn't support ⇒ warn (never deleted;
+                // shown so the user can move it to the Advanced/Legacy area or remove it).
+                ValidateBindingSupport(element, screenId, issues);
+
                 if (DesignerHierarchyUtility.GetDepth(metadata, element) > MaxDepth)
                     issues.Add(new DesignerValidationIssue(DesignerValidationSeverity.Warning, "excessive-depth",
                         $"'{id}' is nested deeper than {MaxDepth} levels.",
                         "Flatten the hierarchy to keep layout predictable.", screenId, id));
+
+                // Slot integrity: a non-default parentSlotId must name a real slot on the parent's
+                // descriptor, and template slots hold at most one child.
+                if (!string.IsNullOrEmpty(element.parentId) && !string.IsNullOrEmpty(element.parentSlotId) &&
+                    element.parentSlotId != DesignerComponentSlot.Content)
+                {
+                    var parent = metadata.Find(element.parentId);
+                    if (parent != null)
+                    {
+                        var parentDesc = DesignerComponentRegistry.Get(parent.elementType);
+                        if (!parentDesc.IsGeneric && parentDesc.GetSlot(element.parentSlotId) == null)
+                            issues.Add(new DesignerValidationIssue(DesignerValidationSeverity.Error, "invalid-slot",
+                                $"'{id}' targets slot '{element.parentSlotId}' which '{parent.elementId}' ({parentDesc.DisplayName}) does not have.",
+                                "Move it to a valid slot or the content slot.", screenId, id));
+                    }
+                }
             }
+
+            // Template slots must not contain more than one authored child.
+            foreach (var parent in metadata.elements)
+            {
+                if (parent == null || string.IsNullOrEmpty(parent.elementId)) continue;
+                var desc = DesignerComponentRegistry.Get(parent.elementType);
+                foreach (var slot in desc.Slots)
+                {
+                    if (!slot.IsTemplateSlot) continue;
+                    var count = 0;
+                    foreach (var child in metadata.elements)
+                        if (child != null && child.parentId == parent.elementId &&
+                            (child.parentSlotId ?? DesignerComponentSlot.Content) == slot.SlotId)
+                            count++;
+                    if (count > 1)
+                        issues.Add(new DesignerValidationIssue(DesignerValidationSeverity.Warning, "template-slot-multiple",
+                            $"'{parent.elementId}' template slot '{slot.SlotId}' has {count} children; only the first is used as the item template.",
+                            "Keep a single element in the template slot.", screenId, parent.elementId));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Flags binding keys set on channels the element's component descriptor does not support.
+        /// Reported as info (not error) and never mutated - the value stays in the data so it can be
+        /// surfaced in the Inspector's Legacy/Unsupported area. Unknown/Generic types support all
+        /// channels, so they never trip this.
+        /// </summary>
+        private static void ValidateBindingSupport(DesignerElementMetadata element, string screenId, List<DesignerValidationIssue> issues)
+        {
+            var b = element.binding;
+            if (b == null) return;
+            var d = DesignerComponentRegistry.Get(element.elementType);
+            var id = element.elementId;
+
+            void Check(string key, DesignerBindingChannel channel, string label)
+            {
+                if (!string.IsNullOrEmpty(key) && !d.SupportsBinding(channel))
+                    issues.Add(new DesignerValidationIssue(DesignerValidationSeverity.Info, "unsupported-binding",
+                        $"'{id}' ({d.DisplayName}) sets a {label} binding, which this component does not use.",
+                        "Remove it, or move it to the Advanced/Legacy bindings area.", screenId, id));
+            }
+
+            Check(b.textKey, DesignerBindingChannel.Text, "text");
+            Check(b.valueKey, DesignerBindingChannel.Value, "value");
+            Check(b.commandKey, DesignerBindingChannel.Command, "command");
+            Check(b.interactableKey, DesignerBindingChannel.Interactable, "interactable");
         }
 
         private static void ValidateOrphans(DesignerMetadataAsset metadata, string screenId,

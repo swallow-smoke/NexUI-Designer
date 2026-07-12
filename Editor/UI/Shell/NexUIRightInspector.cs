@@ -79,6 +79,8 @@ namespace emiteat.NexUI.Designer.Editor.UI.Shell
         {
             AddTitle(_context.SelectedElements.Count > 1 ? _context.SelectedElements.Count + " Elements Selected" : "Selection");
             _host.Add(new MultiSelectionInspector(_context));
+            if (_context.SelectedElements.Count == 1)
+                _host.Add(new ComponentInspector(_context));
             _host.Add(new LayoutInspector(_context));
             _host.Add(new AutoLayoutInspector(_context));
             _host.Add(new ConstraintsInspector(_context));

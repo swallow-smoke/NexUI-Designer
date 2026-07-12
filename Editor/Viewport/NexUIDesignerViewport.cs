@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using emiteat.NexUI.Designer.Editor.Backend;
 using emiteat.NexUI.Designer.Editor.Commands;
+using emiteat.NexUI.Designer.Editor.Components;
+using emiteat.NexUI.Designer.Editor.Components.Preview;
 using emiteat.NexUI.Designer.Editor.Localization;
 using emiteat.NexUI.Designer.Editor.MotionClipEditor;
 using UnityEngine;
@@ -22,6 +24,14 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
         private readonly VisualElement _selectionRectOverlay;
         private readonly VisualElement _inlineMenuLayer;
         private readonly VisualElement _floatingToolbar;
+        private readonly PopupField<string> _statePopup;
+        private readonly Button _interactiveToggle;
+
+        private static readonly List<string> PreviewStateChoices = new List<string>
+        {
+            "Normal", "Hover", "Pressed", "Focused", "Selected", "Disabled",
+            "Loading", "Empty", "Error", "Success", "Warning", "Indeterminate"
+        };
         private readonly Label _emptyState;
         private readonly Label _distanceLabel;
         private readonly Dictionary<DesignerElementMetadata, VisualElement> _views = new Dictionary<DesignerElementMetadata, VisualElement>();
@@ -69,6 +79,21 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
             _zoomBadge = new Label();
             _zoomBadge.AddToClassList("nexui-zoom-badge");
             header.Add(_zoomBadge);
+
+            // Preview-state dropdown: forces a state on the canvas (preview-only).
+            _statePopup = new PopupField<string>(PreviewStateChoices, 0)
+            {
+                tooltip = "Force a preview state on the canvas. Preview-only; never saved on elements."
+            };
+            _statePopup.AddToClassList("nexui-toolbar-button");
+            _statePopup.RegisterValueChangedCallback(evt => _context.SetForcedPreviewState(ParseState(evt.newValue)));
+            header.Add(_statePopup);
+
+            // Design ⇄ Interactive mode toggle.
+            _interactiveToggle = new Button(() => _context.ToggleInteractionMode()) { tooltip = "Toggle Interactive Preview: hover/press/activate simulates commands (logged, never runs real game logic)." };
+            _interactiveToggle.AddToClassList("nexui-toolbar-button");
+            header.Add(_interactiveToggle);
+            _context.PreviewSettingsChanged += RefreshPreviewControls;
 
             _previewFrame = new ScrollView();
             _previewFrame.AddToClassList("nexui-preview-frame");
@@ -128,6 +153,7 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
             context.CanvasChanged += RefreshAll;
             context.ElementChanged += FlashElement;
             RefreshAll();
+            RefreshPreviewControls();
         }
 
         public NexUIDesignerContext Context => _context;
@@ -251,6 +277,12 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
             view.EnableInClassList("is-locked", element.locked);
             view.style.position = Position.Absolute;
             ApplyRect(view, element.rect);
+
+            // Forced preview state modulates the base box (hover lighten, pressed darken, disabled
+            // desaturate/dim, error/success/warning border, selected/focused accent) so the State
+            // dropdown visibly changes the canvas.
+            var previewState = EffectivePreviewState(element);
+            var stateTint = DesignerPreviewColors.Modulate(element.tint, previewState);
             if (hasPreviewImage)
             {
                 var outline = ImageOutlineColor(element.tint);
@@ -262,12 +294,22 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
             }
             else
             {
-                view.style.backgroundColor = new StyleColor(element.tint);
-                view.style.borderTopColor = new StyleColor(Lighten(element.tint, 0.18f));
-                view.style.borderRightColor = new StyleColor(Lighten(element.tint, 0.18f));
-                view.style.borderBottomColor = new StyleColor(Darken(element.tint, 0.18f));
-                view.style.borderLeftColor = new StyleColor(Lighten(element.tint, 0.18f));
+                view.style.backgroundColor = new StyleColor(stateTint);
+                view.style.borderTopColor = new StyleColor(Lighten(stateTint, 0.18f));
+                view.style.borderRightColor = new StyleColor(Lighten(stateTint, 0.18f));
+                view.style.borderBottomColor = new StyleColor(Darken(stateTint, 0.18f));
+                view.style.borderLeftColor = new StyleColor(Lighten(stateTint, 0.18f));
             }
+
+            var stateBorder = DesignerPreviewColors.StateBorder(previewState);
+            if (stateBorder.HasValue)
+            {
+                var c = new StyleColor(stateBorder.Value);
+                view.style.borderTopColor = c; view.style.borderRightColor = c;
+                view.style.borderBottomColor = c; view.style.borderLeftColor = c;
+            }
+            var stateOpacity = DesignerPreviewColors.StateOpacity(previewState);
+            if (stateOpacity < 1f) view.style.opacity = stateOpacity;
 
             AddTypeSpecificPreview(view, element);
 
@@ -332,124 +374,8 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
         /// </summary>
         private void AddTypeSpecificPreview(VisualElement view, DesignerElementMetadata element)
         {
-            switch (element.elementType)
-            {
-                case "ProgressBar":
-                case "StatBar":
-                    AddLinearFill(view, element);
-                    break;
-                case "RadialFill":
-                    AddRadialFill(view, element, spin: false);
-                    break;
-                case "Spinner":
-                    AddRadialFill(view, element, spin: true);
-                    break;
-                case "ChoiceList":
-                    AddChoiceRows(view);
-                    break;
-                case "List":
-                    AddListRows(view, grid: false);
-                    break;
-                case "Grid":
-                    AddListRows(view, grid: true);
-                    break;
-                case "Skeleton":
-                    AddSkeletonBars(view);
-                    break;
-                case "Image":
-                    ApplyPreviewImage(view, element, fullBleed: true);
-                    break;
-                case "IconButton":
-                    ApplyPreviewImage(view, element, fullBleed: false);
-                    break;
-            }
-        }
-
-        private void AddLinearFill(VisualElement view, DesignerElementMetadata element)
-        {
-            var direction = element.fill.direction;
-            var horizontal = direction == DesignerFillDirection.LeftToRight || direction == DesignerFillDirection.RightToLeft;
-
-            var track = new VisualElement();
-            track.AddToClassList("nexui-preview-fill-track");
-            track.EnableInClassList("is-vertical", !horizontal);
-            view.Add(track);
-
-            var fraction = Mathf.Clamp01(Mathf.InverseLerp(element.fill.minValue, element.fill.maxValue, element.previewValue));
-
-            var fillBar = new VisualElement();
-            fillBar.AddToClassList("nexui-preview-fill-bar");
-            fillBar.style.position = Position.Absolute;
-            fillBar.style.backgroundColor = new StyleColor(Lighten(element.tint, 0.4f));
-
-            // Unity-Image-style fill: anchor two opposite sides at 0, set the free axis's
-            // explicit percent size, and clear the *other* inset on that axis to Auto so the
-            // bar grows/shrinks from the correct edge instead of stretching both ways.
-            if (horizontal)
-            {
-                fillBar.style.top = 0;
-                fillBar.style.bottom = 0;
-                fillBar.style.width = new Length(fraction * 100f, LengthUnit.Percent);
-                if (direction == DesignerFillDirection.RightToLeft)
-                {
-                    fillBar.style.right = 0;
-                    fillBar.style.left = StyleKeyword.Auto;
-                }
-                else
-                {
-                    fillBar.style.left = 0;
-                    fillBar.style.right = StyleKeyword.Auto;
-                }
-            }
-            else
-            {
-                fillBar.style.left = 0;
-                fillBar.style.right = 0;
-                fillBar.style.height = new Length(fraction * 100f, LengthUnit.Percent);
-                if (direction == DesignerFillDirection.TopToBottom)
-                {
-                    fillBar.style.top = 0;
-                    fillBar.style.bottom = StyleKeyword.Auto;
-                }
-                else
-                {
-                    fillBar.style.bottom = 0;
-                    fillBar.style.top = StyleKeyword.Auto;
-                }
-            }
-            track.Add(fillBar);
-        }
-
-        private void AddRadialFill(VisualElement view, DesignerElementMetadata element, bool spin)
-        {
-            var ring = new RadialFillPreview
-            {
-                Value = element.previewValue,
-                Spin = spin,
-                Clockwise = element.fill.clockwise,
-                FillColor = Lighten(element.tint, 0.4f)
-            };
-            ring.AddToClassList("nexui-preview-radial");
-            view.Add(ring);
-        }
-
-        /// <summary>Real Texture2D preview for Image (full-bleed background) / IconButton (small centered icon) - no sprite/atlas needed, just a direct texture assignment.</summary>
-        private static void ApplyPreviewImage(VisualElement view, DesignerElementMetadata element, bool fullBleed)
-        {
-            if (element.previewImage == null) return;
-
-            if (fullBleed)
-            {
-                view.style.backgroundImage = new StyleBackground(element.previewImage);
-                view.style.unityBackgroundScaleMode = new StyleEnum<ScaleMode>(ScaleMode.ScaleToFit);
-                return;
-            }
-
-            var icon = new VisualElement();
-            icon.AddToClassList("nexui-preview-icon");
-            icon.style.backgroundImage = new StyleBackground(element.previewImage);
-            icon.style.unityBackgroundScaleMode = new StyleEnum<ScaleMode>(ScaleMode.ScaleToFit);
-            view.Add(icon);
+            var ctx = new DesignerPreviewContext(element, EffectivePreviewState(element), _context.Zoom, _context.IsInteractive);
+            DesignerComponentPreviewRegistry.Get(element.elementType).BuildPreview(view, ctx);
         }
 
         private static bool IsImagePreviewElement(DesignerElementMetadata element)
@@ -462,55 +388,65 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
             return new Color(0.35f, 0.66f, 1f, 0.75f);
         }
 
-        private static void AddChoiceRows(VisualElement view)
+        /// <summary>
+        /// The forced preview state to render <paramref name="element"/> in. In Design mode with no
+        /// forced state ⇒ Normal. Otherwise the context's forced state applies, but only for states
+        /// the element's component descriptor actually supports (unsupported ⇒ Normal), so e.g.
+        /// forcing "Loading" doesn't visibly change a plain Panel.
+        /// </summary>
+        private DesignerComponentState EffectivePreviewState(DesignerElementMetadata element)
         {
-            var list = new VisualElement();
-            list.AddToClassList("nexui-preview-choice-list");
-            for (int i = 0; i < 3; i++)
-            {
-                var row = new VisualElement();
-                row.AddToClassList("nexui-preview-choice-row");
-                var box = new VisualElement();
-                box.AddToClassList("nexui-preview-choice-box");
-                box.EnableInClassList("is-checked", i == 0);
-                row.Add(box);
-                list.Add(row);
-            }
-            view.Add(list);
+            var forced = _context.ForcedPreviewState;
+            if (forced == DesignerComponentState.Normal) return DesignerComponentState.Normal;
+            var d = DesignerComponentRegistry.Get(element.elementType);
+            return d.SupportsState(forced) ? forced : DesignerComponentState.Normal;
         }
 
-        private static void AddListRows(VisualElement view, bool grid)
+        private static DesignerComponentState ParseState(string name)
+            => System.Enum.TryParse<DesignerComponentState>(name, out var s) ? s : DesignerComponentState.Normal;
+
+        /// <summary>
+        /// Interactive-mode press handler: value components nudge their preview value (undoable),
+        /// interactive components simulate their primary command (logged, never real game logic),
+        /// everything else records a plain interaction. A brief opacity dip gives press feedback.
+        /// </summary>
+        private void HandleInteractivePress(DesignerElementMetadata element, VisualElement view)
         {
-            var container = new VisualElement();
-            container.AddToClassList(grid ? "nexui-preview-grid" : "nexui-preview-list");
-            var count = grid ? 6 : 3;
-            for (int i = 0; i < count; i++)
+            var d = DesignerComponentRegistry.Get(element.elementType);
+            view.style.opacity = 0.7f;
+            view.schedule.Execute(() => view.style.opacity = 1f).StartingIn(120);
+
+            if (d.IsValueComponent)
             {
-                var cell = new VisualElement();
-                cell.AddToClassList(grid ? "nexui-preview-grid-cell" : "nexui-preview-list-row");
-                container.Add(cell);
+                var span = Mathf.Max(1f, element.fill.maxValue - element.fill.minValue);
+                var next = element.previewValue + span * 0.2f;
+                if (next > element.fill.maxValue) next = element.fill.minValue;
+                _context.UpdateElement(element, e => e.previewValue = next, "Preview Value Change");
+                _context.LogPreviewInteraction(element, $"value → {next:0.#}");
             }
-            view.Add(container);
+            else if (d.IsInteractive)
+            {
+                _context.SimulatePrimaryInteraction(element);
+            }
+            else
+            {
+                _context.LogPreviewInteraction(element, "clicked (no interactive behavior)");
+            }
         }
 
-        private static void AddSkeletonBars(VisualElement view)
+        private void RefreshPreviewControls()
         {
-            var container = new VisualElement();
-            container.AddToClassList("nexui-preview-skeleton");
-            for (int i = 0; i < 3; i++)
+            if (_interactiveToggle != null)
             {
-                var bar = new VisualElement();
-                bar.AddToClassList("nexui-preview-skeleton-bar");
-                container.Add(bar);
-
-                var dim = false;
-                bar.schedule.Execute(() =>
-                {
-                    dim = !dim;
-                    bar.style.opacity = dim ? 0.35f : 0.85f;
-                }).Every(450);
+                _interactiveToggle.text = _context.IsInteractive ? "● Interactive" : "○ Design";
+                _interactiveToggle.EnableInClassList("is-active", _context.IsInteractive);
             }
-            view.Add(container);
+            if (_statePopup != null)
+            {
+                var name = _context.ForcedPreviewState.ToString();
+                if (PreviewStateChoices.Contains(name) && _statePopup.value != name)
+                    _statePopup.SetValueWithoutNotify(name);
+            }
         }
 
         private void ApplyRect(VisualElement view, Rect rect)
@@ -528,6 +464,15 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
         {
             if (evt.button != 0) return;
             Focus();
+
+            // Interactive Preview mode: a click exercises the component (simulated command, logged)
+            // instead of selecting/moving it. Value components get a click-to-nudge value change.
+            if (_context.IsInteractive)
+            {
+                HandleInteractivePress(element, view);
+                evt.StopPropagation();
+                return;
+            }
 
             if (evt.shiftKey)
                 _context.AddToSelection(element);

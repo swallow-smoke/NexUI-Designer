@@ -14,6 +14,7 @@ namespace emiteat.NexUI.Designer.Editor.UI.Shell
         private readonly NexUIDesignerValidationPanel _validation;
         private readonly NexUIDesignerHistoryPanel _history;
         private readonly NexUIDesignerScreenGraphPanel _graph;
+        private readonly NexUIPreviewLogPanel _previewLog;
         private readonly VisualElement _timeline;
         private Vector2 _resizeStart;
         private float _heightStart;
@@ -38,7 +39,8 @@ namespace emiteat.NexUI.Designer.Editor.UI.Shell
                 (DesignerBottomTab.Timeline, "Timeline", "Motion timeline."),
                 (DesignerBottomTab.Validation, "Validation", "Validation issues."),
                 (DesignerBottomTab.History, "History", "Recent edit history."),
-                (DesignerBottomTab.Graph, "Graph", "Screen graph and binding summary."));
+                (DesignerBottomTab.Graph, "Graph", "Screen graph and binding summary."),
+                (DesignerBottomTab.Preview, "Preview", "Interactive preview log (simulated commands)."));
             bar.Add(_tabs);
 
             _badge = new Label();
@@ -61,10 +63,13 @@ namespace emiteat.NexUI.Designer.Editor.UI.Shell
             _validation = new NexUIDesignerValidationPanel(_context);
             _history = new NexUIDesignerHistoryPanel(_context);
             _graph = new NexUIDesignerScreenGraphPanel(_context);
+            _previewLog = new NexUIPreviewLogPanel(_context);
             _timeline = MakePlaceholder("Timeline", "Open Motion Clip Editor to edit clips. Timeline docking is prepared here.");
 
             context.UIStateChanged += Refresh;
             context.ValidationChanged += RefreshBadge;
+            // Auto-open the Preview tab when a command is simulated so the user sees the result.
+            context.PreviewLog.CommandSimulated += _ => _context.SetBottomTab(DesignerBottomTab.Preview, true);
             Refresh();
             RefreshBadge();
         }
@@ -88,6 +93,9 @@ namespace emiteat.NexUI.Designer.Editor.UI.Shell
                     break;
                 case DesignerBottomTab.Timeline:
                     _content.Add(_timeline);
+                    break;
+                case DesignerBottomTab.Preview:
+                    _content.Add(_previewLog);
                     break;
                 default:
                     _content.Add(_validation);

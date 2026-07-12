@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using emiteat.NexUI.Core;
 using emiteat.NexUI.Designer.Editor.Backend;
+using emiteat.NexUI.Designer.Editor.Components;
 using TMPro;
 using UnityEditor;
 using UnityEngine;
@@ -150,6 +151,23 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
             bool isButton = Is(type, "Button") || Is(type, "IconButton");
             bool isText = Is(type, "Label") || Is(type, "Toast") || Is(type, "Tooltip");
             bool isImage = Is(type, "Image");
+            bool isValueFill = Is(type, "ProgressBar") || Is(type, "StatBar") || Is(type, "RadialFill");
+
+            // Value components map to an Image with a fill method + fillAmount (uGUI: Partial - the
+            // Track/Label virtual parts and animation are preview-only).
+            if (isValueFill)
+            {
+                ApplyValueFill(go, element, report);
+                report.MarkSkipped($"'{element.elementId}' Track/Label/animation are preview-only (uGUI ProgressBar is Partial).");
+            }
+
+            // Honest per-element backend-support note: never claim to have written preview-only /
+            // unsupported descriptor values.
+            var support = DesignerComponentRegistry.Get(type).UGUISupport;
+            if (support == DesignerBackendSupport.PreviewOnly)
+                report.MarkSkipped($"'{element.elementId}' ({type}) is Preview-only on uGUI; only its rect/tint were written.");
+            else if (support == DesignerBackendSupport.Unsupported)
+                report.MarkSkipped($"'{element.elementId}' ({type}) is not supported on uGUI; only a placeholder GameObject was written.");
 
             // Tint on any Graphic; add an Image for Image/Button backgrounds when missing.
             var graphic = go.GetComponent<Graphic>();
@@ -172,6 +190,48 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
             // Text: set on an existing text component, else create one for text-y elements.
             if (!string.IsNullOrEmpty(element.text) || isText || isButton)
                 ApplyText(go, element, isButton, report);
+        }
+
+        /// <summary>
+        /// Maps a value component to a filled <see cref="Image"/>: fill method from the fill
+        /// direction (Radial for RadialFill), fillAmount from the normalized preview value, and
+        /// fill origin/clockwise to match the Designer preview.
+        /// </summary>
+        private static void ApplyValueFill(GameObject go, DesignerElementMetadata element, DesignerSaveReport report)
+        {
+            var img = go.GetComponent<Image>();
+            if (img == null)
+            {
+                img = go.AddComponent<Image>();
+                report.MarkChanged($"Added filled Image to '{element.elementId}'");
+            }
+            img.color = element.tint;
+            img.type = Image.Type.Filled;
+
+            var normalized = Mathf.Clamp01(Mathf.InverseLerp(element.fill.minValue, element.fill.maxValue, element.previewValue));
+            img.fillAmount = normalized;
+
+            if (Is(element.elementType ?? "", "RadialFill"))
+            {
+                img.fillMethod = Image.FillMethod.Radial360;
+                img.fillOrigin = (int)Image.Origin360.Bottom;
+                img.fillClockwise = element.fill.clockwise;
+            }
+            else
+            {
+                switch (element.fill.direction)
+                {
+                    case DesignerFillDirection.LeftToRight:
+                        img.fillMethod = Image.FillMethod.Horizontal; img.fillOrigin = (int)Image.OriginHorizontal.Left; break;
+                    case DesignerFillDirection.RightToLeft:
+                        img.fillMethod = Image.FillMethod.Horizontal; img.fillOrigin = (int)Image.OriginHorizontal.Right; break;
+                    case DesignerFillDirection.BottomToTop:
+                        img.fillMethod = Image.FillMethod.Vertical; img.fillOrigin = (int)Image.OriginVertical.Bottom; break;
+                    case DesignerFillDirection.TopToBottom:
+                        img.fillMethod = Image.FillMethod.Vertical; img.fillOrigin = (int)Image.OriginVertical.Top; break;
+                }
+            }
+            report.MarkChanged($"Set fillAmount {normalized:0.##} on '{element.elementId}'");
         }
 
         private static void ApplyText(GameObject go, DesignerElementMetadata element, bool isButton, DesignerSaveReport report)

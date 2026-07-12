@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using emiteat.NexUI.Designer.Editor.Components;
 
 namespace emiteat.NexUI.Designer.Editor
 {
@@ -15,33 +16,17 @@ namespace emiteat.NexUI.Designer.Editor
     /// </summary>
     public static class DesignerHierarchyUtility
     {
-        /// <summary>Element types that are containers by design intent (may hold children without a warning).</summary>
+        /// <summary>Element types that are containers by design intent, per the component registry (single source of truth).</summary>
         public static bool IsContainerType(string elementType)
-        {
-            switch (elementType)
-            {
-                case "Panel":
-                case "Card":
-                case "Container":
-                case "Modal":
-                case "List":
-                case "Grid":
-                case "Slot":
-                case "ChoiceList":
-                case "Popover":
-                    return true;
-                default:
-                    return false;
-            }
-        }
+            => DesignerComponentRegistry.IsContainer(elementType);
 
         /// <summary>
-        /// Whether <paramref name="element"/> is a container by design intent. Non-container
-        /// ("leaf") types can still technically hold children, but doing so raises a Validation
-        /// warning rather than being silently accepted.
+        /// Whether <paramref name="element"/> may hold authored children (declares at least one
+        /// slot), per its registry descriptor. Leaf types (Label/Image/ProgressBar...) return
+        /// false and raise a Validation warning if given children.
         /// </summary>
         public static bool CanHaveChildren(DesignerElementMetadata element)
-            => element != null && IsContainerType(element.elementType);
+            => element != null && DesignerComponentRegistry.CanHaveChildren(element.elementType);
 
         public static bool IsRoot(DesignerElementMetadata element)
             => element != null && string.IsNullOrEmpty(element.parentId);

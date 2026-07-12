@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using emiteat.NexUI.Abstractions;
 using emiteat.NexUI.Core;
 using emiteat.NexUI.Designer.Editor.Backend;
+using emiteat.NexUI.Designer.Editor.Components;
 using emiteat.NexUI.Designer.Editor.Serialization;
 using emiteat.NexUI.Designer.Editor.Validation;
 using emiteat.NexUI.Motion;
@@ -577,7 +578,8 @@ namespace emiteat.NexUI.Designer.Editor
                 tint = DefaultTintFor(type),
                 shape = DefaultShapeFor(type),
                 textColor = Color.white,
-                fontSize = type == DesignerElementType.Label ? 18 : 14
+                fontSize = type == DesignerElementType.Label ? 18 : 14,
+                accessibilityRole = DesignerComponentRegistry.Get(type).DefaultAccessibilityRole
             };
             Metadata.elements.Add(element);
             MarkMetadataDirty();
@@ -1074,59 +1076,23 @@ namespace emiteat.NexUI.Designer.Editor
             return candidate;
         }
 
+        // Creation defaults now come from the component registry (single source of truth) rather
+        // than duplicated type switch statements. Spawn position stays at the historical (96,96);
+        // only size/text/tint/shape are per-type.
         private static Rect DefaultRectFor(DesignerElementType type)
         {
-            switch (type)
-            {
-                case DesignerElementType.Button: return new Rect(96, 96, 220, 56);
-                case DesignerElementType.Label: return new Rect(96, 96, 260, 44);
-                case DesignerElementType.Image: return new Rect(96, 96, 160, 120);
-                case DesignerElementType.Modal: return new Rect(420, 240, 640, 360);
-                case DesignerElementType.List: return new Rect(96, 96, 360, 420);
-                case DesignerElementType.Slot: return new Rect(96, 96, 88, 88);
-                default: return new Rect(96, 96, 280, 120);
-            }
+            var size = DesignerComponentRegistry.Get(type).DefaultSize;
+            return new Rect(96, 96, size.x, size.y);
         }
 
         private static string DefaultTextFor(DesignerElementType type)
-        {
-            switch (type)
-            {
-                case DesignerElementType.Button: return "Button";
-                case DesignerElementType.Label: return "Label";
-                case DesignerElementType.Toast: return "Toast message";
-                default: return string.Empty;
-            }
-        }
+            => DesignerComponentRegistry.Get(type).DefaultText ?? string.Empty;
 
         private static Color DefaultTintFor(DesignerElementType type)
-        {
-            switch (type)
-            {
-                case DesignerElementType.Button: return new Color(0.12f, 0.36f, 0.85f, 1f);
-                case DesignerElementType.Label: return new Color(0.12f, 0.15f, 0.2f, 0.65f);
-                case DesignerElementType.Modal: return new Color(0.08f, 0.1f, 0.14f, 0.96f);
-                case DesignerElementType.Image: return new Color(0.19f, 0.25f, 0.34f, 1f);
-                default: return new Color(0.13f, 0.18f, 0.26f, 1f);
-            }
-        }
+            => DesignerComponentRegistry.Get(type).DefaultColor;
 
-        /// <summary>Gives naturally round/pill-shaped component types a matching canvas preview shape by default, instead of every new element starting as the same rounded box.</summary>
         private static DesignerElementShape DefaultShapeFor(DesignerElementType type)
-        {
-            switch (type)
-            {
-                case DesignerElementType.Spinner:
-                case DesignerElementType.RadialFill:
-                    return DesignerElementShape.Circle;
-                case DesignerElementType.Toast:
-                case DesignerElementType.Tooltip:
-                case DesignerElementType.IconButton:
-                    return DesignerElementShape.Pill;
-                default:
-                    return DesignerElementShape.Rounded;
-            }
-        }
+            => DesignerComponentRegistry.Get(type).DefaultShape;
 
         public void Dispose()
         {
