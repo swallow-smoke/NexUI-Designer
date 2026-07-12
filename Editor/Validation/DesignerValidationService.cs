@@ -48,6 +48,7 @@ namespace emiteat.NexUI.Designer.Editor.Validation
                     "Set the metadata screenId to match the screen, or open the correct screen.", screenId));
 
             ValidateElements(screen, metadata, screenId, backendNames, issues);
+            ValidateHierarchy(metadata, screenId, issues);
             ValidateOrphans(metadata, screenId, backendNames, issues);
             ValidateReferences(metadata, screenId, issues);
             ValidatePrefabComponents(screen, metadata, screenId, issues);
@@ -153,6 +154,54 @@ namespace emiteat.NexUI.Designer.Editor.Validation
                 issues.Add(new DesignerValidationIssue(DesignerValidationSeverity.Info, "hidden-but-interactive",
                     $"'{id}' is hidden in designer yet declares interactive bindings.",
                     "Unhide it, or remove the command/interactable binding.", screenId, id));
+        }
+
+        /// <summary>
+        /// Parent/child hierarchy integrity: missing/self/cyclic parents, leaf types holding
+        /// children, and excessive nesting depth. The source of truth is parentId + siblingIndex.
+        /// </summary>
+        private static void ValidateHierarchy(DesignerMetadataAsset metadata, string screenId, List<DesignerValidationIssue> issues)
+        {
+            const int MaxDepth = 20;
+            foreach (var element in metadata.elements)
+            {
+                if (element == null || string.IsNullOrEmpty(element.elementId)) continue;
+                var id = element.elementId;
+
+                if (!string.IsNullOrEmpty(element.parentId))
+                {
+                    if (element.parentId == id)
+                    {
+                        issues.Add(new DesignerValidationIssue(DesignerValidationSeverity.Error, "self-parent",
+                            $"'{id}' is its own parent.", "Move it to root or set a different parent.", screenId, id));
+                    }
+                    else if (metadata.Find(element.parentId) == null)
+                    {
+                        issues.Add(new DesignerValidationIssue(DesignerValidationSeverity.Error, "missing-parent",
+                            $"'{id}' references parent '{element.parentId}' which does not exist.",
+                            "Move it to root or repoint it at an existing element.", screenId, id));
+                    }
+                    else if (DesignerHierarchyUtility.IsDescendant(metadata, element.parentId, id))
+                    {
+                        issues.Add(new DesignerValidationIssue(DesignerValidationSeverity.Error, "circular-parent",
+                            $"'{id}' is part of a circular parent chain via '{element.parentId}'.",
+                            "Move one node in the cycle to root.", screenId, id));
+                        continue; // depth walk below would loop
+                    }
+                }
+
+                // Leaf-type element holding children ⇒ warn (allowed, but usually unintended).
+                if (!DesignerHierarchyUtility.IsContainerType(element.elementType) &&
+                    DesignerHierarchyUtility.CountChildren(metadata, element) > 0)
+                    issues.Add(new DesignerValidationIssue(DesignerValidationSeverity.Warning, "leaf-with-children",
+                        $"'{id}' is a {element.elementType} (a leaf type) but has children.",
+                        "Wrap the children in a Panel/Container, or change this element's type.", screenId, id));
+
+                if (DesignerHierarchyUtility.GetDepth(metadata, element) > MaxDepth)
+                    issues.Add(new DesignerValidationIssue(DesignerValidationSeverity.Warning, "excessive-depth",
+                        $"'{id}' is nested deeper than {MaxDepth} levels.",
+                        "Flatten the hierarchy to keep layout predictable.", screenId, id));
+            }
         }
 
         private static void ValidateOrphans(DesignerMetadataAsset metadata, string screenId,

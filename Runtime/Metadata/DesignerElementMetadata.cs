@@ -45,6 +45,14 @@ namespace emiteat.NexUI.Designer
     {
         public string elementId;
         public string parentId;
+        /// <summary>
+        /// Order of this element among its siblings (elements sharing the same
+        /// <see cref="parentId"/>). Lower draws/lists first. Defaults to 0 so metadata authored
+        /// before this field existed deserializes safely; <see cref="DesignerHierarchyUtility"/>
+        /// normalizes ambiguous/duplicate values (falling back to the stable
+        /// <see cref="DesignerMetadataAsset.elements"/> order) on load.
+        /// </summary>
+        public int siblingIndex;
         public string displayName;
         public string elementType = "Panel";
         public Rect rect = new Rect(64, 64, 240, 96);
@@ -72,6 +80,20 @@ namespace emiteat.NexUI.Designer
         public DesignerConstraintMetadata constraint = new DesignerConstraintMetadata();
         public bool locked;
         public bool hiddenInDesigner;
+
+        /// <summary>
+        /// When true, the Designer canvas clips child previews to this element's content bounds
+        /// (a container concern - Panel/Card/Modal/List/Grid). Default false preserves the
+        /// historical un-clipped preview for elements authored before this field existed.
+        /// </summary>
+        public bool clipChildren;
+
+        /// <summary>
+        /// Inner padding (left, top, right, bottom) reserved inside a container for laying out /
+        /// clipping children. Zero by default. Consumed by Auto Layout and clip/overflow preview;
+        /// leaf elements ignore it.
+        /// </summary>
+        public RectOffset contentPadding = new RectOffset(0, 0, 0, 0);
 
         /// <summary>Screen-reader-facing label. Falls back to <see cref="text"/> or <see cref="displayName"/> at runtime when empty.</summary>
         public string accessibilityLabel;

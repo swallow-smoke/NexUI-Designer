@@ -6,6 +6,14 @@ namespace emiteat.NexUI.Designer
     [CreateAssetMenu(menuName = "NexUI/Designer/Metadata", fileName = "NexUIDesignerMetadata")]
     public sealed class DesignerMetadataAsset : ScriptableObject
     {
+        /// <summary>
+        /// Current metadata schema. 0 = pre-hierarchy assets (no explicit siblingIndex; absolute
+        /// canvas rects). Bumped by <see cref="Editor.DesignerHierarchyMigration"/> once sibling
+        /// indices have been assigned so migration never runs twice on the same asset.
+        /// </summary>
+        public const int CurrentSchemaVersion = 1;
+        public int schemaVersion;
+
         public string screenId;
         public List<DesignerElementMetadata> elements = new List<DesignerElementMetadata>();
 

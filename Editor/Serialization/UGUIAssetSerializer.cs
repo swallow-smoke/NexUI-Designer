@@ -105,13 +105,29 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
                     go.transform.SetParent(parent.transform, false);
                 }
 
-                ApplyRect(go, element);
+                // Element rects are stored in absolute canvas space; convert to the parent-relative
+                // local position so a child's anchoredPosition is correct once re-parented (and so
+                // moving a parent carries its children, matching the Designer canvas).
+                var local = DesignerCoordinateUtility.GetLocalPosition(metadata, element);
+                ApplyRect(go, element, local);
                 go.SetActive(!element.hiddenInDesigner);
                 ApplyVisualAndText(go, element, report);
             }
+
+            // Pass 3: reflect Designer sibling order onto the transform (SetSiblingIndex), so the
+            // saved prefab's child order matches the hierarchy panel / draw order.
+            foreach (var element in metadata.elements)
+            {
+                if (element == null || string.IsNullOrEmpty(element.elementId)) continue;
+                if (!objects.TryGetValue(element.elementId, out var go) || go == null) continue;
+                var ordered = DesignerHierarchyUtility.GetOrderedChildren(metadata, element.parentId);
+                var index = ordered.IndexOf(element);
+                if (index >= 0 && index < go.transform.parent.childCount)
+                    go.transform.SetSiblingIndex(index);
+            }
         }
 
-        private static void ApplyRect(GameObject go, DesignerElementMetadata element)
+        private static void ApplyRect(GameObject go, DesignerElementMetadata element, Vector2 localPosition)
         {
             var rt = go.GetComponent<RectTransform>();
             if (rt == null) rt = go.AddComponent<RectTransform>();
@@ -124,7 +140,7 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
             rt.anchorMax = new Vector2(0f, 1f);
             rt.pivot = new Vector2(0f, 1f);
             rt.sizeDelta = new Vector2(element.rect.width, element.rect.height);
-            rt.anchoredPosition = new Vector2(element.rect.x, -element.rect.y);
+            rt.anchoredPosition = new Vector2(localPosition.x, -localPosition.y);
             UGUIAnchorUtility.Apply(rt, element.anchorPreset);
         }
 

@@ -6,9 +6,457 @@
    ===================================================================================== */
 
 .nexui-designer-root {
+    --nexui-bg-window: #111318;
+    --nexui-bg-panel: #171a20;
+    --nexui-bg-raised: #1d2129;
+    --nexui-bg-input: #222630;
+    --nexui-bg-hover: #262b35;
+    --nexui-bg-selected: #303847;
+    --nexui-border: #2a303b;
+    --nexui-border-strong: #394150;
+    --nexui-text-primary: #e6eaf0;
+    --nexui-text-secondary: #9aa3b2;
+    --nexui-text-disabled: #5f6877;
+    --nexui-accent: #7c6cf2;
+    --nexui-selection: #5aa9ff;
+    --nexui-guide: #e26be5;
+    --nexui-success: #4cc38a;
+    --nexui-warning: #e5b454;
+    --nexui-error: #e36a6a;
     background-color: #121317;
     color: #d7dbe2;
     min-height: 0;
+}
+
+/* ---------------------------------------------------------------------------- rebuild shell */
+
+.nexui-shell {
+    flex-grow: 1;
+    min-height: 0;
+    background-color: var(--nexui-bg-window);
+}
+
+.nexui-global-toolbar {
+    height: 38px;
+    min-height: 38px;
+    max-height: 38px;
+    flex-direction: row;
+    align-items: center;
+    padding-left: 10px;
+    padding-right: 10px;
+    border-bottom-width: 1px;
+    border-bottom-color: var(--nexui-border);
+    background-color: var(--nexui-bg-panel);
+}
+
+.nexui-global-brand {
+    width: 124px;
+    min-width: 124px;
+    color: var(--nexui-text-primary);
+    -unity-font-style: bold;
+    font-size: 13px;
+}
+
+.nexui-global-screen {
+    width: 280px;
+    margin-right: 8px;
+}
+
+.nexui-backend-badge,
+.nexui-drawer-badge {
+    min-width: 74px;
+    height: 22px;
+    padding-left: 8px;
+    padding-right: 8px;
+    border-radius: 4px;
+    background-color: var(--nexui-bg-input);
+    color: var(--nexui-text-secondary);
+    -unity-text-align: middle-center;
+    font-size: 10px;
+}
+
+.nexui-icon-text-button {
+    height: 24px;
+    border-radius: 4px;
+    border-width: 1px;
+    border-color: var(--nexui-border);
+    background-color: var(--nexui-bg-raised);
+    color: var(--nexui-text-primary);
+}
+
+.nexui-body-and-drawer {
+    flex-grow: 1;
+    min-height: 0;
+}
+
+.nexui-rebuild-body {
+    flex-grow: 1;
+    min-height: 0;
+}
+
+.nexui-canvas-column {
+    flex-grow: 1;
+    min-width: 280px;
+    min-height: 0;
+    background-color: #0d0f13;
+}
+
+.nexui-canvas-toolbar {
+    height: 36px;
+    min-height: 36px;
+    flex-direction: row;
+    align-items: center;
+    padding-left: 8px;
+    padding-right: 8px;
+    border-bottom-width: 1px;
+    border-bottom-color: var(--nexui-border);
+    background-color: #14171d;
+}
+
+.nexui-tool-button {
+    height: 26px;
+    min-width: 54px;
+    margin-right: 4px;
+    border-radius: 4px;
+    border-width: 1px;
+    border-color: transparent;
+    background-color: transparent;
+    color: var(--nexui-text-secondary);
+    font-size: 10px;
+}
+
+.nexui-tool-button:hover,
+.nexui-tool-button.is-active {
+    border-color: var(--nexui-border-strong);
+    background-color: var(--nexui-bg-hover);
+    color: var(--nexui-text-primary);
+}
+
+.nexui-canvas-field {
+    width: 176px;
+    margin-left: 4px;
+    margin-right: 6px;
+}
+
+.nexui-mini-popup {
+    width: 112px;
+    margin-right: 6px;
+}
+
+.nexui-grid-size-field {
+    width: 78px;
+    margin-left: 4px;
+    margin-right: 6px;
+}
+
+.nexui-zoom-readout {
+    width: 48px;
+    color: var(--nexui-text-primary);
+    -unity-text-align: middle-center;
+    font-size: 10px;
+}
+
+.nexui-left-sidebar,
+.nexui-right-inspector {
+    background-color: var(--nexui-bg-panel);
+    min-height: 0;
+}
+
+.nexui-left-sidebar {
+    min-width: 220px;
+}
+
+.nexui-right-inspector {
+    min-width: 280px;
+    border-left-width: 1px;
+    border-left-color: var(--nexui-border);
+}
+
+.nexui-tabbar {
+    height: 32px;
+    min-height: 32px;
+    flex-direction: row;
+    align-items: center;
+    padding-left: 6px;
+    padding-right: 6px;
+    border-bottom-width: 1px;
+    border-bottom-color: var(--nexui-border);
+}
+
+.nexui-tab {
+    height: 26px;
+    flex-grow: 1;
+    margin-right: 4px;
+    border-radius: 4px;
+    border-width: 0;
+    background-color: transparent;
+    color: var(--nexui-text-secondary);
+    font-size: 10px;
+}
+
+.nexui-tab:hover,
+.nexui-tab.is-active {
+    background-color: var(--nexui-bg-selected);
+    color: var(--nexui-text-primary);
+}
+
+.nexui-metadata-row {
+    height: 34px;
+    min-height: 34px;
+    flex-direction: row;
+    align-items: center;
+    padding-left: 8px;
+    padding-right: 8px;
+    border-bottom-width: 1px;
+    border-bottom-color: var(--nexui-border);
+}
+
+.nexui-metadata-row ObjectField {
+    flex-grow: 1;
+}
+
+.nexui-square-button {
+    width: 26px;
+    height: 24px;
+    margin-left: 6px;
+    border-radius: 4px;
+    background-color: var(--nexui-bg-raised);
+}
+
+.nexui-sidebar-host,
+.nexui-sidebar-scroll,
+.nexui-inspector-host {
+    flex-grow: 1;
+    min-height: 0;
+}
+
+.nexui-components-panel,
+.nexui-assets-panel {
+    flex-grow: 1;
+    min-height: 0;
+    padding: 8px;
+}
+
+.nexui-sidebar-foldout {
+    margin-bottom: 8px;
+}
+
+.nexui-component-grid {
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+.nexui-component-card {
+    width: 48%;
+    height: 30px;
+    margin-right: 4px;
+    margin-bottom: 4px;
+    border-radius: 6px;
+    border-width: 0;
+    background-color: var(--nexui-bg-raised);
+    color: var(--nexui-text-primary);
+    font-size: 10px;
+}
+
+.nexui-component-card:hover {
+    background-color: var(--nexui-bg-hover);
+}
+
+.nexui-layers-panel {
+    flex-grow: 1;
+    min-height: 0;
+    padding: 8px;
+}
+
+.nexui-layers-list {
+    flex-grow: 1;
+    min-height: 0;
+    margin-top: 6px;
+}
+
+.nexui-layer-row {
+    height: 26px;
+    min-height: 26px;
+    flex-direction: row;
+    align-items: center;
+    border-radius: 4px;
+    margin-bottom: 2px;
+}
+
+.nexui-layer-row:hover {
+    background-color: var(--nexui-bg-hover);
+}
+
+.nexui-layer-row.is-selected {
+    background-color: var(--nexui-bg-selected);
+}
+
+.nexui-layer-row.is-key-object {
+    border-left-width: 2px;
+    border-left-color: var(--nexui-guide);
+}
+
+.nexui-layer-row.is-dragging {
+    border-color: var(--nexui-selection);
+    border-width: 1px;
+}
+
+.nexui-layer-icon-button {
+    width: 22px;
+    height: 22px;
+    margin-right: 2px;
+    padding-left: 0;
+    padding-right: 0;
+    border-radius: 4px;
+    border-width: 0;
+    background-color: transparent;
+    color: var(--nexui-text-secondary);
+    font-size: 9px;
+}
+
+.nexui-layer-icon-button:hover {
+    background-color: var(--nexui-bg-raised);
+    color: var(--nexui-text-primary);
+}
+
+.nexui-layer-name {
+    flex-grow: 1;
+    min-width: 40px;
+    height: 22px;
+    margin-right: 4px;
+}
+
+.nexui-asset-filters {
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin-top: 8px;
+    margin-bottom: 10px;
+}
+
+.nexui-filter-chip {
+    height: 24px;
+    margin-right: 4px;
+    margin-bottom: 4px;
+    border-radius: 4px;
+    background-color: var(--nexui-bg-raised);
+    color: var(--nexui-text-secondary);
+}
+
+.nexui-inspector-title {
+    height: 32px;
+    padding-left: 10px;
+    padding-top: 8px;
+    color: var(--nexui-text-primary);
+    -unity-font-style: bold;
+    font-size: 12px;
+}
+
+.nexui-bottom-drawer {
+    min-height: 36px;
+    background-color: var(--nexui-bg-panel);
+    border-top-width: 1px;
+    border-top-color: var(--nexui-border);
+}
+
+.nexui-drawer-resize {
+    height: 4px;
+    min-height: 4px;
+    background-color: transparent;
+}
+
+.nexui-drawer-resize:hover {
+    background-color: var(--nexui-accent);
+}
+
+.nexui-drawer-bar {
+    height: 32px;
+    min-height: 32px;
+    flex-direction: row;
+    align-items: center;
+    padding-left: 8px;
+    padding-right: 8px;
+}
+
+.nexui-drawer-bar .nexui-tabbar {
+    width: 360px;
+    border-bottom-width: 0;
+    padding-left: 0;
+}
+
+.nexui-drawer-content {
+    flex-grow: 1;
+    min-height: 0;
+    padding-left: 8px;
+    padding-right: 8px;
+    padding-bottom: 8px;
+}
+
+.nexui-drawer-content > .nexui-panel {
+    flex-grow: 1;
+    margin-bottom: 0;
+}
+
+.nexui-inspector-host .nexui-bottom-card {
+    height: auto;
+    min-height: 96px;
+    max-height: none;
+    margin-right: 0;
+    margin-bottom: 8px;
+}
+
+.nexui-inspector-host .nexui-bottom-card #PanelSubtitle {
+    display: flex;
+}
+
+.nexui-drawer-placeholder {
+    flex-grow: 1;
+    padding: 12px;
+    background-color: var(--nexui-bg-raised);
+}
+
+.nexui-command-palette-overlay {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    align-items: center;
+    background-color: rgba(2, 3, 5, 0.42);
+}
+
+.nexui-command-palette {
+    width: 520px;
+    max-width: 520px;
+    max-height: 520px;
+    margin-top: 72px;
+    border-radius: 8px;
+    border-width: 1px;
+    border-color: var(--nexui-border-strong);
+    background-color: #151820;
+    padding: 10px;
+}
+
+.nexui-command-search {
+    height: 32px;
+    margin-bottom: 8px;
+}
+
+.nexui-command-results {
+    max-height: 440px;
+}
+
+.nexui-command-row {
+    height: 28px;
+    margin-bottom: 3px;
+    border-radius: 4px;
+    border-width: 0;
+    background-color: transparent;
+    color: var(--nexui-text-primary);
+    -unity-text-align: middle-left;
+}
+
+.nexui-command-row:hover {
+    background-color: var(--nexui-bg-hover);
 }
 
 .nexui-designer-root Label,
@@ -667,7 +1115,9 @@
 }
 
 .nexui-grid-layer,
-.nexui-element-layer {
+.nexui-element-layer,
+.nexui-guide-layer,
+.nexui-inline-menu-layer {
     position: absolute;
     left: 0;
     top: 0;
@@ -675,8 +1125,16 @@
     bottom: 0;
 }
 
+.nexui-inline-menu-layer {
+    background-color: rgba(4, 5, 7, 0.16);
+}
+
 .nexui-grid-layer {
     background-color: #17191f;
+}
+
+.nexui-guide-layer {
+    background-color: transparent;
 }
 
 .nexui-grid-line,
@@ -702,6 +1160,16 @@
     border-color: #33383f;
     padding: 8px;
     overflow: hidden;
+}
+
+.nexui-design-element.has-preview-image {
+    padding: 0;
+    background-color: transparent;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.nexui-design-element.has-preview-image:hover {
+    border-color: var(--nexui-selection);
 }
 
 /* Designer-canvas preview shape (see DesignerElementShape / StyleInspector's Shape field).
@@ -854,7 +1322,11 @@
 
 .nexui-design-element.is-selected {
     border-width: 2px;
-    border-color: #43e6c2;
+    border-color: var(--nexui-selection);
+}
+
+.nexui-design-element.is-key-object {
+    border-color: var(--nexui-guide);
 }
 
 .nexui-design-element.is-locked {
@@ -901,6 +1373,82 @@
     border-color: #43e6c2;
 }
 
+.nexui-selection-handle {
+    position: absolute;
+    width: 7px;
+    height: 7px;
+    border-radius: 2px;
+    border-width: 1px;
+    border-color: #ffffff;
+    background-color: var(--nexui-selection);
+    display: none;
+}
+
+.nexui-design-element.is-selected .nexui-selection-handle,
+.nexui-design-element.is-selected .nexui-rotation-handle {
+    display: flex;
+}
+
+.handle-nw { left: -4px; top: -4px; }
+.handle-n { left: 50%; top: -4px; margin-left: -4px; }
+.handle-ne { right: -4px; top: -4px; }
+.handle-e { right: -4px; top: 50%; margin-top: -4px; }
+.handle-se { right: -4px; bottom: -4px; }
+.handle-s { left: 50%; bottom: -4px; margin-left: -4px; }
+.handle-sw { left: -4px; bottom: -4px; }
+.handle-w { left: -4px; top: 50%; margin-top: -4px; }
+
+.nexui-rotation-handle {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    left: 50%;
+    top: -22px;
+    margin-left: -4px;
+    border-radius: 4px;
+    border-width: 1px;
+    border-color: #ffffff;
+    background-color: var(--nexui-guide);
+    display: none;
+}
+
+.nexui-floating-toolbar {
+    position: absolute;
+    flex-direction: row;
+    align-items: center;
+    height: 30px;
+    padding-left: 6px;
+    padding-right: 4px;
+    border-radius: 8px;
+    border-width: 1px;
+    border-color: var(--nexui-border-strong);
+    background-color: #151922;
+}
+
+.nexui-floating-label {
+    color: var(--nexui-text-primary);
+    -unity-font-style: bold;
+    font-size: 10px;
+    margin-right: 6px;
+}
+
+.nexui-floating-button {
+    height: 22px;
+    margin-right: 3px;
+    padding-left: 6px;
+    padding-right: 6px;
+    border-radius: 4px;
+    border-width: 0;
+    background-color: var(--nexui-bg-raised);
+    color: var(--nexui-text-secondary);
+    font-size: 10px;
+}
+
+.nexui-floating-button:hover {
+    background-color: var(--nexui-bg-hover);
+    color: var(--nexui-text-primary);
+}
+
 .nexui-canvas-title {
     font-size: 20px;
     -unity-font-style: bold;
@@ -918,12 +1466,143 @@
     background-color: rgba(67, 230, 194, 0.12);
 }
 
+.nexui-smart-guide-line {
+    position: absolute;
+    background-color: var(--nexui-guide);
+}
+
+.nexui-smart-guide-line.is-vertical {
+    width: 1px;
+    top: 0;
+}
+
+.nexui-smart-guide-line.is-horizontal {
+    height: 1px;
+    left: 0;
+}
+
+.nexui-distance-label {
+    position: absolute;
+    height: 20px;
+    padding-left: 6px;
+    padding-right: 6px;
+    border-radius: 4px;
+    background-color: #23192a;
+    color: var(--nexui-guide);
+    -unity-font-style: bold;
+    font-size: 10px;
+}
+
 .nexui-rename-field {
     background-color: #0e0f12;
     border-width: 2px;
     border-color: #43e6c2;
     border-radius: 6px;
     padding: 2px 4px;
+}
+
+/* ---------------------------------------------------------------------------- inline context popover */
+
+.nexui-context-popover {
+    position: absolute;
+    width: 268px;
+    max-width: 268px;
+    padding: 8px;
+    border-radius: 8px;
+    border-width: 1px;
+    border-color: #3a3f49;
+    background-color: #15171c;
+}
+
+.nexui-context-header {
+    padding-left: 4px;
+    padding-right: 4px;
+    padding-bottom: 6px;
+    margin-bottom: 6px;
+    border-bottom-width: 1px;
+    border-bottom-color: #282d35;
+}
+
+#ContextTitle {
+    color: #f5f6f8;
+    font-size: 12px;
+    -unity-font-style: bold;
+    white-space: nowrap;
+}
+
+#ContextSubtitle {
+    color: #8a909b;
+    font-size: 10px;
+    margin-top: 1px;
+    white-space: nowrap;
+}
+
+.nexui-context-group {
+    margin-bottom: 7px;
+}
+
+#ContextGroupLabel {
+    color: #7b8492;
+    font-size: 9px;
+    -unity-font-style: bold;
+    margin-left: 3px;
+    margin-bottom: 3px;
+}
+
+.nexui-context-grid {
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+.nexui-context-hit-list {
+    margin-bottom: 8px;
+    max-height: 92px;
+}
+
+.nexui-context-hit-list .nexui-context-button {
+    width: 100%;
+}
+
+.nexui-context-button {
+    width: 122px;
+    height: 24px;
+    margin-right: 4px;
+    margin-bottom: 4px;
+    padding-left: 7px;
+    padding-right: 7px;
+    border-radius: 6px;
+    border-width: 1px;
+    border-color: #303640;
+    background-color: #20242b;
+    color: #d7dbe2;
+    font-size: 10px;
+    -unity-text-align: middle-center;
+}
+
+.nexui-context-button:hover {
+    border-color: #43e6c2;
+    background-color: #28313a;
+}
+
+.nexui-context-button:active {
+    background-color: #1f3b39;
+}
+
+.nexui-context-button:disabled {
+    color: #616a76;
+    border-color: #242932;
+    background-color: #181b20;
+}
+
+.nexui-context-button.is-danger {
+    color: #fecaca;
+    border-color: #553035;
+    background-color: #31191d;
+}
+
+.nexui-context-button.is-danger:hover {
+    border-color: #f87171;
+    background-color: #442025;
 }
 
 .nexui-multiselect-summary {

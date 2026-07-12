@@ -1,6 +1,8 @@
 using System.Collections.Generic;
+using emiteat.NexUI.Designer.Editor.Backend;
 using emiteat.NexUI.Designer.Editor.Commands;
 using emiteat.NexUI.Designer.Editor.Localization;
+using emiteat.NexUI.Designer.Editor.MotionClipEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -16,8 +18,12 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
         private readonly VisualElement _previewCanvas;
         private readonly VisualElement _gridLayer;
         private readonly VisualElement _elementLayer;
+        private readonly VisualElement _guideLayer;
         private readonly VisualElement _selectionRectOverlay;
+        private readonly VisualElement _inlineMenuLayer;
+        private readonly VisualElement _floatingToolbar;
         private readonly Label _emptyState;
+        private readonly Label _distanceLabel;
         private readonly Dictionary<DesignerElementMetadata, VisualElement> _views = new Dictionary<DesignerElementMetadata, VisualElement>();
 
         // Single element drag/resize state (also used as the "grabbed" element during a group move).
@@ -74,17 +80,35 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
             _gridLayer.AddToClassList("nexui-grid-layer");
             _elementLayer = new VisualElement();
             _elementLayer.AddToClassList("nexui-element-layer");
+            _guideLayer = new VisualElement();
+            _guideLayer.AddToClassList("nexui-guide-layer");
+            _guideLayer.pickingMode = PickingMode.Ignore;
             _selectionRectOverlay = new VisualElement();
             _selectionRectOverlay.AddToClassList("nexui-selection-rect");
             _selectionRectOverlay.style.position = Position.Absolute;
             _selectionRectOverlay.style.display = DisplayStyle.None;
             _selectionRectOverlay.pickingMode = PickingMode.Ignore;
+            _inlineMenuLayer = new VisualElement();
+            _inlineMenuLayer.AddToClassList("nexui-inline-menu-layer");
+            _inlineMenuLayer.style.display = DisplayStyle.None;
+            _floatingToolbar = new VisualElement();
+            _floatingToolbar.AddToClassList("nexui-floating-toolbar");
+            _floatingToolbar.style.display = DisplayStyle.None;
+            _distanceLabel = new Label();
+            _distanceLabel.AddToClassList("nexui-distance-label");
+            _distanceLabel.style.display = DisplayStyle.None;
+            _distanceLabel.pickingMode = PickingMode.Ignore;
             _emptyState = new Label();
             _emptyState.AddToClassList("nexui-canvas-empty-state");
+            _emptyState.pickingMode = PickingMode.Ignore;
 
             _previewCanvas.Add(_gridLayer);
             _previewCanvas.Add(_elementLayer);
+            _previewCanvas.Add(_guideLayer);
             _previewCanvas.Add(_selectionRectOverlay);
+            _previewCanvas.Add(_floatingToolbar);
+            _previewCanvas.Add(_distanceLabel);
+            _previewCanvas.Add(_inlineMenuLayer);
             _previewCanvas.Add(_emptyState);
             _previewFrame.Add(_previewCanvas);
             Add(_previewFrame);
@@ -94,17 +118,27 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
             _previewCanvas.RegisterCallback<PointerMoveEvent>(OnCanvasPointerMove);
             _previewCanvas.RegisterCallback<PointerUpEvent>(OnCanvasPointerUp);
             _previewCanvas.RegisterCallback<ContextClickEvent>(OnCanvasContextClick);
+            _previewCanvas.RegisterCallback<PointerDownEvent>(OnDismissInlineMenuPointerDown, TrickleDown.TrickleDown);
             RegisterCallback<KeyDownEvent>(OnKeyDown);
 
             context.PreviewRebuilt += RefreshAll;
             context.MetadataChanged += _ => RefreshAll();
             context.MetadataSelectionChanged += _ => RefreshSelection();
+            context.MultiSelectionChanged += _ => RefreshSelection();
             context.CanvasChanged += RefreshAll;
             context.ElementChanged += FlashElement;
             RefreshAll();
         }
 
         public NexUIDesignerContext Context => _context;
+
+        public void FitToView()
+        {
+            if (_previewFrame.resolvedStyle.width <= 1f || _previewFrame.resolvedStyle.height <= 1f) return;
+            var x = (_previewFrame.resolvedStyle.width - 48f) / Mathf.Max(1f, _context.Resolution.x);
+            var y = (_previewFrame.resolvedStyle.height - 48f) / Mathf.Max(1f, _context.Resolution.y);
+            _context.SetZoom(Mathf.Clamp(Mathf.Min(x, y), 0.15f, 2f));
+        }
 
         /// <summary>
         /// C1: briefly highlights the element's viewport view so a property/style/theme change
@@ -141,12 +175,14 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
             _previewCanvas.style.height = height;
             _gridLayer.style.opacity = _context.SnapEnabled ? 1f : 0.25f;
             BuildGrid(width, height);
+            HideSmartGuides();
         }
 
         private void RebuildElements()
         {
             _elementLayer.Clear();
             _views.Clear();
+            HideInlineMenu();
 
             if (_context.Metadata == null || _context.Metadata.elements.Count == 0)
             {
@@ -210,22 +246,39 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
             view.AddToClassList("nexui-design-element");
             view.AddToClassList("type-" + element.elementType.ToLowerInvariant());
             view.AddToClassList("shape-" + element.shape.ToString().ToLowerInvariant());
+            var hasPreviewImage = IsImagePreviewElement(element);
+            view.EnableInClassList("has-preview-image", hasPreviewImage);
             view.EnableInClassList("is-locked", element.locked);
             view.style.position = Position.Absolute;
             ApplyRect(view, element.rect);
-            view.style.backgroundColor = new StyleColor(element.tint);
-            view.style.borderTopColor = new StyleColor(Lighten(element.tint, 0.18f));
-            view.style.borderRightColor = new StyleColor(Lighten(element.tint, 0.18f));
-            view.style.borderBottomColor = new StyleColor(Darken(element.tint, 0.18f));
-            view.style.borderLeftColor = new StyleColor(Lighten(element.tint, 0.18f));
+            if (hasPreviewImage)
+            {
+                var outline = ImageOutlineColor(element.tint);
+                view.style.backgroundColor = new StyleColor(Color.clear);
+                view.style.borderTopColor = new StyleColor(outline);
+                view.style.borderRightColor = new StyleColor(outline);
+                view.style.borderBottomColor = new StyleColor(outline);
+                view.style.borderLeftColor = new StyleColor(outline);
+            }
+            else
+            {
+                view.style.backgroundColor = new StyleColor(element.tint);
+                view.style.borderTopColor = new StyleColor(Lighten(element.tint, 0.18f));
+                view.style.borderRightColor = new StyleColor(Lighten(element.tint, 0.18f));
+                view.style.borderBottomColor = new StyleColor(Darken(element.tint, 0.18f));
+                view.style.borderLeftColor = new StyleColor(Lighten(element.tint, 0.18f));
+            }
 
             AddTypeSpecificPreview(view, element);
 
-            var name = new Label(string.IsNullOrEmpty(element.displayName) ? element.elementId : element.displayName);
-            name.AddToClassList("nexui-element-name");
-            view.Add(name);
+            if (!hasPreviewImage)
+            {
+                var name = new Label(string.IsNullOrEmpty(element.displayName) ? element.elementId : element.displayName);
+                name.AddToClassList("nexui-element-name");
+                view.Add(name);
+            }
 
-            if (!string.IsNullOrEmpty(element.text))
+            if (!hasPreviewImage && !string.IsNullOrEmpty(element.text))
             {
                 var text = new Label(element.text);
                 text.AddToClassList("nexui-element-text");
@@ -234,19 +287,41 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
                 view.Add(text);
             }
 
-            var meta = new Label(element.elementId);
-            meta.AddToClassList("nexui-element-meta");
-            view.Add(meta);
+            if (!hasPreviewImage)
+            {
+                var meta = new Label(element.elementId);
+                meta.AddToClassList("nexui-element-meta");
+                view.Add(meta);
+            }
 
             var handle = new VisualElement();
             handle.AddToClassList("nexui-resize-handle");
             view.Add(handle);
+
+            AddSelectionHandles(view);
 
             view.RegisterCallback<PointerDownEvent>(evt => BeginDrag(evt, element, view));
             view.RegisterCallback<PointerMoveEvent>(evt => ContinueDrag(evt, view));
             view.RegisterCallback<PointerUpEvent>(evt => EndDrag(evt, view));
             view.RegisterCallback<PointerCancelEvent>(evt => CancelDrag(evt, view));
             return view;
+        }
+
+        private static void AddSelectionHandles(VisualElement view)
+        {
+            foreach (var name in new[] { "nw", "n", "ne", "e", "se", "s", "sw", "w" })
+            {
+                var handle = new VisualElement();
+                handle.AddToClassList("nexui-selection-handle");
+                handle.AddToClassList("handle-" + name);
+                handle.pickingMode = PickingMode.Ignore;
+                view.Add(handle);
+            }
+
+            var rotate = new VisualElement();
+            rotate.AddToClassList("nexui-rotation-handle");
+            rotate.pickingMode = PickingMode.Ignore;
+            view.Add(rotate);
         }
 
         /// <summary>
@@ -377,6 +452,16 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
             view.Add(icon);
         }
 
+        private static bool IsImagePreviewElement(DesignerElementMetadata element)
+            => element.previewImage != null && (element.elementType == "Image" || element.elementType == "IconButton");
+
+        private static Color ImageOutlineColor(Color tint)
+        {
+            if (tint.a > 0.05f)
+                return new Color(tint.r, tint.g, tint.b, 0.8f);
+            return new Color(0.35f, 0.66f, 1f, 0.75f);
+        }
+
         private static void AddChoiceRows(VisualElement view)
         {
             var list = new VisualElement();
@@ -450,9 +535,22 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
                 _context.ToggleSelection(element);
             else if (!_context.IsSelected(element))
                 _context.SelectMetadata(element);
+            else if (_context.SelectedElements.Count > 1 && !evt.shiftKey && !evt.ctrlKey && !evt.commandKey)
+                _context.SetKeyObject(element);
 
             if (!_context.IsSelected(element)) return; // e.g. a ctrl-click just removed it
             if (element.locked) return;
+
+            if (evt.altKey)
+            {
+                var copies = _context.DuplicateSelectionAtDragStart();
+                if (copies.Count > 0)
+                {
+                    element = copies[copies.Count - 1];
+                    if (_views.TryGetValue(element, out var duplicateView))
+                        view = duplicateView;
+                }
+            }
 
             _dragElement = element;
             _dragStart = new Vector2(evt.position.x, evt.position.y);
@@ -463,12 +561,24 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
             var local = view.WorldToLocal(evt.position);
             _resizing = local.x >= view.resolvedStyle.width - 16f && local.y >= view.resolvedStyle.height - 16f;
 
+            // For a move (not a resize), drag the whole subtree: the dragged element (or the full
+            // multi-selection when it is part of one) plus every descendant, so children visually
+            // follow their parent. Rects are absolute canvas space, so each node translates by the
+            // same delta. Resizing only affects the single dragged element.
             _groupDragStartRects = null;
-            if (!_resizing && _context.SelectedElements.Count > 1)
+            if (!_resizing)
             {
-                _groupDragStartRects = new Dictionary<DesignerElementMetadata, Rect>();
-                foreach (var selected in _context.SelectedElements)
-                    _groupDragStartRects[selected] = selected.rect;
+                System.Collections.Generic.IEnumerable<DesignerElementMetadata> roots =
+                    (_context.SelectedElements.Count > 1 && _context.IsSelected(element))
+                        ? _context.SelectedElements
+                        : new[] { element };
+                var closure = _context.MoveClosure(roots);
+                if (closure.Count > 1)
+                {
+                    _groupDragStartRects = new Dictionary<DesignerElementMetadata, Rect>();
+                    foreach (var node in closure)
+                        _groupDragStartRects[node] = node.rect;
+                }
             }
 
             view.CapturePointer(evt.pointerId);
@@ -514,7 +624,7 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
                 {
                     var rect = _dragStartRect;
                     rect.position += delta;
-                    _pendingDragRect = _context.SnapRect(rect);
+                    _pendingDragRect = SnapWithSmartGuides(rect, _dragElement);
                     ApplyRect(view, _pendingDragRect);
                 }
             }
@@ -565,6 +675,61 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
             _resizing = false;
             _groupDragStartRects = null;
             _lastDragDelta = Vector2.zero;
+            HideSmartGuides();
+        }
+
+        private Rect SnapWithSmartGuides(Rect rect, DesignerElementMetadata moving)
+        {
+            var snapped = _context.SnapRect(rect);
+            if (_context.Metadata == null) return snapped;
+
+            var guide = NexUISmartGuideUtility.Snap(snapped, _context.Metadata.elements, moving, Mathf.Max(4f, 8f / Mathf.Max(0.01f, _context.Zoom)));
+            ShowSmartGuides(guide, snapped);
+            return guide.Rect;
+        }
+
+        private void ShowSmartGuides(NexUISmartGuideResult guide, Rect moving)
+        {
+            _guideLayer.Clear();
+            if (guide.VerticalGuide.HasValue)
+            {
+                var line = new VisualElement();
+                line.AddToClassList("nexui-smart-guide-line");
+                line.AddToClassList("is-vertical");
+                line.pickingMode = PickingMode.Ignore;
+                line.style.left = guide.VerticalGuide.Value * _context.Zoom;
+                line.style.height = _previewCanvas.resolvedStyle.height;
+                _guideLayer.Add(line);
+            }
+
+            if (guide.HorizontalGuide.HasValue)
+            {
+                var line = new VisualElement();
+                line.AddToClassList("nexui-smart-guide-line");
+                line.AddToClassList("is-horizontal");
+                line.pickingMode = PickingMode.Ignore;
+                line.style.top = guide.HorizontalGuide.Value * _context.Zoom;
+                line.style.width = _previewCanvas.resolvedStyle.width;
+                _guideLayer.Add(line);
+            }
+
+            if (string.IsNullOrEmpty(guide.DistanceLabel))
+            {
+                _distanceLabel.style.display = DisplayStyle.None;
+                return;
+            }
+
+            _distanceLabel.text = guide.DistanceLabel;
+            _distanceLabel.style.display = DisplayStyle.Flex;
+            _distanceLabel.style.left = moving.center.x * _context.Zoom + 8f;
+            _distanceLabel.style.top = moving.center.y * _context.Zoom + 8f;
+        }
+
+        private void HideSmartGuides()
+        {
+            _guideLayer?.Clear();
+            if (_distanceLabel != null)
+                _distanceLabel.style.display = DisplayStyle.None;
         }
 
         // ---- Drag-box (rectangle) selection --------------------------------------------------
@@ -573,6 +738,7 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
         {
             Focus();
             if (evt.button != 0) return;
+            HideInlineMenu();
             if (evt.target != _previewCanvas && evt.target != _gridLayer && evt.target != _elementLayer) return;
 
             _boxSelectStart = _previewCanvas.WorldToLocal(evt.position);
@@ -658,8 +824,197 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
         {
             var local = _previewCanvas.WorldToLocal(evt.mousePosition);
             var canvasPoint = local / Mathf.Max(0.01f, _context.Zoom);
-            NexUIDesignerContextMenu.Show(_context, canvasPoint, BeginRename);
+            ShowInlineMenu(local, canvasPoint);
             evt.StopPropagation();
+        }
+
+        private void OnDismissInlineMenuPointerDown(PointerDownEvent evt)
+        {
+            if (_inlineMenuLayer.resolvedStyle.display == DisplayStyle.None) return;
+            if (IsInsideInlineMenu(evt.target as VisualElement)) return;
+            if (evt.button == 1) return;
+            HideInlineMenu();
+        }
+
+        private bool IsInsideInlineMenu(VisualElement target)
+        {
+            if (target == null || target == _inlineMenuLayer) return false;
+            while (target != null)
+            {
+                if (target.parent == _inlineMenuLayer) return true;
+                target = target.parent;
+            }
+            return false;
+        }
+
+        private void ShowInlineMenu(Vector2 localPoint, Vector2 canvasPoint)
+        {
+            _inlineMenuLayer.Clear();
+            _inlineMenuLayer.style.display = DisplayStyle.Flex;
+            _inlineMenuLayer.pickingMode = PickingMode.Position;
+
+            var hits = HitTestPoint(canvasPoint);
+            var panel = new VisualElement();
+            panel.AddToClassList("nexui-context-popover");
+            _inlineMenuLayer.Add(panel);
+
+            if (hits.Count == 0)
+                BuildCanvasInlineMenu(panel, canvasPoint);
+            else
+                BuildElementInlineMenu(panel, hits);
+
+            panel.RegisterCallback<GeometryChangedEvent>(_ => ClampInlineMenu(panel, localPoint));
+            ClampInlineMenu(panel, localPoint);
+        }
+
+        private void ClampInlineMenu(VisualElement panel, Vector2 localPoint)
+        {
+            var width = Mathf.Max(236f, panel.resolvedStyle.width);
+            var height = Mathf.Max(120f, panel.resolvedStyle.height);
+            var left = Mathf.Clamp(localPoint.x + 8f, 8f, Mathf.Max(8f, _previewCanvas.resolvedStyle.width - width - 8f));
+            var top = Mathf.Clamp(localPoint.y + 8f, 8f, Mathf.Max(8f, _previewCanvas.resolvedStyle.height - height - 8f));
+            panel.style.left = left;
+            panel.style.top = top;
+        }
+
+        private void HideInlineMenu()
+        {
+            if (_inlineMenuLayer == null) return;
+            _inlineMenuLayer.Clear();
+            _inlineMenuLayer.style.display = DisplayStyle.None;
+            _inlineMenuLayer.pickingMode = PickingMode.Ignore;
+        }
+
+        private List<DesignerElementMetadata> HitTestPoint(Vector2 point)
+        {
+            var result = new List<DesignerElementMetadata>();
+            if (_context.Metadata == null) return result;
+            for (int i = _context.Metadata.elements.Count - 1; i >= 0; i--)
+            {
+                var element = _context.Metadata.elements[i];
+                if (element == null || element.hiddenInDesigner) continue;
+                if (element.rect.Contains(point))
+                    result.Add(element);
+            }
+            return result;
+        }
+
+        private void BuildCanvasInlineMenu(VisualElement panel, Vector2 canvasPoint)
+        {
+            AddMenuHeader(panel, "Canvas", "Create or paste at " + Mathf.RoundToInt(canvasPoint.x) + ", " + Mathf.RoundToInt(canvasPoint.y));
+            var createGrid = AddMenuGrid(panel, "Create");
+            AddMenuButton(createGrid, "Panel", () => CreateAt(DesignerElementType.Panel, canvasPoint), true);
+            AddMenuButton(createGrid, "Button", () => CreateAt(DesignerElementType.Button, canvasPoint), true);
+            AddMenuButton(createGrid, "Text", () => CreateAt(DesignerElementType.Label, canvasPoint), true);
+            AddMenuButton(createGrid, "Image", () => CreateAt(DesignerElementType.Image, canvasPoint), true);
+
+            var editGrid = AddMenuGrid(panel, "Edit");
+            AddMenuButton(editGrid, "Paste", () => _context.PasteSelection(), _context.HasClipboard);
+            AddMenuButton(editGrid, "Select All", _context.SelectAll, _context.Metadata != null && _context.Metadata.elements.Count > 0);
+            AddMenuButton(editGrid, "Clear", _context.ClearSelection, _context.SelectedElements.Count > 0);
+        }
+
+        private void BuildElementInlineMenu(VisualElement panel, List<DesignerElementMetadata> hits)
+        {
+            if (hits.Count > 1)
+            {
+                AddMenuHeader(panel, "Pick Layer", hits.Count + " overlapping elements");
+                var hitList = new VisualElement();
+                hitList.AddToClassList("nexui-context-hit-list");
+                panel.Add(hitList);
+                foreach (var hit in hits)
+                {
+                    var captured = hit;
+                    AddMenuButton(hitList, Label(captured), () => _context.SelectMetadata(captured), true);
+                }
+            }
+
+            var primary = hits[0];
+            if (!_context.IsSelected(primary))
+                _context.SelectMetadata(primary);
+
+            AddMenuHeader(panel, Label(primary), primary.elementType + " / " + Mathf.RoundToInt(primary.rect.width) + "x" + Mathf.RoundToInt(primary.rect.height));
+
+            var quickGrid = AddMenuGrid(panel, "Quick");
+            AddMenuButton(quickGrid, "Rename", () => BeginRenameAndHide(primary), true);
+            AddMenuButton(quickGrid, "Copy", () => _context.CopySelection(), _context.SelectedElements.Count > 0);
+            AddMenuButton(quickGrid, "Duplicate", () => _context.DuplicateSelection(), _context.SelectedElements.Count > 0);
+            AddMenuButton(quickGrid, "Delete", () => _context.DeleteSelection(), _context.SelectedElements.Count > 0, "is-danger");
+
+            var layerGrid = AddMenuGrid(panel, "Layer");
+            AddMenuButton(layerGrid, "Forward", _context.BringSelectionForward, _context.SelectedElements.Count > 0);
+            AddMenuButton(layerGrid, "Backward", _context.SendSelectionBackward, _context.SelectedElements.Count > 0);
+            AddMenuButton(layerGrid, "To Front", _context.BringSelectionToFront, _context.SelectedElements.Count > 0);
+            AddMenuButton(layerGrid, "To Back", _context.SendSelectionToBack, _context.SelectedElements.Count > 0);
+
+            var alignGrid = AddMenuGrid(panel, "Align");
+            AddMenuButton(alignGrid, "Left", () => _context.AlignSelection("left"), true);
+            AddMenuButton(alignGrid, "Center X", () => _context.AlignSelection("centerX"), true);
+            AddMenuButton(alignGrid, "Right", () => _context.AlignSelection("right"), true);
+            AddMenuButton(alignGrid, "Top", () => _context.AlignSelection("top"), true);
+            AddMenuButton(alignGrid, "Center Y", () => _context.AlignSelection("centerY"), true);
+            AddMenuButton(alignGrid, "Bottom", () => _context.AlignSelection("bottom"), true);
+
+            var arrangeGrid = AddMenuGrid(panel, "Group & Motion");
+            AddMenuButton(arrangeGrid, "Group", () => _context.GroupSelection(), _context.SelectedElements.Count >= 2);
+            AddMenuButton(arrangeGrid, "Ungroup", () => _context.UngroupSelection(), _context.GetChildren(primary).Count > 0);
+            AddMenuButton(arrangeGrid, "Motion Clip", () => MotionClipEditorWindow.Open(_context.PreviewSurface, primary.elementId), true);
+        }
+
+        private static void AddMenuHeader(VisualElement panel, string title, string subtitle)
+        {
+            var header = new VisualElement();
+            header.AddToClassList("nexui-context-header");
+            header.Add(new Label(title) { name = "ContextTitle" });
+            header.Add(new Label(subtitle) { name = "ContextSubtitle" });
+            panel.Add(header);
+        }
+
+        private static VisualElement AddMenuGrid(VisualElement panel, string label)
+        {
+            var group = new VisualElement();
+            group.AddToClassList("nexui-context-group");
+            group.Add(new Label(label) { name = "ContextGroupLabel" });
+            var grid = new VisualElement();
+            grid.AddToClassList("nexui-context-grid");
+            group.Add(grid);
+            panel.Add(group);
+            return grid;
+        }
+
+        private void AddMenuButton(VisualElement parent, string label, System.Action action, bool enabled, string extraClass = null)
+        {
+            var button = new Button(() =>
+            {
+                action?.Invoke();
+                HideInlineMenu();
+            })
+            {
+                text = label
+            };
+            button.SetEnabled(enabled);
+            button.AddToClassList("nexui-context-button");
+            if (!string.IsNullOrEmpty(extraClass))
+                button.AddToClassList(extraClass);
+            parent.Add(button);
+        }
+
+        private static string Label(DesignerElementMetadata element)
+            => string.IsNullOrEmpty(element.displayName) ? element.elementId : element.displayName;
+
+        private void CreateAt(DesignerElementType type, Vector2 canvasPoint)
+        {
+            var element = _context.CreateMetadataElement(type);
+            if (element == null) return;
+            var r = element.rect;
+            r.position = canvasPoint;
+            _context.UpdateSelectedRect(r);
+        }
+
+        private void BeginRenameAndHide(DesignerElementMetadata element)
+        {
+            HideInlineMenu();
+            BeginRename(element);
         }
 
         private void BeginRename(DesignerElementMetadata element)
@@ -704,7 +1059,55 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
         private void RefreshSelection()
         {
             foreach (var pair in _views)
+            {
                 pair.Value.EnableInClassList("is-selected", _context.IsSelected(pair.Key));
+                pair.Value.EnableInClassList("is-key-object", pair.Key == _context.KeyObject);
+            }
+            RefreshFloatingToolbar();
+        }
+
+        private void RefreshFloatingToolbar()
+        {
+            _floatingToolbar.Clear();
+            if (_context.SelectedElements.Count == 0)
+            {
+                _floatingToolbar.style.display = DisplayStyle.None;
+                return;
+            }
+
+            _floatingToolbar.style.display = DisplayStyle.Flex;
+            var bounds = UIAlignmentUtility.GetBounds(_context.SelectedElements);
+            _floatingToolbar.style.left = Mathf.Max(8f, bounds.xMin * _context.Zoom);
+            _floatingToolbar.style.top = Mathf.Max(8f, bounds.yMin * _context.Zoom - 38f);
+
+            var label = new Label(_context.SelectedElements.Count == 1
+                ? Label(_context.SelectedMetadata)
+                : _context.SelectedElements.Count + " selected");
+            label.AddToClassList("nexui-floating-label");
+            _floatingToolbar.Add(label);
+
+            if (_context.SelectedElements.Count > 1)
+            {
+                AddFloatingButton("Left", () => _context.AlignSelection("left"), "Align left.");
+                AddFloatingButton("Center", () => _context.AlignSelection("centerX"), "Align center.");
+                AddFloatingButton("Dist", _context.DistributeSelectionHorizontal, "Distribute horizontally.");
+                AddFloatingButton("Group", () => _context.GroupSelection(), "Group selected elements.");
+            }
+            else
+            {
+                AddFloatingButton("Copy", () => _context.CopySelection(), "Copy selection.");
+                AddFloatingButton("Dup", () => _context.DuplicateSelection(), "Duplicate selection.");
+                AddFloatingButton("Lock", () => _context.UpdateSelectedElement(e => e.locked = !e.locked, "Toggle NexUI Element Lock"), "Toggle lock.");
+                AddFloatingButton("Hide", () => _context.UpdateSelectedElement(e => e.hiddenInDesigner = !e.hiddenInDesigner, "Toggle NexUI Element Hidden"), "Toggle visibility.");
+                AddFloatingButton("Motion", () => MotionClipEditorWindow.Open(_context.PreviewSurface, _context.SelectedMetadata.elementId), "Open Motion Clip Editor.");
+            }
+        }
+
+        private void AddFloatingButton(string text, System.Action action, string tooltip)
+        {
+            var button = new Button(action) { text = text, tooltip = tooltip };
+            button.AddToClassList("nexui-floating-button");
+            _floatingToolbar.Add(button);
         }
 
         private void OnWheel(WheelEvent evt)

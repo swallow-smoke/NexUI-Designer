@@ -13,13 +13,14 @@ using UnityEngine;
 
 namespace emiteat.NexUI.Designer.Editor
 {
-    public sealed class NexUIDesignerContext : IDisposable
+    public sealed partial class NexUIDesignerContext : IDisposable
     {
         private readonly List<string> _validationMessages = new List<string>();
         private readonly List<DesignerValidationIssue> _validationIssues = new List<DesignerValidationIssue>();
         private readonly List<DesignerElementMetadata> _selection = new List<DesignerElementMetadata>();
         private readonly List<DesignerElementMetadata> _clipboard = new List<DesignerElementMetadata>();
         private readonly List<string> _recentActions = new List<string>();
+        private const string PrefPrefix = "NexUI.Designer.UI.";
         private int _elementCounter = 1;
         private int _groupCounter = 1;
         private const int MaxRecentActions = 50;
@@ -51,6 +52,7 @@ namespace emiteat.NexUI.Designer.Editor
 
         /// <summary>All currently selected elements. Empty when nothing is selected.</summary>
         public IReadOnlyList<DesignerElementMetadata> SelectedElements => _selection;
+        public DesignerElementMetadata KeyObject { get; private set; }
 
         /// <summary>
         /// The "primary" selected element - the last one added to the selection. Kept for every
@@ -76,6 +78,12 @@ namespace emiteat.NexUI.Designer.Editor
         public DesignerSaveReport LastSaveReport { get; private set; }
         public int ErrorCount { get; private set; }
         public int WarningCount { get; private set; }
+        public DesignerTool CurrentTool { get; private set; }
+        public DesignerSidebarTab SidebarTab { get; private set; }
+        public DesignerInspectorTab InspectorTab { get; private set; }
+        public DesignerBottomTab BottomTab { get; private set; }
+        public bool BottomDrawerOpen { get; private set; }
+        public float BottomDrawerHeight { get; private set; }
 
         public event Action<UIScreenDefinition> ScreenChanged;
         public event Action<DesignerSaveReport> SaveCompleted;
@@ -86,6 +94,7 @@ namespace emiteat.NexUI.Designer.Editor
         public event Action PreviewRebuilt;
         public event Action ValidationChanged;
         public event Action CanvasChanged;
+        public event Action UIStateChanged;
 
         /// <summary>
         /// C1 (visible style-apply feedback): raised whenever a single element's fields change
@@ -102,11 +111,17 @@ namespace emiteat.NexUI.Designer.Editor
             PreviewMotionPlayer = new BuiltInMotionPlayer();
             PreviewThemeRegistry = new ThemeRegistry();
             Resolution = new Vector2Int(1920, 1080);
-            Zoom = 0.5f;
-            SnapEnabled = true;
-            GridSize = 8f;
+            Zoom = EditorPrefs.GetFloat(PrefPrefix + "Zoom", 0.5f);
+            SnapEnabled = EditorPrefs.GetBool(PrefPrefix + "Snap", true);
+            GridSize = EditorPrefs.GetFloat(PrefPrefix + "GridSize", 8f);
             PreviewState = "Normal";
             InputMode = "Keyboard";
+            CurrentTool = (DesignerTool)EditorPrefs.GetInt(PrefPrefix + "Tool", (int)DesignerTool.Select);
+            SidebarTab = (DesignerSidebarTab)EditorPrefs.GetInt(PrefPrefix + "SidebarTab", (int)DesignerSidebarTab.Layers);
+            InspectorTab = (DesignerInspectorTab)EditorPrefs.GetInt(PrefPrefix + "InspectorTab", (int)DesignerInspectorTab.Design);
+            BottomTab = (DesignerBottomTab)EditorPrefs.GetInt(PrefPrefix + "BottomTab", (int)DesignerBottomTab.Validation);
+            BottomDrawerOpen = EditorPrefs.GetBool(PrefPrefix + "BottomOpen", false);
+            BottomDrawerHeight = EditorPrefs.GetFloat(PrefPrefix + "BottomHeight", 220f);
             DesignerBackendRegistry.RegisterDefaults();
         }
 
@@ -123,6 +138,10 @@ namespace emiteat.NexUI.Designer.Editor
             Metadata = metadata;
             if (Metadata != null && CurrentScreen != null && string.IsNullOrEmpty(Metadata.screenId))
                 Metadata.screenId = CurrentScreen.ScreenId;
+            // Bring pre-hierarchy assets up to the current schema (assigns sibling indices from the
+            // existing draw order - visually invisible) and repair any dangling/cyclic parentIds.
+            if (Metadata != null)
+                DesignerHierarchyMigration.Migrate(Metadata);
             ClearSelection();
             MetadataChanged?.Invoke(metadata);
             CanvasChanged?.Invoke();
@@ -163,6 +182,7 @@ namespace emiteat.NexUI.Designer.Editor
             _selection.Clear();
             if (element != null)
                 _selection.Add(element);
+            KeyObject = null;
             RaiseSelectionChanged();
         }
 
@@ -182,6 +202,7 @@ namespace emiteat.NexUI.Designer.Editor
         public void RemoveFromSelection(DesignerElementMetadata element)
         {
             if (element == null || !_selection.Remove(element)) return;
+            if (KeyObject == element) KeyObject = null;
             RaiseSelectionChanged();
         }
 
@@ -190,6 +211,8 @@ namespace emiteat.NexUI.Designer.Editor
             if (element == null) return;
             if (!_selection.Remove(element))
                 _selection.Add(element);
+            else if (KeyObject == element)
+                KeyObject = null;
             RaiseSelectionChanged();
         }
 
@@ -200,6 +223,7 @@ namespace emiteat.NexUI.Designer.Editor
                 foreach (var e in elements)
                     if (e != null && !_selection.Contains(e))
                         _selection.Add(e);
+            KeyObject = null;
             RaiseSelectionChanged();
         }
 
@@ -236,11 +260,33 @@ namespace emiteat.NexUI.Designer.Editor
                 SelectMetadata(parent);
         }
 
+        public void RenameElement(DesignerElementMetadata element, string displayName)
+        {
+            if (element == null) return;
+            UpdateElement(element, e => e.displayName = displayName, "Rename NexUI Element");
+        }
+
+        /// <summary>
+        /// Reparents a single element (keeping its canvas position). Superseded by the richer
+        /// <see cref="ReparentElement"/> in the hierarchy partial; retained for existing callers.
+        /// </summary>
+        public void SetElementParent(DesignerElementMetadata element, DesignerElementMetadata parent)
+            => ReparentElement(element, parent);
+
         public void ClearSelection()
         {
             if (_selection.Count == 0 && SelectedElement == null) return;
             _selection.Clear();
+            KeyObject = null;
             RaiseSelectionChanged();
+        }
+
+        public void SetKeyObject(DesignerElementMetadata element)
+        {
+            if (element == null || !_selection.Contains(element) || _selection.Count < 2) return;
+            KeyObject = element;
+            MultiSelectionChanged?.Invoke(_selection);
+            CanvasChanged?.Invoke();
         }
 
         private void RaiseSelectionChanged()
@@ -341,6 +387,7 @@ namespace emiteat.NexUI.Designer.Editor
         public void SetZoom(float zoom)
         {
             Zoom = Mathf.Clamp(zoom, 0.15f, 2.0f);
+            EditorPrefs.SetFloat(PrefPrefix + "Zoom", Zoom);
             CanvasChanged?.Invoke();
         }
 
@@ -349,13 +396,63 @@ namespace emiteat.NexUI.Designer.Editor
         public void SetSnap(bool enabled)
         {
             SnapEnabled = enabled;
+            EditorPrefs.SetBool(PrefPrefix + "Snap", enabled);
             CanvasChanged?.Invoke();
         }
 
         public void SetGridSize(float size)
         {
             GridSize = Mathf.Clamp(size, 1f, 64f);
+            EditorPrefs.SetFloat(PrefPrefix + "GridSize", GridSize);
             CanvasChanged?.Invoke();
+        }
+
+        public void SetTool(DesignerTool tool)
+        {
+            if (CurrentTool == tool) return;
+            CurrentTool = tool;
+            EditorPrefs.SetInt(PrefPrefix + "Tool", (int)tool);
+            UIStateChanged?.Invoke();
+        }
+
+        public void SetSidebarTab(DesignerSidebarTab tab)
+        {
+            if (SidebarTab == tab) return;
+            SidebarTab = tab;
+            EditorPrefs.SetInt(PrefPrefix + "SidebarTab", (int)tab);
+            UIStateChanged?.Invoke();
+        }
+
+        public void SetInspectorTab(DesignerInspectorTab tab)
+        {
+            if (InspectorTab == tab) return;
+            InspectorTab = tab;
+            EditorPrefs.SetInt(PrefPrefix + "InspectorTab", (int)tab);
+            UIStateChanged?.Invoke();
+        }
+
+        public void SetBottomTab(DesignerBottomTab tab, bool open = true)
+        {
+            BottomTab = tab;
+            BottomDrawerOpen = open;
+            EditorPrefs.SetInt(PrefPrefix + "BottomTab", (int)tab);
+            EditorPrefs.SetBool(PrefPrefix + "BottomOpen", BottomDrawerOpen);
+            UIStateChanged?.Invoke();
+        }
+
+        public void SetBottomDrawerOpen(bool open)
+        {
+            if (BottomDrawerOpen == open) return;
+            BottomDrawerOpen = open;
+            EditorPrefs.SetBool(PrefPrefix + "BottomOpen", open);
+            UIStateChanged?.Invoke();
+        }
+
+        public void SetBottomDrawerHeight(float height)
+        {
+            BottomDrawerHeight = Mathf.Clamp(height, 180f, 520f);
+            EditorPrefs.SetFloat(PrefPrefix + "BottomHeight", BottomDrawerHeight);
+            UIStateChanged?.Invoke();
         }
 
         public void SetPreviewState(string state)
@@ -488,14 +585,37 @@ namespace emiteat.NexUI.Designer.Editor
             return element;
         }
 
-        /// <summary>Deletes every currently selected element (multi-select aware).</summary>
-        public void DeleteSelectedMetadata()
+        /// <summary>
+        /// Deletes every currently selected element (multi-select aware). By default each
+        /// element's whole subtree is removed (requirement default = "Delete with Children"); pass
+        /// <paramref name="withChildren"/> = false to instead lift the direct children up to the
+        /// deleted element's parent (keeping their canvas positions). Single Undo group.
+        /// </summary>
+        public void DeleteSelectedMetadata(bool withChildren = true)
         {
             if (Metadata == null || _selection.Count == 0) return;
-            RecordMetadata("Delete NexUI Element");
-            foreach (var element in _selection)
+            RecordMetadata(withChildren ? "Delete NexUI Element (with children)" : "Delete NexUI Element (keep children)");
+
+            // Snapshot selection; when deleting with children, skip nodes already covered by an
+            // ancestor also being deleted so we don't double-process a subtree.
+            var targets = new List<DesignerElementMetadata>(_selection);
+            foreach (var element in targets)
+            {
+                if (element == null || !Metadata.elements.Contains(element)) continue;
+                if (withChildren)
+                {
+                    foreach (var d in DesignerHierarchyUtility.GetDescendants(Metadata, element))
+                        Metadata.elements.Remove(d);
+                }
+                else
+                {
+                    var children = DesignerHierarchyUtility.GetOrderedChildren(Metadata, element);
+                    ReparentElementsInternal(children, element.parentId ?? string.Empty, true);
+                }
                 Metadata.elements.Remove(element);
+            }
             _selection.Clear();
+            DesignerHierarchyUtility.NormalizeSiblingIndices(Metadata);
             MarkMetadataDirty();
             RaiseSelectionChanged();
         }
@@ -550,6 +670,14 @@ namespace emiteat.NexUI.Designer.Editor
             }
             MarkMetadataDirty();
             SelectMany(copies);
+            return copies;
+        }
+
+        public List<DesignerElementMetadata> DuplicateSelectionAtDragStart()
+        {
+            var copies = DuplicateSelection();
+            if (copies.Count > 0)
+                LogAction("Alt Drag Duplicate");
             return copies;
         }
 
@@ -619,12 +747,17 @@ namespace emiteat.NexUI.Designer.Editor
             UpdateSelectedRect(r);
         }
 
-        /// <summary>Moves every selected (and unlocked) element by the same delta as a single undo step.</summary>
+        /// <summary>
+        /// Moves every selected (and unlocked) element by the same delta as a single undo step.
+        /// Because element rects are stored in absolute canvas space, a moved element's descendants
+        /// are carried along by the same delta so children visually follow their parent (each node
+        /// is moved exactly once even if both it and an ancestor are selected).
+        /// </summary>
         public void MoveSelection(Vector2 delta)
         {
             if (_selection.Count == 0) return;
             var rects = new Dictionary<DesignerElementMetadata, Rect>();
-            foreach (var element in _selection)
+            foreach (var element in MoveClosure(_selection))
             {
                 if (element.locked) continue;
                 var r = element.rect;
@@ -632,6 +765,24 @@ namespace emiteat.NexUI.Designer.Editor
                 rects[element] = r;
             }
             SetElementsRects(rects, "Move NexUI Elements");
+        }
+
+        /// <summary>
+        /// The set of elements affected by moving <paramref name="roots"/>: the roots plus all of
+        /// their descendants, de-duplicated. Descendants follow their parent so the whole subtree
+        /// translates together.
+        /// </summary>
+        internal HashSet<DesignerElementMetadata> MoveClosure(IEnumerable<DesignerElementMetadata> roots)
+        {
+            var closure = new HashSet<DesignerElementMetadata>();
+            if (Metadata == null || roots == null) return closure;
+            foreach (var root in roots)
+            {
+                if (root == null || !closure.Add(root)) continue;
+                foreach (var d in DesignerHierarchyUtility.GetDescendants(Metadata, root))
+                    closure.Add(d);
+            }
+            return closure;
         }
 
         /// <summary>
@@ -660,7 +811,9 @@ namespace emiteat.NexUI.Designer.Editor
                 return;
             }
 
-            var bounds = UIAlignmentUtility.GetBounds(_selection);
+            var bounds = KeyObject != null && _selection.Contains(KeyObject)
+                ? KeyObject.rect
+                : UIAlignmentUtility.GetBounds(_selection);
             Dictionary<DesignerElementMetadata, Rect> rects = mode switch
             {
                 "left" => UIAlignmentUtility.AlignLeft(_selection, bounds),
@@ -713,6 +866,38 @@ namespace emiteat.NexUI.Designer.Editor
             MarkMetadataDirty();
         }
 
+        public void MoveElementInLayerOrder(DesignerElementMetadata element, int delta)
+        {
+            if (Metadata == null || element == null || delta == 0) return;
+            var index = Metadata.elements.IndexOf(element);
+            if (index < 0) return;
+            var target = Mathf.Clamp(index + delta, 0, Metadata.elements.Count - 1);
+            if (target == index) return;
+
+            RecordMetadata("Reorder NexUI Element");
+            Metadata.elements.RemoveAt(index);
+            Metadata.elements.Insert(target, element);
+            MarkMetadataDirty();
+            MetadataSelectionChanged?.Invoke(SelectedMetadata);
+            MultiSelectionChanged?.Invoke(_selection);
+        }
+
+        public void MoveElementToLayerIndex(DesignerElementMetadata element, int targetIndex)
+        {
+            if (Metadata == null || element == null) return;
+            var index = Metadata.elements.IndexOf(element);
+            if (index < 0) return;
+            targetIndex = Mathf.Clamp(targetIndex, 0, Metadata.elements.Count - 1);
+            if (targetIndex == index) return;
+
+            RecordMetadata("Reorder NexUI Element");
+            Metadata.elements.RemoveAt(index);
+            Metadata.elements.Insert(targetIndex, element);
+            MarkMetadataDirty();
+            MetadataSelectionChanged?.Invoke(SelectedMetadata);
+            MultiSelectionChanged?.Invoke(_selection);
+        }
+
         /// <summary>
         /// Wraps the current selection in a new Panel element sized to their bounding box and
         /// reassigns their <c>parentId</c> to it. Rects stay in the same absolute canvas space
@@ -742,8 +927,19 @@ namespace emiteat.NexUI.Designer.Editor
                 insertIndex = Metadata.elements.Count;
 
             Metadata.elements.Insert(insertIndex, group);
-            foreach (var member in members)
-                member.parentId = group.elementId;
+            // Preserve the members' current sibling order under the new group parent.
+            var orderedMembers = new List<DesignerElementMetadata>(members);
+            orderedMembers.Sort((a, b) =>
+            {
+                if (a.siblingIndex != b.siblingIndex) return a.siblingIndex.CompareTo(b.siblingIndex);
+                return Metadata.elements.IndexOf(a).CompareTo(Metadata.elements.IndexOf(b));
+            });
+            for (int i = 0; i < orderedMembers.Count; i++)
+            {
+                orderedMembers[i].parentId = group.elementId;
+                orderedMembers[i].siblingIndex = i;
+            }
+            DesignerHierarchyUtility.NormalizeSiblingIndices(Metadata);
 
             MarkMetadataDirty();
             SelectMetadata(group);
@@ -759,9 +955,21 @@ namespace emiteat.NexUI.Designer.Editor
             if (children.Count == 0) return;
 
             RecordMetadata("Ungroup NexUI Elements");
-            foreach (var child in children)
-                child.parentId = group.parentId;
+            // Re-parent children to the group's parent, keeping their relative order, then drop the group.
+            var ordered = DesignerHierarchyUtility.GetOrderedChildren(Metadata, group);
+            var destParent = group.parentId ?? string.Empty;
+            var destSiblings = DesignerHierarchyUtility.GetOrderedChildren(Metadata, destParent);
+            destSiblings.RemoveAll(ordered.Contains);
+            destSiblings.Remove(group);
+            var insertAt = group.siblingIndex <= destSiblings.Count ? group.siblingIndex : destSiblings.Count;
+            insertAt = Mathf.Clamp(insertAt, 0, destSiblings.Count);
+            destSiblings.InsertRange(insertAt, ordered);
+            foreach (var child in ordered)
+                child.parentId = destParent;
+            for (int i = 0; i < destSiblings.Count; i++)
+                destSiblings[i].siblingIndex = i;
             Metadata.elements.Remove(group);
+            DesignerHierarchyUtility.NormalizeSiblingIndices(Metadata);
             MarkMetadataDirty();
             SelectMany(children);
         }
