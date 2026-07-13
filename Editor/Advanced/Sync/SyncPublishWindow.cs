@@ -30,7 +30,7 @@ namespace emiteat.NexUI.Designer.Editor.Sync
         }
 
         private static NexUIDesignerContext ResolveContext()
-            => Resources.FindObjectsOfTypeAll<NexUIDesignerWindow>().FirstOrDefault()?.Context;
+            => DesignerSessions.ActiveContext;
 
         protected override void DrawBody()
         {

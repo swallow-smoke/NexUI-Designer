@@ -7,11 +7,15 @@ using emiteat.NexUI.Designer.Editor.Localization;
 using emiteat.NexUI.Designer.Editor.MotionClipEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
+using Unity.Profiling;
 
 namespace emiteat.NexUI.Designer.Editor.Viewport
 {
     public sealed class NexUIDesignerViewport : VisualElement
     {
+        private const string ScrollXPref = "NexUI.Designer.UI.CanvasScrollX";
+        private const string ScrollYPref = "NexUI.Designer.UI.CanvasScrollY";
+        private static readonly ProfilerMarker RebuildMarker = new ProfilerMarker("NexUI.Designer.Preview.Apply");
         private readonly NexUIDesignerContext _context;
         private readonly Label _label;
         private readonly Label _hint;
@@ -61,6 +65,7 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
         public NexUIDesignerViewport(NexUIDesignerContext context)
         {
             _context = context;
+            var subscriptions = new ContextBoundSubscriptions(this);
             name = "NexUIDesignerViewport";
             focusable = true;
             AddToClassList("nexui-viewport");
@@ -116,9 +121,13 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
             _focusNavToggle.AddToClassList("nexui-toolbar-button");
             header.Add(_focusNavToggle);
 
-            _context.PreviewSettingsChanged += RefreshPreviewControls;
+            subscriptions.Add(h => _context.PreviewSettingsChanged += h, h => _context.PreviewSettingsChanged -= h, RefreshPreviewControls);
 
             _previewFrame = new ScrollView();
+            _previewFrame.schedule.Execute(() => _previewFrame.scrollOffset = new Vector2(
+                UnityEditor.EditorPrefs.GetFloat(ScrollXPref, 0f), UnityEditor.EditorPrefs.GetFloat(ScrollYPref, 0f)));
+            _previewFrame.horizontalScroller.valueChanged += value => UnityEditor.EditorPrefs.SetFloat(ScrollXPref, value);
+            _previewFrame.verticalScroller.valueChanged += value => UnityEditor.EditorPrefs.SetFloat(ScrollYPref, value);
             _previewFrame.AddToClassList("nexui-preview-frame");
             _previewCanvas = new VisualElement();
             _previewCanvas.AddToClassList("nexui-preview-canvas");
@@ -175,12 +184,12 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
             _previewCanvas.RegisterCallback<PointerDownEvent>(OnDismissInlineMenuPointerDown, TrickleDown.TrickleDown);
             RegisterCallback<KeyDownEvent>(OnKeyDown);
 
-            context.PreviewRebuilt += RefreshAll;
-            context.MetadataChanged += _ => RefreshAll();
-            context.MetadataSelectionChanged += _ => RefreshSelection();
-            context.MultiSelectionChanged += _ => RefreshSelection();
-            context.CanvasChanged += RefreshAll;
-            context.ElementChanged += FlashElement;
+            subscriptions.Add(h => context.PreviewRebuilt += h, h => context.PreviewRebuilt -= h, RefreshAll);
+            subscriptions.Add<DesignerMetadataAsset>(h => context.MetadataChanged += h, h => context.MetadataChanged -= h, _ => RefreshAll());
+            subscriptions.Add<DesignerElementMetadata>(h => context.MetadataSelectionChanged += h, h => context.MetadataSelectionChanged -= h, _ => RefreshSelection());
+            subscriptions.Add<System.Collections.Generic.IReadOnlyList<DesignerElementMetadata>>(h => context.MultiSelectionChanged += h, h => context.MultiSelectionChanged -= h, _ => RefreshSelection());
+            subscriptions.Add(h => context.CanvasChanged += h, h => context.CanvasChanged -= h, RefreshAll);
+            subscriptions.Add<DesignerElementMetadata>(h => context.ElementChanged += h, h => context.ElementChanged -= h, FlashElement);
             RefreshAll();
             RefreshPreviewControls();
         }
@@ -211,6 +220,7 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
 
         private void RefreshAll()
         {
+            using var markerScope = RebuildMarker.Auto();
             RefreshHeaderAndCanvas();
             RebuildElements();
             RefreshSelection();

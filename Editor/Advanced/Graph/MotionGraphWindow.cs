@@ -42,13 +42,14 @@ namespace emiteat.NexUI.Designer.Editor.Graph
             var root = rootVisualElement;
             root.Clear();
             root.AddToClassList("nexui-designer-root");
+            root.AddToClassList("nexui-tool-window-root");
             var styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>(
                 "Packages/com.emiteat.nexui.designer/Editor/Styles/NexUIDesigner.uss");
             if (styleSheet != null && !root.styleSheets.Contains(styleSheet))
                 root.styleSheets.Add(styleSheet);
 
             var toolbar = new Toolbar();
-            toolbar.AddToClassList("nexui-toolbar");
+            toolbar.AddToClassList("nexui-tool-window-toolbar");
             var presetField = new ObjectField("Preset") { objectType = typeof(UIMotionPreset), allowSceneObjects = false, value = _preset };
             presetField.AddToClassList("nexui-metadata-field");
             presetField.RegisterValueChangedCallback(evt =>

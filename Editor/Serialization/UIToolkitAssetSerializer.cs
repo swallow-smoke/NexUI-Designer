@@ -33,7 +33,7 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
             if (vta == null)
             {
                 report.MarkSkipped("No UXML (VisualTreeAsset) assigned to the screen backend asset (metadata saved only).");
-                AssetDatabase.SaveAssets();
+                SaveDirtyAssets(metadata, definition);
                 return report;
             }
 
@@ -51,8 +51,14 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
                 }
             }
 
-            AssetDatabase.SaveAssets();
+            SaveDirtyAssets(metadata, definition);
             return report;
+        }
+
+        private static void SaveDirtyAssets(DesignerMetadataAsset metadata, UIScreenDefinition definition)
+        {
+            if (metadata != null) AssetDatabase.SaveAssetIfDirty(metadata);
+            if (definition != null) AssetDatabase.SaveAssetIfDirty(definition);
         }
 
         // CloneTree()+walk is comparatively expensive and CollectElementNames is called on
@@ -60,7 +66,7 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
         // the collected names per VisualTreeAsset, invalidated when the asset's dirty count
         // changes (in-editor edits) or when any UXML is reimported (UI Builder / external edits;
         // see UIToolkitUxmlCacheWatcher below). The cached set is read-only for callers.
-        private static readonly Dictionary<int, CachedNames> NameCache = new Dictionary<int, CachedNames>();
+        private static readonly Dictionary<VisualTreeAsset, CachedNames> NameCache = new Dictionary<VisualTreeAsset, CachedNames>();
 
         private struct CachedNames
         {
@@ -73,13 +79,12 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
         {
             if (vta == null) return new HashSet<string>();
 
-            var id = vta.GetInstanceID();
             var dirty = EditorUtility.GetDirtyCount(vta);
-            if (NameCache.TryGetValue(id, out var cached) && cached.DirtyCount == dirty)
+            if (NameCache.TryGetValue(vta, out var cached) && cached.DirtyCount == dirty)
                 return cached.Names;
 
             var names = ComputeElementNames(vta);
-            NameCache[id] = new CachedNames { DirtyCount = dirty, Names = names };
+            NameCache[vta] = new CachedNames { DirtyCount = dirty, Names = names };
             return names;
         }
 

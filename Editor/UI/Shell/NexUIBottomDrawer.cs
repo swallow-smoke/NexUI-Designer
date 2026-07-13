@@ -66,10 +66,13 @@ namespace emiteat.NexUI.Designer.Editor.UI.Shell
             _previewLog = new NexUIPreviewLogPanel(_context);
             _timeline = MakePlaceholder("Timeline", "Open Motion Clip Editor to edit clips. Timeline docking is prepared here.");
 
-            context.UIStateChanged += Refresh;
-            context.ValidationChanged += RefreshBadge;
+            var subscriptions = new ContextBoundSubscriptions(this);
+            subscriptions.Add(h => context.UIStateChanged += h, h => context.UIStateChanged -= h, Refresh);
+            subscriptions.Add(h => context.ValidationChanged += h, h => context.ValidationChanged -= h, RefreshBadge);
             // Auto-open the Preview tab when a command is simulated so the user sees the result.
-            context.PreviewLog.CommandSimulated += _ => _context.SetBottomTab(DesignerBottomTab.Preview, true);
+            subscriptions.Add<DesignerPreviewLogEntry>(h => context.PreviewLog.CommandSimulated += h,
+                h => context.PreviewLog.CommandSimulated -= h,
+                _ => _context.SetBottomTab(DesignerBottomTab.Preview, true));
             Refresh();
             RefreshBadge();
         }

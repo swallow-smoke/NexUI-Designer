@@ -9,8 +9,8 @@
 
 .nexui-element#title, #title {
     position: absolute;
-    left: 500px;
-    top: 130px;
+    left: 40px;
+    top: 40px;
     width: 400px;
     height: 60px;
     background-color: rgba(33, 40, 56, 0.0);
@@ -18,8 +18,8 @@
 
 .nexui-element#grid, #grid {
     position: absolute;
-    left: 500px;
-    top: 220px;
+    left: 40px;
+    top: 130px;
     width: 920px;
     height: 400px;
     background-color: rgba(33, 40, 56, 0.0);
@@ -27,8 +27,8 @@
 
 .nexui-element#slot1, #slot1 {
     position: absolute;
-    left: 500px;
-    top: 220px;
+    left: 0px;
+    top: 0px;
     width: 180px;
     height: 180px;
     background-color: rgba(51, 61, 81, 1.0);
@@ -36,8 +36,8 @@
 
 .nexui-element#slot2, #slot2 {
     position: absolute;
-    left: 700px;
-    top: 220px;
+    left: 200px;
+    top: 0px;
     width: 180px;
     height: 180px;
     background-color: rgba(51, 61, 81, 1.0);
@@ -45,8 +45,8 @@
 
 .nexui-element#slot3, #slot3 {
     position: absolute;
-    left: 900px;
-    top: 220px;
+    left: 400px;
+    top: 0px;
     width: 180px;
     height: 180px;
     background-color: rgba(51, 61, 81, 1.0);
@@ -54,8 +54,8 @@
 
 .nexui-element#slot4, #slot4 {
     position: absolute;
-    left: 500px;
-    top: 420px;
+    left: 0px;
+    top: 200px;
     width: 180px;
     height: 180px;
     background-color: rgba(51, 61, 81, 1.0);
@@ -63,8 +63,8 @@
 
 .nexui-element#slot5, #slot5 {
     position: absolute;
-    left: 700px;
-    top: 420px;
+    left: 200px;
+    top: 200px;
     width: 180px;
     height: 180px;
     background-color: rgba(51, 61, 81, 1.0);
@@ -72,8 +72,8 @@
 
 .nexui-element#slot6, #slot6 {
     position: absolute;
-    left: 900px;
-    top: 420px;
+    left: 400px;
+    top: 200px;
     width: 180px;
     height: 180px;
     background-color: rgba(51, 61, 81, 1.0);
@@ -81,9 +81,22 @@
 
 .nexui-element#closeButton, #closeButton {
     position: absolute;
-    left: 500px;
-    top: 900px;
+    left: 40px;
+    top: 810px;
     width: 200px;
     height: 64px;
     background-color: rgba(40, 114, 229, 1.0);
 }
+
+#equipButton {
+    position: absolute;
+    left: 260px;
+    top: 810px;
+    width: 200px;
+    height: 64px;
+    background-color: rgba(40, 114, 229, 1.0);
+}
+
+.nexui-slot:hover { scale: 1.04 1.04; border-color: rgb(88, 166, 255); }
+.nexui-slot.is-selected { border-width: 3px; border-color: rgb(88, 166, 255); }
+.nexui-slot.is-empty { opacity: 0.55; }

@@ -1,5 +1,6 @@
 using emiteat.NexUI.Core;
 using emiteat.NexUI.Designer.Editor.Localization;
+using emiteat.NexUI.Designer.Editor.Serialization;
 using emiteat.NexUI.Designer.Editor.Viewport;
 using UnityEditor;
 using UnityEditor.UIElements;
@@ -14,6 +15,7 @@ namespace emiteat.NexUI.Designer.Editor.Panels
 
         public NexUIDesignerToolbar(NexUIDesignerContext context)
         {
+            var subscriptions = new ContextBoundSubscriptions(this);
             AddToClassList("nexui-toolbar");
 
             var topRow = new VisualElement();
@@ -51,7 +53,7 @@ namespace emiteat.NexUI.Designer.Editor.Panels
             metadataField.AddToClassList("nexui-metadata-field");
             metadataField.RegisterValueChangedCallback(evt => context.SetMetadata(evt.newValue as DesignerMetadataAsset));
             topRow.Add(metadataField);
-            context.MetadataChanged += metadata => metadataField.SetValueWithoutNotify(metadata);
+            subscriptions.Add<DesignerMetadataAsset>(h => context.MetadataChanged += h, h => context.MetadataChanged -= h, metadata => metadataField.SetValueWithoutNotify(metadata));
             topRow.Add(MakeButton(() => context.CreateMetadataAsset(), "New", "nexui-button-secondary", DesignerLocalization.T("tooltip.toolbar.newMetadata")));
 
             _status = new Label { tooltip = DesignerLocalization.T("tooltip.toolbar.status") };
@@ -76,7 +78,7 @@ namespace emiteat.NexUI.Designer.Editor.Panels
                 editModeHint.style.display = advanced ? DisplayStyle.None : DisplayStyle.Flex;
             }
             RefreshEditModeLabel();
-            DesignerEditMode.Changed += _ => RefreshEditModeLabel();
+            subscriptions.Add<DesignerMode>(h => DesignerEditMode.Changed += h, h => DesignerEditMode.Changed -= h, _ => RefreshEditModeLabel());
             topRow.Add(editModeToggle);
             topRow.Add(editModeHint);
 
@@ -132,16 +134,16 @@ namespace emiteat.NexUI.Designer.Editor.Panels
             // Align/Distribute/Layer moved to NexUIDesignerAlignPanel (docked beside the
             // Palette) - a third toolbar row for them overlapped the panels below it.
 
-            context.ScreenChanged += _ => RefreshStatus(context);
-            context.ValidationChanged += () => RefreshStatus(context);
-            context.SaveCompleted += report =>
+            subscriptions.Add<UIScreenDefinition>(h => context.ScreenChanged += h, h => context.ScreenChanged -= h, _ => RefreshStatus(context));
+            subscriptions.Add(h => context.ValidationChanged += h, h => context.ValidationChanged -= h, () => RefreshStatus(context));
+            subscriptions.Add<DesignerSaveReport>(h => context.SaveCompleted += h, h => context.SaveCompleted -= h, report =>
             {
                 _status.text = report.Summary();
                 _status.RemoveFromClassList("is-muted");
                 _status.RemoveFromClassList("is-ok");
                 _status.RemoveFromClassList("is-warning");
                 _status.AddToClassList(report.HasErrors ? "is-warning" : report.HasWarnings ? "is-warning" : "is-ok");
-            };
+            });
             RefreshStatus(context);
         }
 

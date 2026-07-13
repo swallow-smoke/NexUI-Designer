@@ -16,6 +16,7 @@ namespace emiteat.NexUI.Designer
 
         public string screenId;
         public List<DesignerElementMetadata> elements = new List<DesignerElementMetadata>();
+        public DesignerScreenMotionMetadata screenMotion = new DesignerScreenMotionMetadata();
 
         // ---- Advanced Extension Pack metadata --------------------------------
         public List<DesignerVariantMetadata> variants = new List<DesignerVariantMetadata>();

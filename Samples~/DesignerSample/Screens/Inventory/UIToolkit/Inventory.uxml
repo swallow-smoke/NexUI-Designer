@@ -1,13 +1,16 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd">
     <Style src="Inventory.uss" />
-    <ui:VisualElement name="panel" class="nexui-panel" />
-    <ui:Label name="title" class="nexui-label" text="Inventory" />
-    <ui:VisualElement name="grid" class="nexui-grid" />
-    <ui:VisualElement name="slot1" class="nexui-slot" />
-    <ui:VisualElement name="slot2" class="nexui-slot" />
-    <ui:VisualElement name="slot3" class="nexui-slot" />
-    <ui:VisualElement name="slot4" class="nexui-slot" />
-    <ui:VisualElement name="slot5" class="nexui-slot" />
-    <ui:VisualElement name="slot6" class="nexui-slot" />
-    <ui:Button name="closeButton" class="nexui-button" text="Close" />
+    <ui:VisualElement name="panel" class="nexui-panel">
+        <ui:Label name="title" class="nexui-label" text="Inventory" />
+        <ui:VisualElement name="grid" class="nexui-grid">
+            <ui:Button name="slot1" class="nexui-slot"><ui:Label name="slot1Name" text="Iron Sword" /><ui:Label name="slot1Count" text="1" /></ui:Button>
+            <ui:Button name="slot2" class="nexui-slot"><ui:Label name="slot2Name" text="Health Potion" /><ui:Label name="slot2Count" text="5" /></ui:Button>
+            <ui:Button name="slot3" class="nexui-slot"><ui:Label name="slot3Name" text="Leather Boots" /><ui:Label name="slot3Count" text="1" /></ui:Button>
+            <ui:Button name="slot4" class="nexui-slot is-empty"><ui:Label name="slot4Name" text="Empty" /><ui:Label name="slot4Count" text="0" /></ui:Button>
+            <ui:Button name="slot5" class="nexui-slot"><ui:Label name="slot5Name" text="Mana Potion" /><ui:Label name="slot5Count" text="3" /></ui:Button>
+            <ui:Button name="slot6" class="nexui-slot is-empty"><ui:Label name="slot6Name" text="Empty" /><ui:Label name="slot6Count" text="0" /></ui:Button>
+        </ui:VisualElement>
+        <ui:Button name="closeButton" class="nexui-button" text="Close" />
+        <ui:Button name="equipButton" class="nexui-button" text="Equip" />
+    </ui:VisualElement>
 </ui:UXML>

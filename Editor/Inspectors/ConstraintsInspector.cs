@@ -30,8 +30,8 @@ namespace emiteat.NexUI.Designer.Editor.Inspectors
             _horizontal.RegisterValueChangedCallback(evt => Change(e => e.constraint.horizontal = (DesignerConstraintMode)evt.newValue, "Change NexUI Element Horizontal Constraint"));
             _vertical.RegisterValueChangedCallback(evt => Change(e => e.constraint.vertical = (DesignerConstraintMode)evt.newValue, "Change NexUI Element Vertical Constraint"));
 
-            context.MetadataSelectionChanged += _ => Refresh();
-            context.CanvasChanged += Refresh;
+            Subscriptions.Add<DesignerElementMetadata>(h => context.MetadataSelectionChanged += h, h => context.MetadataSelectionChanged -= h, _ => Refresh());
+            Subscriptions.Add(h => context.CanvasChanged += h, h => context.CanvasChanged -= h, Refresh);
             Refresh();
         }
 

@@ -2,6 +2,7 @@
   "name": "com.emiteat.nexui.designer",
   "displayName": "NexUI Designer",
   "version": "0.1.0",
+  "license": "MIT",
   "unity": "6000.4",
   "description": "Visual authoring extension package for NexUI. Provides Unity Editor tools for editing NexUI screens, bindings, motions, themes, policies, and validation.",
   "keywords": [
@@ -18,7 +19,8 @@
     "name": "emiteat"
   },
   "dependencies": {
-    "com.emiteat.nexui": "0.1.0"
+    "com.emiteat.nexui": "0.1.0",
+    "com.unity.ugui": "2.0.0"
   },
   "samples": [
     {

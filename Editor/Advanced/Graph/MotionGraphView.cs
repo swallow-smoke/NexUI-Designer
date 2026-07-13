@@ -27,7 +27,7 @@ namespace emiteat.NexUI.Designer.Editor.Graph
 
         public MotionGraphView()
         {
-            style.flexGrow = 1f;
+            AddToClassList("nexui-graph-surface");
 
             SetupZoom(ContentZoomer.DefaultMinScale, ContentZoomer.DefaultMaxScale);
             this.AddManipulator(new ContentDragger());

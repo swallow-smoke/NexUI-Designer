@@ -48,8 +48,6 @@ namespace emiteat.NexUI.Designer.Editor.Sync
     /// </summary>
     public static class DesignerPublishService
     {
-        private const string GeneratedMarker = "NEXUI:GENERATED";
-
         public static ScreenSyncStatus Evaluate(DesignerMetadataAsset metadata, DesignerPublishManifest manifest)
         {
             var status = new ScreenSyncStatus
@@ -87,12 +85,12 @@ namespace emiteat.NexUI.Designer.Editor.Sync
         /// Returns false (without writing) if a target file exists without the generated banner.</summary>
         public static bool WriteAndRecord(ScreenSyncStatus status, DesignerPublishManifest manifest)
         {
-            if (!CanWrite(status.UxmlPath) || !CanWrite(status.UssPath)) return false;
-
-            File.WriteAllText(status.UxmlPath, status.DesignerUxml);
-            File.WriteAllText(status.UssPath, status.DesignerUss);
-            AssetDatabase.ImportAsset(status.UxmlPath);
-            AssetDatabase.ImportAsset(status.UssPath);
+            var result = new GeneratedAssetWriter().Write(new[]
+            {
+                new GeneratedAssetFile(status.UxmlPath, status.DesignerUxml),
+                new GeneratedAssetFile(status.UssPath, status.DesignerUss)
+            });
+            if (!result.Success) return false;
             Record(status, manifest, status.DesignerUxml, status.DesignerUss);
             return true;
         }
@@ -130,7 +128,6 @@ namespace emiteat.NexUI.Designer.Editor.Sync
                 }
                 actions.Add(new PublishAction { ScreenId = status.ScreenId, Result = result });
             }
-            if (!dryRun) AssetDatabase.Refresh();
             return actions;
         }
 
@@ -153,12 +150,6 @@ namespace emiteat.NexUI.Designer.Editor.Sync
             return (
                 (dir + "/" + baseName + ".g.uxml").Replace('\\', '/'),
                 (dir + "/" + baseName + ".g.uss").Replace('\\', '/'));
-        }
-
-        private static bool CanWrite(string path)
-        {
-            if (!File.Exists(path)) return true;
-            return File.ReadAllText(path).Contains(GeneratedMarker);
         }
 
         public static string Hash(string content)

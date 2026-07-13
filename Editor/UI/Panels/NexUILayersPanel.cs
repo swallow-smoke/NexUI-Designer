@@ -5,6 +5,7 @@ using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
+using Unity.Profiling;
 
 namespace emiteat.NexUI.Designer.Editor.UI.Panels
 {
@@ -18,6 +19,7 @@ namespace emiteat.NexUI.Designer.Editor.UI.Panels
     /// </summary>
     public sealed class NexUILayersPanel : VisualElement
     {
+        private static readonly ProfilerMarker RebuildMarker = new ProfilerMarker("NexUI.Designer.Hierarchy.Rebuild");
         private readonly NexUIDesignerContext _context;
         private readonly ToolbarSearchField _search;
         private readonly ScrollView _list;
@@ -61,9 +63,10 @@ namespace emiteat.NexUI.Designer.Editor.UI.Panels
             _list.RegisterCallback<PointerMoveEvent>(OnListDragMove);
             _list.RegisterCallback<PointerUpEvent>(OnListDragEnd);
 
-            context.MetadataChanged += _ => { LoadCollapsedState(); Refresh(); };
-            context.CanvasChanged += Refresh;
-            context.MultiSelectionChanged += _ => RefreshSelectionOnly();
+            var subscriptions = new ContextBoundSubscriptions(this);
+            subscriptions.Add<DesignerMetadataAsset>(h => context.MetadataChanged += h, h => context.MetadataChanged -= h, _ => { LoadCollapsedState(); Refresh(); });
+            subscriptions.Add(h => context.CanvasChanged += h, h => context.CanvasChanged -= h, Refresh);
+            subscriptions.Add<System.Collections.Generic.IReadOnlyList<DesignerElementMetadata>>(h => context.MultiSelectionChanged += h, h => context.MultiSelectionChanged -= h, _ => RefreshSelectionOnly());
             LoadCollapsedState();
             Refresh();
         }
@@ -100,6 +103,7 @@ namespace emiteat.NexUI.Designer.Editor.UI.Panels
         // ---- row model ---------------------------------------------------------------------
         private void Refresh()
         {
+            using var markerScope = RebuildMarker.Auto();
             _list.Clear();
             if (_context.Metadata == null || _context.Metadata.elements.Count == 0)
             {

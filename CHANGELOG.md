@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+### Stabilized
+- Added a focus-aware `DesignerSessionRegistry` and removed satellite-window context discovery through `Resources.FindObjectsOfTypeAll`.
+- Added panel-lifetime event subscriptions so rebuilt/closed VisualElements do not accumulate Context callbacks.
+- Persisted screen and element Motion Clip bindings, Reduced Motion alternatives, Motion State Machine and Motion Graph references in Designer metadata.
+- Added Motion binding Undo/Redo, element-id reference migration, save synchronization and validation for missing targets/clips and invalid keyframes.
+- Added dirty-state handling, Ctrl+S and Undo/Redo preview refresh.
+- Restored recent screen, metadata, valid selection and canvas scroll state by asset GUID after reload.
+- Avoided constructing `RectOffset` while Unity is serializing metadata during domain reload.
+- Added a transactional generated-asset writer for UXML/USS with validation, marker protection, dry run, VCS checkout, rollback and targeted imports.
+- Added Session, lifecycle, Motion persistence, Undo consistency, generated-writer and sample smoke EditMode tests plus GitHub Actions EditMode/PlayMode workflow.
+- Updated Korean documentation, architecture, implementation status, installation and testing guides.
+
 ### Added
 - **Motion Clip Editor**: new standalone `Tools/NexUI/Designer/Motion Clip Editor` window for
   authoring multi-element, multi-property, keyframe-based `UIMotionClip` assets, with a Designer
@@ -27,11 +39,9 @@
   stylesheet and button classes, matching the rest of the Designer.
 
 ### Known limitations
-- Motion Clip Editor: `AnchoredPosition`/`LocalPosition` currently resolve to the same
-  underlying value (the runtime transform capability doesn't distinguish them yet); clips are
-  not yet wired into `DesignerElementMetadata`/screen save so they aren't part of a normal
-  Designer save; Import/Export are unimplemented stubs; new editor UI strings are hardcoded
-  English rather than going through `DesignerLocalization`.
+- Motion Clip `AnchoredPosition`/`LocalPosition` currently resolve to the same underlying value.
+- Motion trigger data is persisted for both Backends, but automatic runtime wiring for every trigger remains Partial.
+- AnimationClip Import/Export remains a disabled Stub.
 
 ## 0.1.0
 

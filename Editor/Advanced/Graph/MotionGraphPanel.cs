@@ -15,10 +15,10 @@ namespace emiteat.NexUI.Designer.Editor.Graph
 
         public MotionGraphPanel(UIMotionPreset preset)
         {
-            style.flexGrow = 1f;
+            AddToClassList("nexui-graph-panel");
 
             GraphView = new MotionGraphView();
-            GraphView.style.flexGrow = 1f;
+            GraphView.AddToClassList("nexui-graph-surface");
 
             _preview = new MotionTimelinePreview();
             _preview.style.minHeight = 140f;

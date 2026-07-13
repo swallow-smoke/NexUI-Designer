@@ -25,10 +25,11 @@ namespace emiteat.NexUI.Designer.Editor.Panels
             _graph.AddToClassList("nexui-bottom-text");
             Add(_graph);
 
-            context.ScreenChanged += _ => Refresh();
-            context.MetadataChanged += _ => Refresh();
-            context.CanvasChanged += Refresh;
-            context.MetadataSelectionChanged += _ => Refresh();
+            var subscriptions = new ContextBoundSubscriptions(this);
+            subscriptions.Add<emiteat.NexUI.Core.UIScreenDefinition>(h => context.ScreenChanged += h, h => context.ScreenChanged -= h, _ => Refresh());
+            subscriptions.Add<DesignerMetadataAsset>(h => context.MetadataChanged += h, h => context.MetadataChanged -= h, _ => Refresh());
+            subscriptions.Add(h => context.CanvasChanged += h, h => context.CanvasChanged -= h, Refresh);
+            subscriptions.Add<DesignerElementMetadata>(h => context.MetadataSelectionChanged += h, h => context.MetadataSelectionChanged -= h, _ => Refresh());
             Refresh();
         }
 

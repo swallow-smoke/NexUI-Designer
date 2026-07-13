@@ -19,6 +19,7 @@ namespace emiteat.NexUI.Designer.Editor.MotionClipEditor
         public EasingCurvePreview(UIMotionEasing easing, float width = 48f, float height = 28f)
         {
             _easing = easing;
+            AddToClassList("nexui-easing-preview");
             style.width = width;
             style.height = height;
             generateVisualContent += OnGenerateVisualContent;

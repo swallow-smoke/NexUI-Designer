@@ -20,6 +20,7 @@ namespace emiteat.NexUI.Designer.Editor.Validation
         public string ElementId;
         public string Message;
         public string Fix;
+        public UnityEngine.Object Asset;
 
         public DesignerValidationIssue(DesignerValidationSeverity severity, string code, string message, string fix,
             string screenId = null, string elementId = null)

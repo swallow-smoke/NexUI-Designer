@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using emiteat.NexUI.Accessibility;
 using emiteat.NexUI.Motion;
+using emiteat.NexUI.MotionClip;
+using emiteat.NexUI.MotionGraph;
 using emiteat.NexUI.Theme;
 using UnityEditor;
 using UnityEngine;
@@ -37,12 +39,33 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
             if (asset == null) return null;
             var path = CompanionPathFor(asset);
             if (string.IsNullOrEmpty(path)) return null;
+            if (!path.Replace('\\', '/').StartsWith("Assets/", StringComparison.Ordinal))
+            {
+                Debug.LogError($"[NexUI] Companion JSON is read-only outside Assets: '{path}'.");
+                return null;
+            }
 
-            var dto = ToDto(asset);
-            var json = JsonUtility.ToJson(dto, true);
-            File.WriteAllText(path, json + "\n");
-            AssetDatabase.ImportAsset(path);
-            return path;
+            var temp = path + ".nexui.tmp";
+            try
+            {
+                var dto = ToDto(asset);
+                var json = JsonUtility.ToJson(dto, true) + "\n";
+                if (File.Exists(path) && File.ReadAllText(path).Replace("\r\n", "\n") == json.Replace("\r\n", "\n"))
+                    return path;
+                File.WriteAllText(temp, json, new System.Text.UTF8Encoding(false));
+                File.Copy(temp, path, true);
+                AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceUpdate);
+                return path;
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[NexUI] Failed to export companion JSON '{path}': {ex}");
+                return null;
+            }
+            finally
+            {
+                if (File.Exists(temp)) File.Delete(temp);
+            }
         }
 
         /// <summary>Applies a companion JSON file's contents onto <paramref name="asset"/> (Undo-tracked). Returns false if the file is missing or fails to parse.</summary>
@@ -74,6 +97,29 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
         {
             public string screenId;
             public List<ElementDto> elements = new();
+            public ScreenMotionDto screenMotion = new();
+        }
+
+        [Serializable]
+        private sealed class ScreenMotionDto
+        {
+            public string entryClipGuid = "";
+            public string exitClipGuid = "";
+            public string stateMachineGuid = "";
+            public string motionGraphGuid = "";
+            public List<MotionBindingDto> bindings = new();
+        }
+
+        [Serializable]
+        private sealed class MotionBindingDto
+        {
+            public string bindingId;
+            public string targetElementId;
+            public string trigger;
+            public string stateId;
+            public string commandId;
+            public string clipGuid = "";
+            public string reducedMotionClipGuid = "";
         }
 
         [Serializable]
@@ -125,6 +171,10 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
             public string motionId;
             public string initialVariant;
             public string animateVariant;
+            public string exitVariant;
+            public string hoverVariant;
+            public string pressedVariant;
+            public string focusVariant;
         }
 
         [Serializable]
@@ -147,7 +197,32 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
 
         private static MetadataFileDto ToDto(DesignerMetadataAsset asset)
         {
-            var dto = new MetadataFileDto { screenId = asset.screenId };
+            var screenMotion = asset.screenMotion ?? new DesignerScreenMotionMetadata();
+            var dto = new MetadataFileDto
+            {
+                screenId = asset.screenId,
+                screenMotion = new ScreenMotionDto
+                {
+                    entryClipGuid = AssetGuid(screenMotion.entryClip),
+                    exitClipGuid = AssetGuid(screenMotion.exitClip),
+                    stateMachineGuid = AssetGuid(screenMotion.stateMachine),
+                    motionGraphGuid = AssetGuid(screenMotion.motionGraph),
+                }
+            };
+            foreach (var binding in screenMotion.bindings)
+            {
+                if (binding == null) continue;
+                dto.screenMotion.bindings.Add(new MotionBindingDto
+                {
+                    bindingId = binding.bindingId,
+                    targetElementId = binding.targetElementId,
+                    trigger = binding.trigger.ToString(),
+                    stateId = binding.stateId,
+                    commandId = binding.commandId,
+                    clipGuid = AssetGuid(binding.clip),
+                    reducedMotionClipGuid = AssetGuid(binding.reducedMotionClip),
+                });
+            }
             foreach (var e in asset.elements)
             {
                 if (e == null) continue;
@@ -175,6 +250,8 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
                         motionPresetGuid = AssetGuid(e.motion?.motionPreset),
                         motionId = e.motion?.motionId, initialVariant = e.motion?.initialVariant,
                         animateVariant = e.motion?.animateVariant,
+                        exitVariant = e.motion?.exitVariant, hoverVariant = e.motion?.hoverVariant,
+                        pressedVariant = e.motion?.pressedVariant, focusVariant = e.motion?.focusVariant,
                     },
                     theme = new ThemeDto
                     {
@@ -195,8 +272,29 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
         private static void ApplyDto(MetadataFileDto dto, DesignerMetadataAsset asset)
         {
             asset.screenId = dto.screenId;
+            asset.screenMotion = new DesignerScreenMotionMetadata();
+            if (dto.screenMotion != null)
+            {
+                asset.screenMotion.entryClip = ResolveAsset<UIMotionClip>(dto.screenMotion.entryClipGuid);
+                asset.screenMotion.exitClip = ResolveAsset<UIMotionClip>(dto.screenMotion.exitClipGuid);
+                asset.screenMotion.stateMachine = ResolveAsset<UIMotionStateMachine>(dto.screenMotion.stateMachineGuid);
+                asset.screenMotion.motionGraph = ResolveAsset<UIMotionGraphAsset>(dto.screenMotion.motionGraphGuid);
+                foreach (var d in dto.screenMotion.bindings ?? new List<MotionBindingDto>())
+                {
+                    asset.screenMotion.bindings.Add(new DesignerMotionBinding
+                    {
+                        bindingId = d.bindingId,
+                        targetElementId = d.targetElementId,
+                        trigger = ParseEnum(d.trigger, DesignerMotionTrigger.Click),
+                        stateId = d.stateId,
+                        commandId = d.commandId,
+                        clip = ResolveAsset<UIMotionClip>(d.clipGuid),
+                        reducedMotionClip = ResolveAsset<UIMotionClip>(d.reducedMotionClipGuid),
+                    });
+                }
+            }
             asset.elements.Clear();
-            foreach (var d in dto.elements)
+            foreach (var d in dto.elements ?? new List<ElementDto>())
             {
                 var e = new DesignerElementMetadata
                 {
@@ -232,6 +330,10 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
                     e.motion.motionId = d.motion.motionId;
                     e.motion.initialVariant = d.motion.initialVariant;
                     e.motion.animateVariant = d.motion.animateVariant;
+                    e.motion.exitVariant = d.motion.exitVariant;
+                    e.motion.hoverVariant = d.motion.hoverVariant;
+                    e.motion.pressedVariant = d.motion.pressedVariant;
+                    e.motion.focusVariant = d.motion.focusVariant;
                 }
                 if (d.theme != null)
                 {

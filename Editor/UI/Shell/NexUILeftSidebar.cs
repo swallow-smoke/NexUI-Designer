@@ -36,7 +36,8 @@ namespace emiteat.NexUI.Designer.Editor.UI.Shell
                 tooltip = DesignerLocalization.T("tooltip.toolbar.metadata")
             };
             metadata.RegisterValueChangedCallback(evt => context.SetMetadata(evt.newValue as DesignerMetadataAsset));
-            context.MetadataChanged += value => metadata.SetValueWithoutNotify(value);
+            var subscriptions = new ContextBoundSubscriptions(this);
+            subscriptions.Add<DesignerMetadataAsset>(h => context.MetadataChanged += h, h => context.MetadataChanged -= h, value => metadata.SetValueWithoutNotify(value));
             metadataRow.Add(metadata);
             var create = new Button(() => context.CreateMetadataAsset()) { text = "+", tooltip = DesignerLocalization.T("tooltip.toolbar.newMetadata") };
             create.AddToClassList("nexui-square-button");
@@ -51,7 +52,7 @@ namespace emiteat.NexUI.Designer.Editor.UI.Shell
             _components = new NexUIComponentsPanel(context);
             _assets = new NexUIAssetsPanel();
 
-            context.UIStateChanged += Refresh;
+            subscriptions.Add(h => context.UIStateChanged += h, h => context.UIStateChanged -= h, Refresh);
             Refresh();
         }
 

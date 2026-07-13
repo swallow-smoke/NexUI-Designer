@@ -82,7 +82,12 @@ namespace emiteat.NexUI.Designer.Editor.Inspectors
             Add(_clockwise);
             Add(_previewImage);
 
-            _id.RegisterValueChangedCallback(evt => Change(e => e.elementId = evt.newValue, "Rename NexUI Element"));
+            _id.RegisterValueChangedCallback(evt =>
+            {
+                if (_refreshing) return;
+                Context.RenameElementId(Context.SelectedMetadata, evt.newValue);
+                Refresh();
+            });
             _displayName.RegisterValueChangedCallback(evt => Change(e => e.displayName = evt.newValue, "Rename NexUI Element Display"));
             _type.RegisterValueChangedCallback(evt => Change(e => e.elementType = evt.newValue.ToString(), "Change NexUI Element Type"));
             _text.RegisterValueChangedCallback(evt => Change(e => e.text = evt.newValue, "Edit NexUI Element Text"));
@@ -105,8 +110,8 @@ namespace emiteat.NexUI.Designer.Editor.Inspectors
             _clockwise.RegisterValueChangedCallback(evt => Change(e => e.fill.clockwise = evt.newValue, "Toggle NexUI Element Fill Clockwise"));
             _previewImage.RegisterValueChangedCallback(evt => Change(e => e.previewImage = evt.newValue as Texture2D, "Assign NexUI Element Preview Image"));
 
-            context.MetadataSelectionChanged += _ => Refresh();
-            context.CanvasChanged += Refresh;
+            Subscriptions.Add<DesignerElementMetadata>(h => context.MetadataSelectionChanged += h, h => context.MetadataSelectionChanged -= h, _ => Refresh());
+            Subscriptions.Add(h => context.CanvasChanged += h, h => context.CanvasChanged -= h, Refresh);
             Refresh();
         }
 

@@ -45,7 +45,7 @@ namespace emiteat.NexUI.Designer.Editor.Scenario
         }
 
         private static NexUIDesignerContext ResolveContext()
-            => Resources.FindObjectsOfTypeAll<NexUIDesignerWindow>().FirstOrDefault()?.Context;
+            => DesignerSessions.ActiveContext;
 
         protected override void DrawBody()
         {

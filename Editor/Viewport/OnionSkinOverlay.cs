@@ -1,5 +1,5 @@
-using System.Collections.Generic;
 using System.Linq;
+using emiteat.NexUI.Designer.Editor;
 using emiteat.NexUI.MotionClip;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -18,6 +18,7 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
         private static readonly Color GhostColor = new Color(1f, 1f, 1f, 0.35f);
 
         private readonly NexUIDesignerContext _context;
+        private readonly ContextBoundSubscriptions _subscriptions;
 
         public OnionSkinOverlay(NexUIDesignerContext context)
         {
@@ -31,10 +32,11 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
             style.bottom = 0;
             generateVisualContent += OnGenerateVisualContent;
 
-            context.ActiveMotionClipChanged += MarkDirtyRepaint;
-            context.MetadataSelectionChanged += _ => MarkDirtyRepaint();
-            context.CanvasChanged += MarkDirtyRepaint;
-            context.PreviewSettingsChanged += MarkDirtyRepaint;
+            _subscriptions = new ContextBoundSubscriptions(this);
+            _subscriptions.Add(h => context.ActiveMotionClipChanged += h, h => context.ActiveMotionClipChanged -= h, MarkDirtyRepaint);
+            _subscriptions.Add<DesignerElementMetadata>(h => context.MetadataSelectionChanged += h, h => context.MetadataSelectionChanged -= h, _ => MarkDirtyRepaint());
+            _subscriptions.Add(h => context.CanvasChanged += h, h => context.CanvasChanged -= h, MarkDirtyRepaint);
+            _subscriptions.Add(h => context.PreviewSettingsChanged += h, h => context.PreviewSettingsChanged -= h, MarkDirtyRepaint);
         }
 
         private void OnGenerateVisualContent(MeshGenerationContext ctx)
@@ -45,20 +47,20 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
             var track = _context.ActiveMotionClip.tracks?.FirstOrDefault(t => t.targetElementId == element.elementId);
             if (track?.propertyTracks == null || track.propertyTracks.Length == 0) return;
 
-            var times = new SortedSet<float>();
-            foreach (var propertyTrack in track.propertyTracks)
-            {
-                if (propertyTrack.keyframes == null) continue;
-                foreach (var keyframe in propertyTrack.keyframes) times.Add(keyframe.time);
-            }
-
             var current = _context.ActiveMotionClipTime;
             float? previous = null;
             float? next = null;
-            foreach (var time in times)
+            foreach (var propertyTrack in track.propertyTracks)
             {
-                if (time < current - 0.0001f) previous = time;
-                else if (time > current + 0.0001f && next == null) next = time;
+                if (propertyTrack.keyframes == null) continue;
+                foreach (var keyframe in propertyTrack.keyframes)
+                {
+                    var time = keyframe.time;
+                    if (time < current - 0.0001f && (!previous.HasValue || time > previous.Value))
+                        previous = time;
+                    else if (time > current + 0.0001f && (!next.HasValue || time < next.Value))
+                        next = time;
+                }
             }
 
             var painter = ctx.painter2D;

@@ -23,8 +23,8 @@ namespace emiteat.NexUI.Designer.Editor.Inspectors
             _role.RegisterValueChangedCallback(evt =>
                 Change(e => e.accessibilityRole = (AccessibilityRole)evt.newValue));
 
-            context.MetadataSelectionChanged += _ => Refresh();
-            context.CanvasChanged += Refresh;
+            Subscriptions.Add<DesignerElementMetadata>(h => context.MetadataSelectionChanged += h, h => context.MetadataSelectionChanged -= h, _ => Refresh());
+            Subscriptions.Add(h => context.CanvasChanged += h, h => context.CanvasChanged -= h, Refresh);
             Refresh();
         }
 

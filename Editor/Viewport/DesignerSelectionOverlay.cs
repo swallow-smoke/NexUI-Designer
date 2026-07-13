@@ -13,7 +13,8 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
             _context = context;
             _label = new Label();
             Add(_label);
-            context.SelectionChanged += _ => Refresh();
+            var subscriptions = new ContextBoundSubscriptions(this);
+            subscriptions.Add<emiteat.NexUI.Abstractions.IUIElementHandle>(h => context.SelectionChanged += h, h => context.SelectionChanged -= h, _ => Refresh());
             Refresh();
         }
 

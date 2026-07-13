@@ -46,7 +46,7 @@ namespace emiteat.NexUI.Designer.Editor.Accessibility
         {
             Section("accessibility.audit.title");
 
-            var context = Resources.FindObjectsOfTypeAll<NexUIDesignerWindow>().FirstOrDefault()?.Context;
+            var context = DesignerSessions.ActiveContext;
             var metadata = context?.Metadata;
             if (metadata == null)
             {

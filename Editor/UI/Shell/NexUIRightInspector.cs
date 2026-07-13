@@ -28,9 +28,11 @@ namespace emiteat.NexUI.Designer.Editor.UI.Shell
             _host.AddToClassList("nexui-inspector-host");
             Add(_host);
 
-            context.UIStateChanged += Refresh;
-            context.MultiSelectionChanged += _ => RefreshIfModeChanged();
-            DesignerEditMode.Changed += _ => Refresh();
+            var subscriptions = new ContextBoundSubscriptions(this);
+            subscriptions.Add(h => context.UIStateChanged += h, h => context.UIStateChanged -= h, Refresh);
+            subscriptions.Add<System.Collections.Generic.IReadOnlyList<DesignerElementMetadata>>(h => context.MultiSelectionChanged += h, h => context.MultiSelectionChanged -= h, _ => RefreshIfModeChanged());
+            subscriptions.Add<DesignerMode>(h => DesignerEditMode.Changed += h,
+                h => DesignerEditMode.Changed -= h, _ => Refresh());
             Refresh();
         }
 

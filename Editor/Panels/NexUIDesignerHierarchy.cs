@@ -84,9 +84,10 @@ namespace emiteat.NexUI.Designer.Editor.Panels
             _list.selectionChanged += OnSelectionChanged;
             Add(_list);
 
-            context.MetadataChanged += _ => Refresh();
-            context.CanvasChanged += Refresh;
-            context.MultiSelectionChanged += SyncListSelection;
+            var subscriptions = new ContextBoundSubscriptions(this);
+            subscriptions.Add<DesignerMetadataAsset>(h => context.MetadataChanged += h, h => context.MetadataChanged -= h, _ => Refresh());
+            subscriptions.Add(h => context.CanvasChanged += h, h => context.CanvasChanged -= h, Refresh);
+            subscriptions.Add<System.Collections.Generic.IReadOnlyList<DesignerElementMetadata>>(h => context.MultiSelectionChanged += h, h => context.MultiSelectionChanged -= h, SyncListSelection);
             Refresh();
         }
 

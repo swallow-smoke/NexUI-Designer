@@ -28,9 +28,10 @@ namespace emiteat.NexUI.Designer.Editor.FocusNav
             DesignerTooltip.Set(autoGenerateButton, "tooltip.focusNav.autoGenerate");
             Add(autoGenerateButton);
 
-            context.MetadataSelectionChanged += _ => Refresh();
-            context.MetadataChanged += _ => Refresh();
-            context.CanvasChanged += Refresh;
+            var subscriptions = new ContextBoundSubscriptions(this);
+            subscriptions.Add<DesignerElementMetadata>(h => context.MetadataSelectionChanged += h, h => context.MetadataSelectionChanged -= h, _ => Refresh());
+            subscriptions.Add<DesignerMetadataAsset>(h => context.MetadataChanged += h, h => context.MetadataChanged -= h, _ => Refresh());
+            subscriptions.Add(h => context.CanvasChanged += h, h => context.CanvasChanged -= h, Refresh);
             Refresh();
         }
 
@@ -85,17 +86,20 @@ namespace emiteat.NexUI.Designer.Editor.FocusNav
                 .ToList();
             var links = FocusNavigationAutoLayout.GenerateNearest(bounds);
 
-            foreach (var element in _context.Metadata.elements)
+            NexUIDesignerUndo.Group("Auto Generate Focus Navigation", () =>
             {
-                if (element == null || !links.TryGetValue(element.elementId, out var link)) continue;
-                _context.UpdateElement(element, e =>
+                foreach (var element in _context.Metadata.elements)
                 {
-                    e.focus.upElementId = link.UpElementId ?? string.Empty;
-                    e.focus.downElementId = link.DownElementId ?? string.Empty;
-                    e.focus.leftElementId = link.LeftElementId ?? string.Empty;
-                    e.focus.rightElementId = link.RightElementId ?? string.Empty;
-                }, "Auto Generate Focus Navigation");
-            }
+                    if (element == null || !links.TryGetValue(element.elementId, out var link)) continue;
+                    _context.UpdateElement(element, e =>
+                    {
+                        e.focus.upElementId = link.UpElementId ?? string.Empty;
+                        e.focus.downElementId = link.DownElementId ?? string.Empty;
+                        e.focus.leftElementId = link.LeftElementId ?? string.Empty;
+                        e.focus.rightElementId = link.RightElementId ?? string.Empty;
+                    }, "Auto Generate Focus Navigation");
+                }
+            });
 
             Refresh();
         }

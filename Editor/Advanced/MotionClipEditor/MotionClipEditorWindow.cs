@@ -97,6 +97,7 @@ namespace emiteat.NexUI.Designer.Editor.MotionClipEditor
             var root = rootVisualElement;
             root.Clear();
             root.AddToClassList("nexui-designer-root");
+            root.AddToClassList("nexui-tool-window-root");
             var styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>(
                 "Packages/com.emiteat.nexui.designer/Editor/Styles/NexUIDesigner.uss");
             if (styleSheet != null && !root.styleSheets.Contains(styleSheet))
@@ -131,7 +132,7 @@ namespace emiteat.NexUI.Designer.Editor.MotionClipEditor
         private VisualElement BuildToolbar()
         {
             var toolbar = new Toolbar();
-            toolbar.AddToClassList("nexui-toolbar");
+            toolbar.AddToClassList("nexui-tool-window-toolbar");
 
             var clipField = new ObjectField(DesignerLocalization.T("motionClip.toolbar.clip"))
             { objectType = typeof(UIMotionClip), allowSceneObjects = false, value = _clip };
@@ -305,6 +306,7 @@ namespace emiteat.NexUI.Designer.Editor.MotionClipEditor
         {
             var row = new VisualElement { name = "TimeRow" };
             row.AddToClassList("nexui-toolbar-row");
+            row.AddToClassList("nexui-tool-window-time-row");
 
             _scrubber = new Slider(DesignerLocalization.T("motionClip.toolbar.time"), 0f, _clip != null ? _clip.duration : 1f) { value = _previewTime };
             _scrubber.style.flexGrow = 1;
@@ -412,11 +414,11 @@ namespace emiteat.NexUI.Designer.Editor.MotionClipEditor
             var elementId = _targetElementId;
             if (string.IsNullOrEmpty(elementId))
             {
-                var designer = Resources.FindObjectsOfTypeAll<NexUIDesignerWindow>().FirstOrDefault();
-                if (designer != null && designer.Context?.SelectedMetadata != null)
+                var context = DesignerSessions.ActiveContext;
+                if (context?.SelectedMetadata != null)
                 {
-                    elementId = designer.Context.SelectedMetadata.elementId;
-                    _previewSurface = designer.Context.PreviewSurface;
+                    elementId = context.SelectedMetadata.elementId;
+                    _previewSurface = context.PreviewSurface;
                 }
             }
 
@@ -539,7 +541,9 @@ namespace emiteat.NexUI.Designer.Editor.MotionClipEditor
 
             var titleRow = new VisualElement();
             titleRow.AddToClassList("nexui-inline-row");
-            titleRow.Add(new Label($"{propertyTrack.propertyType} ({keyCount})") { name = "PanelTitle" });
+            var trackTitle = new Label($"{propertyTrack.propertyType} ({keyCount})") { name = "PanelTitle" };
+            trackTitle.style.flexGrow = 1f;
+            titleRow.Add(trackTitle);
 
             var lockButton = new Button(() =>
             {
@@ -723,8 +727,7 @@ namespace emiteat.NexUI.Designer.Editor.MotionClipEditor
 
         private NexUIDesignerContext ResolveDesignerContext()
         {
-            var designer = Resources.FindObjectsOfTypeAll<NexUIDesignerWindow>().FirstOrDefault();
-            return designer?.Context;
+            return DesignerSessions.ActiveContext;
         }
 
         private void EvaluatePreview()

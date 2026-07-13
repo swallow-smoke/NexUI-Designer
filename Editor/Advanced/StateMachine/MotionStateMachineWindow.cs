@@ -54,6 +54,7 @@ namespace emiteat.NexUI.Designer.Editor.StateMachine
             var root = rootVisualElement;
             root.Clear();
             root.AddToClassList("nexui-designer-root");
+            root.AddToClassList("nexui-tool-window-root");
             var styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>(
                 "Packages/com.emiteat.nexui.designer/Editor/Styles/NexUIDesigner.uss");
             if (styleSheet != null && !root.styleSheets.Contains(styleSheet))
@@ -79,7 +80,7 @@ namespace emiteat.NexUI.Designer.Editor.StateMachine
         private VisualElement BuildToolbar()
         {
             var toolbar = new Toolbar();
-            toolbar.AddToClassList("nexui-toolbar");
+            toolbar.AddToClassList("nexui-tool-window-toolbar");
 
             var machineField = new ObjectField(DesignerLocalization.T("stateMachine.toolbar.asset"))
             { objectType = typeof(UIMotionStateMachine), allowSceneObjects = false, value = _machine };
@@ -293,8 +294,7 @@ namespace emiteat.NexUI.Designer.Editor.StateMachine
 
         private IUISurface ResolvePreviewSurface()
         {
-            var designer = Resources.FindObjectsOfTypeAll<NexUIDesignerWindow>().FirstOrDefault();
-            return designer?.Context?.PreviewSurface;
+            return DesignerSessions.ActiveContext?.PreviewSurface;
         }
 
         private static Button MakeButton(System.Action action, string text, string className)

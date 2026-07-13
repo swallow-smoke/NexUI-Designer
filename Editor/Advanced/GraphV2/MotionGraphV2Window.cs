@@ -63,6 +63,7 @@ namespace emiteat.NexUI.Designer.Editor.GraphV2
             var root = rootVisualElement;
             root.Clear();
             root.AddToClassList("nexui-designer-root");
+            root.AddToClassList("nexui-tool-window-root");
             var styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>(
                 "Packages/com.emiteat.nexui.designer/Editor/Styles/NexUIDesigner.uss");
             if (styleSheet != null && !root.styleSheets.Contains(styleSheet))
@@ -82,7 +83,7 @@ namespace emiteat.NexUI.Designer.Editor.GraphV2
             }
 
             _graphView = new MotionGraphV2View();
-            _graphView.style.flexGrow = 1f;
+            _graphView.AddToClassList("nexui-graph-surface");
             _graphView.GraphEdited += RefreshStatusRow;
             root.Add(_graphView);
             _graphView.Populate(_asset);
@@ -91,7 +92,7 @@ namespace emiteat.NexUI.Designer.Editor.GraphV2
         private VisualElement BuildToolbar()
         {
             var toolbar = new Toolbar();
-            toolbar.AddToClassList("nexui-toolbar");
+            toolbar.AddToClassList("nexui-tool-window-toolbar");
 
             var assetField = new ObjectField(DesignerLocalization.T("graphV2.toolbar.asset"))
             { objectType = typeof(UIMotionGraphAsset), allowSceneObjects = false, value = _asset };
@@ -179,8 +180,7 @@ namespace emiteat.NexUI.Designer.Editor.GraphV2
 
         private NexUIDesignerContext ResolveDesignerContext()
         {
-            var designer = Resources.FindObjectsOfTypeAll<NexUIDesignerWindow>().FirstOrDefault();
-            return designer?.Context;
+            return DesignerSessions.ActiveContext;
         }
 
         private static Button MakeButton(System.Action action, string text, string className)

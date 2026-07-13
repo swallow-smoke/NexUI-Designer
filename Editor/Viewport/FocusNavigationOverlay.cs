@@ -1,3 +1,4 @@
+using emiteat.NexUI.Designer.Editor;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -15,6 +16,7 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
         private static readonly Color DefaultFocusColor = new Color(0.98f, 0.75f, 0.18f, 1f);
 
         private readonly NexUIDesignerContext _context;
+        private readonly ContextBoundSubscriptions _subscriptions;
 
         public FocusNavigationOverlay(NexUIDesignerContext context)
         {
@@ -28,9 +30,10 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
             style.bottom = 0;
             generateVisualContent += OnGenerateVisualContent;
 
-            context.MetadataChanged += _ => MarkDirtyRepaint();
-            context.CanvasChanged += MarkDirtyRepaint;
-            context.PreviewSettingsChanged += MarkDirtyRepaint;
+            _subscriptions = new ContextBoundSubscriptions(this);
+            _subscriptions.Add<DesignerMetadataAsset>(h => context.MetadataChanged += h, h => context.MetadataChanged -= h, _ => MarkDirtyRepaint());
+            _subscriptions.Add(h => context.CanvasChanged += h, h => context.CanvasChanged -= h, MarkDirtyRepaint);
+            _subscriptions.Add(h => context.PreviewSettingsChanged += h, h => context.PreviewSettingsChanged -= h, MarkDirtyRepaint);
         }
 
         private void OnGenerateVisualContent(MeshGenerationContext ctx)

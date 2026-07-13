@@ -22,7 +22,7 @@ namespace emiteat.NexUI.Designer.Editor.ScreenFlow
 
         public ScreenFlowView()
         {
-            style.flexGrow = 1f;
+            AddToClassList("nexui-graph-surface");
 
             SetupZoom(ContentZoomer.DefaultMinScale, ContentZoomer.DefaultMaxScale);
             this.AddManipulator(new ContentDragger());

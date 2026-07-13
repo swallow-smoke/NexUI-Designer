@@ -6,8 +6,11 @@ namespace emiteat.NexUI.Designer.Editor.Panels
 {
     public sealed class NexUIDesignerInspector : ScrollView
     {
+        private readonly ContextBoundSubscriptions _subscriptions;
+
         public NexUIDesignerInspector(NexUIDesignerContext context)
         {
+            _subscriptions = new ContextBoundSubscriptions(this);
             AddToClassList("nexui-inspector");
             Add(new Label(DesignerLocalization.T("panel.inspector")) { name = "PanelTitle" });
 
@@ -35,7 +38,8 @@ namespace emiteat.NexUI.Designer.Editor.Panels
             Add(section);
             void Refresh() => section.style.display = DesignerEditMode.IsAdvanced ? DisplayStyle.Flex : DisplayStyle.None;
             Refresh();
-            DesignerEditMode.Changed += _ => Refresh();
+            _subscriptions.Add<DesignerMode>(h => DesignerEditMode.Changed += h,
+                h => DesignerEditMode.Changed -= h, _ => Refresh());
         }
     }
 }

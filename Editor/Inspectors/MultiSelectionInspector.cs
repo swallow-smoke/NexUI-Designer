@@ -31,7 +31,7 @@ namespace emiteat.NexUI.Designer.Editor.Inspectors
             _layer = new Label { tooltip = DesignerLocalization.T("tooltip.multiSelection.layer") };
             Add(_layer);
 
-            context.MultiSelectionChanged += _ => Refresh();
+            Subscriptions.Add<System.Collections.Generic.IReadOnlyList<DesignerElementMetadata>>(h => context.MultiSelectionChanged += h, h => context.MultiSelectionChanged -= h, _ => Refresh());
             Refresh();
         }
 

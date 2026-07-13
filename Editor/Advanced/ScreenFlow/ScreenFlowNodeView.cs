@@ -25,6 +25,7 @@ namespace emiteat.NexUI.Designer.Editor.ScreenFlow
         {
             _view = view;
             Model = model;
+            AddToClassList("nexui-graph-node");
             RefreshTitle();
 
             FlowInput = InstantiatePort(Orientation.Horizontal, Direction.Input, Port.Capacity.Multi, typeof(ScreenFlowSignal));

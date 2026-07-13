@@ -36,8 +36,11 @@ namespace emiteat.NexUI.Designer.Editor.MotionClipEditor
 
             name = "MasterRuler";
             style.height = Height;
+            style.minHeight = Height;
+            style.flexShrink = 0f;
             style.position = Position.Relative;
             AddToClassList("nexui-list");
+            AddToClassList("nexui-master-ruler");
 
             _workAreaBand = new VisualElement { name = "WorkAreaBand" };
             _workAreaBand.AddToClassList("nexui-timeline-workarea");

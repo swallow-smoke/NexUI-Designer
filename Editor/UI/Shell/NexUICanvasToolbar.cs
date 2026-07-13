@@ -72,8 +72,9 @@ namespace emiteat.NexUI.Designer.Editor.UI.Shell
             Add(MakeButton(fitCanvas, "Fit", "Fit canvas to the available viewport."));
             Add(MakeButton(context.RebuildPreview, "Rebuild", DesignerLocalization.T("tooltip.toolbar.rebuild")));
 
-            context.CanvasChanged += Refresh;
-            context.UIStateChanged += RefreshTools;
+            var subscriptions = new ContextBoundSubscriptions(this);
+            subscriptions.Add(h => context.CanvasChanged += h, h => context.CanvasChanged -= h, Refresh);
+            subscriptions.Add(h => context.UIStateChanged += h, h => context.UIStateChanged -= h, RefreshTools);
             Refresh();
             RefreshTools();
         }

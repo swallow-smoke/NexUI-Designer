@@ -40,8 +40,8 @@ namespace emiteat.NexUI.Designer.Editor.Inspectors
             _commandKey.RegisterValueChangedCallback(evt => Change(e => e.binding.commandKey = evt.newValue));
             _interactableKey.RegisterValueChangedCallback(evt => Change(e => e.binding.interactableKey = evt.newValue));
 
-            context.MetadataSelectionChanged += _ => Refresh();
-            context.CanvasChanged += Refresh;
+            Subscriptions.Add<DesignerElementMetadata>(h => context.MetadataSelectionChanged += h, h => context.MetadataSelectionChanged -= h, _ => Refresh());
+            Subscriptions.Add(h => context.CanvasChanged += h, h => context.CanvasChanged -= h, Refresh);
             Refresh();
         }
 
@@ -124,7 +124,8 @@ namespace emiteat.NexUI.Designer.Editor.Inspectors
             Add(field);
             void Refresh() => field.style.display = DesignerEditMode.IsAdvanced ? DisplayStyle.Flex : DisplayStyle.None;
             Refresh();
-            DesignerEditMode.Changed += _ => Refresh();
+            Subscriptions.Add<DesignerMode>(h => DesignerEditMode.Changed += h,
+                h => DesignerEditMode.Changed -= h, _ => Refresh());
         }
 
         private void Change(System.Action<DesignerElementMetadata> change)

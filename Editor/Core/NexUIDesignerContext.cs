@@ -11,6 +11,7 @@ using emiteat.NexUI.State;
 using emiteat.NexUI.Theme;
 using UnityEditor;
 using UnityEngine;
+using Unity.Profiling;
 
 namespace emiteat.NexUI.Designer.Editor
 {
@@ -22,9 +23,20 @@ namespace emiteat.NexUI.Designer.Editor
         private readonly List<DesignerElementMetadata> _clipboard = new List<DesignerElementMetadata>();
         private readonly List<string> _recentActions = new List<string>();
         private const string PrefPrefix = "NexUI.Designer.UI.";
+        private const string LastScreenGuidKey = PrefPrefix + "LastScreenGuid";
+        private const string LastMetadataGuidKey = PrefPrefix + "LastMetadataGuid";
         private int _elementCounter = 1;
         private int _groupCounter = 1;
         private const int MaxRecentActions = 50;
+        private static readonly ProfilerMarker CanvasRebuildMarker = new ProfilerMarker("NexUI.Designer.Canvas.Rebuild");
+        private static readonly ProfilerMarker ValidationMarker = new ProfilerMarker("NexUI.Designer.Validation");
+        private static readonly ProfilerMarker PublishMarker = new ProfilerMarker("NexUI.Designer.Publish");
+        private bool _disposed;
+        private bool _hasUnsavedChanges;
+
+        public bool IsDisposed => _disposed;
+        public bool HasUnsavedChanges => _hasUnsavedChanges || (Metadata != null && EditorUtility.IsDirty(Metadata)) || (CurrentScreen != null && EditorUtility.IsDirty(CurrentScreen));
+        public event Action<bool> DirtyStateChanged;
 
         /// <summary>
         /// C2: read-only log of the last <see cref="MaxRecentActions"/> undo-recorded edit
@@ -124,29 +136,57 @@ namespace emiteat.NexUI.Designer.Editor
             BottomDrawerOpen = EditorPrefs.GetBool(PrefPrefix + "BottomOpen", false);
             BottomDrawerHeight = EditorPrefs.GetFloat(PrefPrefix + "BottomHeight", 220f);
             DesignerBackendRegistry.RegisterDefaults();
+            Undo.undoRedoPerformed += OnUndoRedoPerformed;
         }
 
-        public void Open(UIScreenDefinition definition)
+        public void Open(UIScreenDefinition definition) => TryOpen(definition);
+
+        public bool TryOpen(UIScreenDefinition definition)
         {
+            if (definition != CurrentScreen && HasUnsavedChanges && !Application.isBatchMode)
+            {
+                var choice = EditorUtility.DisplayDialogComplex("NexUI Designer",
+                    "There are unsaved Designer changes. Save before switching screens?", "Save", "Cancel", "Discard");
+                if (choice == 1) return false;
+                if (choice == 0 && Save().HasErrors) return false;
+                if (choice == 2) SetDirtyState(false);
+            }
             CurrentScreen = definition;
+            StoreAssetGuid(LastScreenGuidKey, definition);
             Backend = definition != null ? definition.backendAsset.backend : UIRenderBackend.UIToolkit;
             ScreenChanged?.Invoke(definition);
             RebuildPreview();
+            return true;
         }
 
         public void SetMetadata(DesignerMetadataAsset metadata)
         {
             Metadata = metadata;
+            StoreAssetGuid(LastMetadataGuidKey, metadata);
             if (Metadata != null && CurrentScreen != null && string.IsNullOrEmpty(Metadata.screenId))
                 Metadata.screenId = CurrentScreen.ScreenId;
             // Bring pre-hierarchy assets up to the current schema (assigns sibling indices from the
             // existing draw order - visually invisible) and repair any dangling/cyclic parentIds.
             if (Metadata != null)
+            {
+                if (Metadata.screenMotion == null)
+                    Metadata.screenMotion = new DesignerScreenMotionMetadata();
                 DesignerHierarchyMigration.Migrate(Metadata);
+            }
             ClearSelection();
             MetadataChanged?.Invoke(metadata);
             CanvasChanged?.Invoke();
             Validate();
+            RestoreSelection();
+        }
+
+        public void RestoreLastSession()
+        {
+            if (_disposed || CurrentScreen != null || Application.isBatchMode) return;
+            var screen = LoadAssetGuid<UIScreenDefinition>(LastScreenGuidKey);
+            var metadata = LoadAssetGuid<DesignerMetadataAsset>(LastMetadataGuidKey);
+            if (screen != null) Open(screen);
+            if (metadata != null) SetMetadata(metadata);
         }
 
         public DesignerMetadataAsset CreateMetadataAsset()
@@ -297,10 +337,13 @@ namespace emiteat.NexUI.Designer.Editor
             SelectionChanged?.Invoke(SelectedElement);
             MetadataSelectionChanged?.Invoke(primary);
             MultiSelectionChanged?.Invoke(_selection);
+            if (CurrentScreen != null)
+                EditorPrefs.SetString(PrefPrefix + "Selection." + CurrentScreen.ScreenId, primary?.elementId ?? string.Empty);
         }
 
         public void RebuildPreview()
         {
+            using var markerScope = CanvasRebuildMarker.Auto();
             if (PreviewSurface != null && CurrentBackend != null)
                 CurrentBackend.DestroyPreviewSurface(PreviewSurface);
 
@@ -325,6 +368,7 @@ namespace emiteat.NexUI.Designer.Editor
         /// </summary>
         public DesignerSaveReport Save()
         {
+            using var markerScope = PublishMarker.Auto();
             var report = new DesignerSaveReport();
 
             if (CurrentScreen == null)
@@ -335,6 +379,7 @@ namespace emiteat.NexUI.Designer.Editor
                 return report;
             }
 
+            SynchronizeScreenMotionReferences();
             var serializer = DesignerSerializerRegistry.Get(CurrentScreen.backendAsset.backend);
             report.Merge(serializer.Save(CurrentScreen, Metadata));
 
@@ -356,12 +401,14 @@ namespace emiteat.NexUI.Designer.Editor
 
             LastSaveReport = report;
             SaveCompleted?.Invoke(report);
+            if (!report.HasErrors) SetDirtyState(false);
             Validate();
             return report;
         }
 
         public void Validate()
         {
+            using var markerScope = ValidationMarker.Auto();
             _validationIssues.Clear();
             _validationIssues.AddRange(DesignerValidationService.Validate(CurrentScreen, Metadata));
 
@@ -1026,6 +1073,7 @@ namespace emiteat.NexUI.Designer.Editor
             Undo.RecordObject(CurrentScreen, undoName);
             change(CurrentScreen);
             EditorUtility.SetDirty(CurrentScreen);
+            SetDirtyState(true);
             LogAction(undoName);
             CanvasChanged?.Invoke();
             Validate();
@@ -1052,8 +1100,39 @@ namespace emiteat.NexUI.Designer.Editor
         {
             if (Metadata != null)
                 EditorUtility.SetDirty(Metadata);
+            SetDirtyState(true);
             CanvasChanged?.Invoke();
             Validate();
+        }
+
+        private void SetDirtyState(bool dirty)
+        {
+            if (_hasUnsavedChanges == dirty) return;
+            _hasUnsavedChanges = dirty;
+            DirtyStateChanged?.Invoke(dirty);
+        }
+
+        private static void StoreAssetGuid(string key, UnityEngine.Object asset)
+        {
+            if (asset == null) return;
+            var path = AssetDatabase.GetAssetPath(asset);
+            if (!string.IsNullOrEmpty(path)) EditorPrefs.SetString(key, AssetDatabase.AssetPathToGUID(path));
+        }
+
+        private static T LoadAssetGuid<T>(string key) where T : UnityEngine.Object
+        {
+            var guid = EditorPrefs.GetString(key, string.Empty);
+            if (string.IsNullOrEmpty(guid)) return null;
+            var path = AssetDatabase.GUIDToAssetPath(guid);
+            return string.IsNullOrEmpty(path) ? null : AssetDatabase.LoadAssetAtPath<T>(path);
+        }
+
+        private void RestoreSelection()
+        {
+            if (Metadata == null || CurrentScreen == null) return;
+            var id = EditorPrefs.GetString(PrefPrefix + "Selection." + CurrentScreen.ScreenId, string.Empty);
+            var element = string.IsNullOrEmpty(id) ? null : Metadata.Find(id);
+            if (element != null) SelectMetadata(element);
         }
 
         private string NextElementId(DesignerElementType type)
@@ -1096,8 +1175,21 @@ namespace emiteat.NexUI.Designer.Editor
 
         public void Dispose()
         {
+            if (_disposed) return;
+            _disposed = true;
+            Undo.undoRedoPerformed -= OnUndoRedoPerformed;
             if (PreviewSurface != null && CurrentBackend != null)
                 CurrentBackend.DestroyPreviewSurface(PreviewSurface);
+        }
+
+        private void OnUndoRedoPerformed()
+        {
+            if (_disposed) return;
+            EnsureScreenMotion();
+            ApplyMetadataToPreview();
+            RaiseSelectionChanged();
+            CanvasChanged?.Invoke();
+            Validate();
         }
     }
 }

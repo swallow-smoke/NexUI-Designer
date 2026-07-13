@@ -34,6 +34,7 @@ namespace emiteat.NexUI.Designer.Editor.GraphV2
             Model = model;
             _descriptor = MotionGraphNodeRegistry.Get(model.nodeType);
             title = $"{_descriptor.DisplayName} ({model.id})";
+            AddToClassList("nexui-graph-node");
 
             if (_descriptor.HasFlowInput)
             {

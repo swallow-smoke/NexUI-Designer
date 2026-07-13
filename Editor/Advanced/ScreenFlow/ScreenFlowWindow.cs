@@ -56,6 +56,7 @@ namespace emiteat.NexUI.Designer.Editor.ScreenFlow
             var root = rootVisualElement;
             root.Clear();
             root.AddToClassList("nexui-designer-root");
+            root.AddToClassList("nexui-tool-window-root");
             var styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>(
                 "Packages/com.emiteat.nexui.designer/Editor/Styles/NexUIDesigner.uss");
             if (styleSheet != null && !root.styleSheets.Contains(styleSheet))
@@ -71,6 +72,7 @@ namespace emiteat.NexUI.Designer.Editor.ScreenFlow
             root.Add(_validationRow);
 
             _graphView = new ScreenFlowView();
+            _graphView.AddToClassList("nexui-graph-surface");
             _graphView.GraphEdited += RefreshStatus;
             _graphView.Populate(_asset);
             root.Add(_graphView);
@@ -81,7 +83,7 @@ namespace emiteat.NexUI.Designer.Editor.ScreenFlow
         private VisualElement BuildToolbar()
         {
             var toolbar = new Toolbar();
-            toolbar.AddToClassList("nexui-toolbar");
+            toolbar.AddToClassList("nexui-tool-window-toolbar");
 
             var assetField = new ObjectField(DesignerLocalization.T("screenFlow.toolbar.asset"))
             { objectType = typeof(DesignerScreenFlowAsset), allowSceneObjects = false, value = _asset };

@@ -30,7 +30,8 @@ namespace emiteat.NexUI.Designer.Editor.Panels
             _list.bindItem = (e, i) => ((Label)e).text = _items[i];
             Add(_list);
 
-            context.RecentActionsChanged += Refresh;
+            var subscriptions = new ContextBoundSubscriptions(this);
+            subscriptions.Add(h => context.RecentActionsChanged += h, h => context.RecentActionsChanged -= h, Refresh);
             Refresh();
         }
 

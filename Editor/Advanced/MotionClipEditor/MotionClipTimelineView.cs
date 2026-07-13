@@ -8,6 +8,7 @@ using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
+using Unity.Profiling;
 
 namespace emiteat.NexUI.Designer.Editor.MotionClipEditor
 {
@@ -19,6 +20,7 @@ namespace emiteat.NexUI.Designer.Editor.MotionClipEditor
     /// </summary>
     public sealed class MotionClipTimelineView : VisualElement
     {
+        private static readonly ProfilerMarker RebuildMarker = new ProfilerMarker("NexUI.Designer.Timeline.Rebuild");
         private const float RulerHeight = 32f;
 
         private readonly UIMotionClipPropertyTrack _track;
@@ -41,10 +43,13 @@ namespace emiteat.NexUI.Designer.Editor.MotionClipEditor
             _locked = locked;
 
             focusable = true;
+            AddToClassList("nexui-timeline");
             RegisterCallback<KeyDownEvent>(OnKeyDown);
 
             _ruler = new VisualElement { name = "Ruler" };
             _ruler.style.height = RulerHeight;
+            _ruler.style.minHeight = RulerHeight;
+            _ruler.style.flexShrink = 0f;
             _ruler.style.position = Position.Relative;
             _ruler.AddToClassList("nexui-list");
             Add(_ruler);
@@ -66,6 +71,7 @@ namespace emiteat.NexUI.Designer.Editor.MotionClipEditor
 
         private void Rebuild()
         {
+            using var markerScope = RebuildMarker.Auto();
             _ruler.Clear();
             _rows.Clear();
 
@@ -86,7 +92,7 @@ namespace emiteat.NexUI.Designer.Editor.MotionClipEditor
             {
                 var index = i;
                 var dot = new VisualElement();
-                dot.AddToClassList("nexui-resize-handle");
+                dot.AddToClassList("nexui-timeline-keyframe");
                 if (_selected.Contains(index)) dot.AddToClassList("nexui-timeline-keyframe-selected");
                 dot.style.position = Position.Absolute;
                 dot.style.top = 8f;
@@ -177,7 +183,7 @@ namespace emiteat.NexUI.Designer.Editor.MotionClipEditor
 
         private void RefreshDotPositions(float duration)
         {
-            var dots = _ruler.Children().Where(c => c.ClassListContains("nexui-resize-handle")).ToList();
+            var dots = _ruler.Children().Where(c => c.ClassListContains("nexui-timeline-keyframe")).ToList();
             for (var i = 0; i < dots.Count && i < _track.keyframes.Length; i++)
                 dots[i].style.left = Length.Percent(Mathf.Clamp01(_track.keyframes[i].time / duration) * 100f);
         }
@@ -219,7 +225,7 @@ namespace emiteat.NexUI.Designer.Editor.MotionClipEditor
 
         private void RefreshSelectionHighlight()
         {
-            var dots = _ruler.Children().Where(c => c.ClassListContains("nexui-resize-handle")).ToList();
+            var dots = _ruler.Children().Where(c => c.ClassListContains("nexui-timeline-keyframe")).ToList();
             for (var i = 0; i < dots.Count; i++)
             {
                 if (_selected.Contains(i)) dots[i].AddToClassList("nexui-timeline-keyframe-selected");
@@ -249,6 +255,7 @@ namespace emiteat.NexUI.Designer.Editor.MotionClipEditor
         {
             var row = new VisualElement();
             row.AddToClassList("nexui-inline-row");
+            row.AddToClassList("nexui-keyframe-row");
             if (_selected.Contains(index)) row.AddToClassList("nexui-timeline-row-selected");
 
             var timeField = new FloatField("Time") { value = keyframe.time };
@@ -284,6 +291,7 @@ namespace emiteat.NexUI.Designer.Editor.MotionClipEditor
         {
             var row = new VisualElement();
             row.AddToClassList("nexui-inline-row");
+            row.AddToClassList("nexui-keyframe-easing");
             row.style.alignItems = Align.Center;
 
             var preview = new EasingCurvePreview(keyframe.easing);
@@ -358,7 +366,7 @@ namespace emiteat.NexUI.Designer.Editor.MotionClipEditor
                 case UIMotionClipPropertyType.CanvasGroupAlpha:
                 {
                     var field = new FloatField("Value") { value = keyframe.value.floatValue };
-                    field.style.width = 120f;
+                    field.style.width = 140f;
                     field.RegisterValueChangedCallback(evt =>
                     {
                         var current = _track.keyframes[index];
@@ -371,7 +379,7 @@ namespace emiteat.NexUI.Designer.Editor.MotionClipEditor
                 case UIMotionClipPropertyType.LocalScale:
                 {
                     var field = new Vector3Field("Value") { value = keyframe.value.vector3Value };
-                    field.style.width = 220f;
+                    field.style.width = 300f;
                     field.RegisterValueChangedCallback(evt =>
                     {
                         var current = _track.keyframes[index];
@@ -384,7 +392,7 @@ namespace emiteat.NexUI.Designer.Editor.MotionClipEditor
                 default:
                 {
                     var field = new Vector2Field("Value") { value = keyframe.value.vector2Value };
-                    field.style.width = 180f;
+                    field.style.width = 230f;
                     field.RegisterValueChangedCallback(evt =>
                     {
                         var current = _track.keyframes[index];

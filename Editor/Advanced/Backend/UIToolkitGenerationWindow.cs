@@ -16,11 +16,11 @@ namespace emiteat.NexUI.Designer.Editor.Backend
     /// </summary>
     public sealed class UIToolkitGenerationWindow : NexUIToolWindow
     {
-        private const string GeneratedMarker = "NEXUI:GENERATED";
-
         private string _uxml;
         private string _uss;
         private bool _generated;
+        private bool _dryRun;
+        private GeneratedAssetWriteResult _lastWrite;
         private Vector2 _uxmlScroll;
         private Vector2 _ussScroll;
 
@@ -35,7 +35,7 @@ namespace emiteat.NexUI.Designer.Editor.Backend
         }
 
         private static NexUIDesignerContext ResolveContext()
-            => Resources.FindObjectsOfTypeAll<NexUIDesignerWindow>().FirstOrDefault()?.Context;
+            => DesignerSessions.ActiveContext;
 
         protected override void DrawBody()
         {
@@ -69,6 +69,8 @@ namespace emiteat.NexUI.Designer.Editor.Backend
                 }
             }
 
+            _dryRun = EditorGUILayout.ToggleLeft(T("uxmlGen.button.dryRun"), _dryRun);
+
             EditorGUILayout.HelpBox(T("uxmlGen.help.safety"), MessageType.Info);
 
             if (!_generated) return;
@@ -76,6 +78,19 @@ namespace emiteat.NexUI.Designer.Editor.Backend
             var (uxmlPath, ussPath) = TargetPaths(metadata);
             EditorGUILayout.LabelField(T("uxmlGen.field.uxmlPath"), uxmlPath, EditorStyles.miniLabel);
             EditorGUILayout.LabelField(T("uxmlGen.field.ussPath"), ussPath, EditorStyles.miniLabel);
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                if (GUILayout.Button(T("uxmlGen.button.copyUxml"))) EditorGUIUtility.systemCopyBuffer = _uxml;
+                if (GUILayout.Button(T("uxmlGen.button.copyUss"))) EditorGUIUtility.systemCopyBuffer = _uss;
+                if (GUILayout.Button(T("uxmlGen.button.openFolder"))) EditorUtility.RevealInFinder(Path.GetDirectoryName(uxmlPath));
+                using (new EditorGUI.DisabledScope(!File.Exists(uxmlPath)))
+                    if (GUILayout.Button(T("uxmlGen.button.ping"))) EditorGUIUtility.PingObject(AssetDatabase.LoadAssetAtPath<Object>(uxmlPath));
+            }
+            if (_lastWrite != null)
+                EditorGUILayout.HelpBox(_lastWrite.Success
+                    ? T(_lastWrite.DryRun ? "uxmlGen.result.dryRun" : "uxmlGen.result.write",
+                        _lastWrite.ChangedPaths.Count, _lastWrite.UnchangedPaths.Count)
+                    : string.Join("\n", _lastWrite.Errors), _lastWrite.Success ? MessageType.Info : MessageType.Error);
 
             Section("uxmlGen.section.uxml");
             _uxmlScroll = EditorGUILayout.BeginScrollView(_uxmlScroll, GUILayout.MaxHeight(180f));
@@ -102,32 +117,27 @@ namespace emiteat.NexUI.Designer.Editor.Backend
         private void WriteFiles(DesignerMetadataAsset metadata)
         {
             var (uxmlPath, ussPath) = TargetPaths(metadata);
-            if (!CanWrite(uxmlPath) || !CanWrite(ussPath))
+            _lastWrite = new GeneratedAssetWriter().Write(new[]
             {
-                EditorUtility.DisplayDialog(T("uxmlGen.window.title"), T("uxmlGen.dialog.refuseOverwrite"), "OK");
+                new GeneratedAssetFile(uxmlPath, _uxml),
+                new GeneratedAssetFile(ussPath, _uss)
+            }, _dryRun);
+            if (!_lastWrite.Success)
+            {
+                EditorUtility.DisplayDialog(T("uxmlGen.window.title"), string.Join("\n", _lastWrite.Errors), "OK");
                 return;
             }
 
-            File.WriteAllText(uxmlPath, _uxml);
-            File.WriteAllText(ussPath, _uss);
-            AssetDatabase.ImportAsset(uxmlPath);
-            AssetDatabase.ImportAsset(ussPath);
-            AssetDatabase.Refresh();
-
-            var written = AssetDatabase.LoadAssetAtPath<Object>(uxmlPath);
-            if (written != null) EditorGUIUtility.PingObject(written);
-            Debug.Log($"[NexUI] Generated {uxmlPath} + {ussPath}");
+            if (!_dryRun && _lastWrite.ChangedPaths.Count > 0)
+            {
+                var written = AssetDatabase.LoadAssetAtPath<Object>(uxmlPath);
+                if (written != null) EditorGUIUtility.PingObject(written);
+                Debug.Log($"[NexUI] Generated {uxmlPath} + {ussPath}");
+            }
         }
 
         /// <summary>Only write to a path that is empty or already a NexUI-generated file — never over a
         /// user's own UXML/USS.</summary>
-        private static bool CanWrite(string path)
-        {
-            if (!File.Exists(path)) return true;
-            var existing = File.ReadAllText(path);
-            return existing.Contains(GeneratedMarker);
-        }
-
         private static string Sanitize(string name)
         {
             if (string.IsNullOrEmpty(name)) return "Screen";

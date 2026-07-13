@@ -59,8 +59,8 @@ namespace emiteat.NexUI.Designer.Editor.Inspectors
             _lifetimePolicy.RegisterValueChangedCallback(evt =>
                 ChangePolicy((ref UIScreenPolicyConfig p) => p.lifetimePolicy = (UILifetimePolicy)evt.newValue, "Edit NexUI Screen Lifetime Policy"));
 
-            context.ScreenChanged += _ => Refresh();
-            context.CanvasChanged += Refresh;
+            Subscriptions.Add<emiteat.NexUI.Core.UIScreenDefinition>(h => context.ScreenChanged += h, h => context.ScreenChanged -= h, _ => Refresh());
+            Subscriptions.Add(h => context.CanvasChanged += h, h => context.CanvasChanged -= h, Refresh);
             Refresh();
         }
 

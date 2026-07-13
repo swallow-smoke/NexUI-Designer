@@ -59,8 +59,8 @@ namespace emiteat.NexUI.Designer.Editor.Inspectors
         {
             _host = new VisualElement();
             Add(_host);
-            context.MultiSelectionChanged += _ => Rebuild();
-            context.PreviewSettingsChanged += Rebuild;
+            Subscriptions.Add<System.Collections.Generic.IReadOnlyList<DesignerElementMetadata>>(h => context.MultiSelectionChanged += h, h => context.MultiSelectionChanged -= h, _ => Rebuild());
+            Subscriptions.Add(h => context.PreviewSettingsChanged += h, h => context.PreviewSettingsChanged -= h, Rebuild);
             Rebuild();
         }
 

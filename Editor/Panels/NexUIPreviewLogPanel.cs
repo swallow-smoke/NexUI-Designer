@@ -33,7 +33,8 @@ namespace emiteat.NexUI.Designer.Editor.Panels
             _list = new ScrollView { style = { flexGrow = 1 } };
             Add(_list);
 
-            _context.PreviewLog.Changed += Refresh;
+            var subscriptions = new ContextBoundSubscriptions(this);
+            subscriptions.Add(h => _context.PreviewLog.Changed += h, h => _context.PreviewLog.Changed -= h, Refresh);
             Refresh();
         }
 

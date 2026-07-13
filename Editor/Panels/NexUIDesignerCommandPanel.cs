@@ -25,8 +25,9 @@ namespace emiteat.NexUI.Designer.Editor.Panels
             _result.AddToClassList("nexui-bottom-text");
             Add(_result);
 
-            context.MetadataSelectionChanged += _ => Refresh();
-            context.CanvasChanged += Refresh;
+            var subscriptions = new ContextBoundSubscriptions(this);
+            subscriptions.Add<DesignerElementMetadata>(h => context.MetadataSelectionChanged += h, h => context.MetadataSelectionChanged -= h, _ => Refresh());
+            subscriptions.Add(h => context.CanvasChanged += h, h => context.CanvasChanged -= h, Refresh);
             Refresh();
         }
 

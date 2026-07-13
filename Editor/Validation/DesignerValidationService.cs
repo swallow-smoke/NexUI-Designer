@@ -4,6 +4,7 @@ using emiteat.NexUI.Core;
 using emiteat.NexUI.Designer.Editor.Backend;
 using emiteat.NexUI.Designer.Editor.Components;
 using emiteat.NexUI.Designer.Editor.Serialization;
+using emiteat.NexUI.MotionClip;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -52,6 +53,7 @@ namespace emiteat.NexUI.Designer.Editor.Validation
             ValidateHierarchy(metadata, screenId, issues);
             ValidateOrphans(metadata, screenId, backendNames, issues);
             ValidateReferences(metadata, screenId, issues);
+            ValidateMotion(metadata, screenId, issues);
             ValidatePrefabComponents(screen, metadata, screenId, issues);
 
             return issues;
@@ -330,6 +332,83 @@ namespace emiteat.NexUI.Designer.Editor.Validation
                 }
         }
 
+        private static void ValidateMotion(DesignerMetadataAsset metadata, string screenId, List<DesignerValidationIssue> issues)
+        {
+            var motion = metadata.screenMotion;
+            if (motion == null) return;
+            var ids = new HashSet<string>();
+            foreach (var element in metadata.elements)
+                if (element != null && !string.IsNullOrEmpty(element.elementId)) ids.Add(element.elementId);
+
+            var validatedClips = new HashSet<UIMotionClip>();
+            ValidateClip(motion.entryClip, screenId, issues, validatedClips);
+            ValidateClip(motion.exitClip, screenId, issues, validatedClips);
+            foreach (var binding in motion.bindings ?? new List<DesignerMotionBinding>())
+            {
+                if (binding == null) continue;
+                var isScreenTrigger = binding.trigger == DesignerMotionTrigger.ScreenEnter || binding.trigger == DesignerMotionTrigger.ScreenExit;
+                if (!isScreenTrigger && (string.IsNullOrEmpty(binding.targetElementId) || !ids.Contains(binding.targetElementId)))
+                    issues.Add(new DesignerValidationIssue(DesignerValidationSeverity.Error, "motion-target-missing",
+                        $"Motion binding '{binding.bindingId}' targets missing element '{binding.targetElementId}'.",
+                        "Choose an existing element or remove the binding.", screenId, binding.targetElementId));
+                if (isScreenTrigger && !string.IsNullOrEmpty(binding.targetElementId))
+                    issues.Add(new DesignerValidationIssue(DesignerValidationSeverity.Warning, "screen-motion-has-target",
+                        $"Screen trigger '{binding.trigger}' is connected to element '{binding.targetElementId}'.",
+                        "Clear the target or use an element trigger.", screenId, binding.targetElementId));
+                if (binding.clip == null)
+                    issues.Add(new DesignerValidationIssue(DesignerValidationSeverity.Error, "motion-clip-missing",
+                        $"Motion binding '{binding.bindingId}' has no clip or its asset is missing.",
+                        "Assign an existing UIMotionClip asset.", screenId, binding.targetElementId));
+                if ((binding.trigger == DesignerMotionTrigger.StateEnter || binding.trigger == DesignerMotionTrigger.StateExit) && string.IsNullOrEmpty(binding.stateId))
+                    issues.Add(new DesignerValidationIssue(DesignerValidationSeverity.Error, "motion-state-id-missing",
+                        $"Motion binding '{binding.bindingId}' requires a state id.", "Set a valid State Id.", screenId, binding.targetElementId));
+                if ((binding.trigger == DesignerMotionTrigger.CommandStarted || binding.trigger == DesignerMotionTrigger.CommandCompleted || binding.trigger == DesignerMotionTrigger.CommandFailed) && string.IsNullOrEmpty(binding.commandId))
+                    issues.Add(new DesignerValidationIssue(DesignerValidationSeverity.Warning, "motion-command-id-missing",
+                        $"Motion binding '{binding.bindingId}' requires a command id.", "Set a valid Command Id.", screenId, binding.targetElementId));
+                ValidateClip(binding.clip, screenId, issues, validatedClips);
+                ValidateClip(binding.reducedMotionClip, screenId, issues, validatedClips);
+            }
+        }
+
+        private static void ValidateClip(UIMotionClip clip, string screenId, List<DesignerValidationIssue> issues, HashSet<UIMotionClip> validated)
+        {
+            if (clip == null || !validated.Add(clip)) return;
+            var targets = new HashSet<string>();
+            foreach (var track in clip.tracks ?? System.Array.Empty<UIMotionClipTrack>())
+            {
+                if (track == null) continue;
+                if (!targets.Add(track.targetElementId ?? string.Empty))
+                    AddClipIssue(DesignerValidationSeverity.Error, "motion-duplicate-track-target",
+                        $"Clip '{clip.name}' contains duplicate track target '{track.targetElementId}'.",
+                        "Merge properties into one target track.", clip, screenId, issues);
+                foreach (var propertyTrack in track.propertyTracks ?? System.Array.Empty<UIMotionClipPropertyTrack>())
+                {
+                    if (propertyTrack?.keyframes == null) continue;
+                    var previous = float.NegativeInfinity;
+                    foreach (var keyframe in propertyTrack.keyframes)
+                    {
+                        if (keyframe.time < 0f)
+                            AddClipIssue(DesignerValidationSeverity.Error, "motion-negative-keyframe",
+                                $"Clip '{clip.name}' has a keyframe at negative time {keyframe.time:0.###}.", "Move it to time 0 or later.", clip, screenId, issues);
+                        if (keyframe.time > clip.duration)
+                            AddClipIssue(DesignerValidationSeverity.Error, "motion-keyframe-after-duration",
+                                $"Clip '{clip.name}' has a keyframe at {keyframe.time:0.###}, after duration {clip.duration:0.###}.", "Extend duration or move the keyframe.", clip, screenId, issues);
+                        if (keyframe.time < previous)
+                            AddClipIssue(DesignerValidationSeverity.Error, "motion-keyframes-unsorted",
+                                $"Clip '{clip.name}' has unsorted keyframes in {propertyTrack.propertyType}.", "Sort keyframes by time.", clip, screenId, issues);
+                        previous = keyframe.time;
+                    }
+                }
+            }
+        }
+
+        private static void AddClipIssue(DesignerValidationSeverity severity, string code, string message, string fix,
+            UIMotionClip clip, string screenId, List<DesignerValidationIssue> issues)
+        {
+            var issue = new DesignerValidationIssue(severity, code, message, fix, screenId) { Asset = clip };
+            issues.Add(issue);
+        }
+
         // ---- Backend-asset inspection ------------------------------------------------
 
         private static HashSet<string> CollectBackendElementNames(UIScreenDefinition screen)
@@ -379,7 +458,7 @@ namespace emiteat.NexUI.Designer.Editor.Validation
                 var type = element.elementType ?? "Panel";
                 var go = child.gameObject;
 
-                if ((Is(type, "Button") || Is(type, "IconButton")) && go.GetComponent<UnityEngine.UIElements.Button>() == null)
+                if ((Is(type, "Button") || Is(type, "IconButton")) && go.GetComponent<UnityEngine.UI.Button>() == null)
                     issues.Add(new DesignerValidationIssue(DesignerValidationSeverity.Warning, "ugui-missing-button",
                         $"'{element.elementId}' is a {type} but has no Button component.",
                         "Save the screen to add one, or add Button manually.", screenId, element.elementId));

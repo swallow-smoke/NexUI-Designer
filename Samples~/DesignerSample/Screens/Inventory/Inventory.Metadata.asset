@@ -13,6 +13,26 @@ MonoBehaviour:
   m_Name: Inventory.Metadata
   m_EditorClassIdentifier:
   screenId: Inventory
+  screenMotion:
+    entryClip: {fileID: 0}
+    exitClip: {fileID: 0}
+    bindings:
+    - bindingId: inventory-hover-slot1
+      targetElementId: slot1
+      trigger: 2
+      stateId:
+      commandId:
+      clip: {fileID: 11400000, guid: 6b4e66ae44f54fc0b0d84fa25c2d0229, type: 2}
+      reducedMotionClip: {fileID: 0}
+    - bindingId: inventory-selected-slot1
+      targetElementId: slot1
+      trigger: 7
+      stateId:
+      commandId:
+      clip: {fileID: 11400000, guid: fd6ce6bb39924d4eb30049389327b7b9, type: 2}
+      reducedMotionClip: {fileID: 0}
+    stateMachine: {fileID: 0}
+    motionGraph: {fileID: 0}
   elements:
   - elementId: panel
     parentId: 
@@ -50,13 +70,13 @@ MonoBehaviour:
     locked: 0
     hiddenInDesigner: 0
   - elementId: title
-    parentId: 
+    parentId: panel
     displayName: title
     elementType: Label
     rect:
       serializedVersion: 2
-      x: 500
-      y: 130
+      x: 40
+      y: 40
       width: 400
       height: 60
     anchorPreset: 0
@@ -85,13 +105,13 @@ MonoBehaviour:
     locked: 0
     hiddenInDesigner: 0
   - elementId: grid
-    parentId: 
+    parentId: panel
     displayName: grid
     elementType: Grid
     rect:
       serializedVersion: 2
-      x: 500
-      y: 220
+      x: 40
+      y: 130
       width: 920
       height: 400
     anchorPreset: 0
@@ -125,8 +145,8 @@ MonoBehaviour:
     elementType: Slot
     rect:
       serializedVersion: 2
-      x: 500
-      y: 220
+      x: 0
+      y: 0
       width: 180
       height: 180
     anchorPreset: 0
@@ -136,11 +156,11 @@ MonoBehaviour:
     fontSize: 14
     classes: []
     binding:
-      textKey:
-      valueKey:
+      textKey: inventory.slot1.name
+      valueKey: inventory.slot1.count
       visibilityKey:
-      classKey:
-      commandKey: 
+      classKey: inventory.slot1.selected
+      commandKey: inventory.select.slot1
       interactableKey:
     motion:
       motionPreset: {fileID: 0}
@@ -160,8 +180,8 @@ MonoBehaviour:
     elementType: Slot
     rect:
       serializedVersion: 2
-      x: 700
-      y: 220
+      x: 200
+      y: 0
       width: 180
       height: 180
     anchorPreset: 0
@@ -171,11 +191,11 @@ MonoBehaviour:
     fontSize: 14
     classes: []
     binding:
-      textKey:
-      valueKey:
+      textKey: inventory.slot2.name
+      valueKey: inventory.slot2.count
       visibilityKey:
-      classKey:
-      commandKey: 
+      classKey: inventory.slot2.selected
+      commandKey: inventory.select.slot2
       interactableKey:
     motion:
       motionPreset: {fileID: 0}
@@ -195,8 +215,8 @@ MonoBehaviour:
     elementType: Slot
     rect:
       serializedVersion: 2
-      x: 900
-      y: 220
+      x: 400
+      y: 0
       width: 180
       height: 180
     anchorPreset: 0
@@ -206,11 +226,11 @@ MonoBehaviour:
     fontSize: 14
     classes: []
     binding:
-      textKey:
-      valueKey:
+      textKey: inventory.slot3.name
+      valueKey: inventory.slot3.count
       visibilityKey:
-      classKey:
-      commandKey: 
+      classKey: inventory.slot3.selected
+      commandKey: inventory.select.slot3
       interactableKey:
     motion:
       motionPreset: {fileID: 0}
@@ -230,8 +250,8 @@ MonoBehaviour:
     elementType: Slot
     rect:
       serializedVersion: 2
-      x: 500
-      y: 420
+      x: 0
+      y: 200
       width: 180
       height: 180
     anchorPreset: 0
@@ -241,11 +261,11 @@ MonoBehaviour:
     fontSize: 14
     classes: []
     binding:
-      textKey:
-      valueKey:
+      textKey: inventory.slot4.name
+      valueKey: inventory.slot4.count
       visibilityKey:
-      classKey:
-      commandKey: 
+      classKey: inventory.slot4.empty
+      commandKey: inventory.select.slot4
       interactableKey:
     motion:
       motionPreset: {fileID: 0}
@@ -265,8 +285,8 @@ MonoBehaviour:
     elementType: Slot
     rect:
       serializedVersion: 2
-      x: 700
-      y: 420
+      x: 200
+      y: 200
       width: 180
       height: 180
     anchorPreset: 0
@@ -276,11 +296,11 @@ MonoBehaviour:
     fontSize: 14
     classes: []
     binding:
-      textKey:
-      valueKey:
+      textKey: inventory.slot5.name
+      valueKey: inventory.slot5.count
       visibilityKey:
-      classKey:
-      commandKey: 
+      classKey: inventory.slot5.selected
+      commandKey: inventory.select.slot5
       interactableKey:
     motion:
       motionPreset: {fileID: 0}
@@ -300,8 +320,8 @@ MonoBehaviour:
     elementType: Slot
     rect:
       serializedVersion: 2
-      x: 900
-      y: 420
+      x: 400
+      y: 200
       width: 180
       height: 180
     anchorPreset: 0
@@ -311,11 +331,11 @@ MonoBehaviour:
     fontSize: 14
     classes: []
     binding:
-      textKey:
-      valueKey:
+      textKey: inventory.slot6.name
+      valueKey: inventory.slot6.count
       visibilityKey:
-      classKey:
-      commandKey: 
+      classKey: inventory.slot6.empty
+      commandKey: inventory.select.slot6
       interactableKey:
     motion:
       motionPreset: {fileID: 0}
@@ -330,13 +350,13 @@ MonoBehaviour:
     locked: 0
     hiddenInDesigner: 0
   - elementId: closeButton
-    parentId: 
+    parentId: panel
     displayName: closeButton
     elementType: Button
     rect:
       serializedVersion: 2
-      x: 500
-      y: 900
+      x: 40
+      y: 810
       width: 200
       height: 64
     anchorPreset: 0
@@ -351,6 +371,41 @@ MonoBehaviour:
       visibilityKey:
       classKey:
       commandKey: nexui.close
+      interactableKey:
+    motion:
+      motionPreset: {fileID: 0}
+      motionId:
+      initialVariant:
+      animateVariant:
+    theme:
+      themeRef: {fileID: 0}
+      themeId:
+      classes: []
+      tokenOverrides: []
+    locked: 0
+    hiddenInDesigner: 0
+  - elementId: equipButton
+    parentId: panel
+    displayName: Equip
+    elementType: Button
+    rect:
+      serializedVersion: 2
+      x: 260
+      y: 810
+      width: 200
+      height: 64
+    anchorPreset: 0
+    text: Equip
+    tint: {r: 0.16, g: 0.45, b: 0.9, a: 1}
+    textColor: {r: 1, g: 1, b: 1, a: 1}
+    fontSize: 14
+    classes: []
+    binding:
+      textKey:
+      valueKey:
+      visibilityKey:
+      classKey:
+      commandKey: inventory.equip
       interactableKey:
     motion:
       motionPreset: {fileID: 0}

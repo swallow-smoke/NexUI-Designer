@@ -28,6 +28,7 @@ namespace emiteat.NexUI.Designer.Editor.Graph
             _graphView = graphView;
             Model = model;
             title = string.IsNullOrEmpty(model.id) ? "node" : model.id;
+            AddToClassList("nexui-graph-node");
 
             Input = InstantiatePort(Orientation.Horizontal, Direction.Input, Port.Capacity.Multi, typeof(bool));
             Input.portName = "Depends On";

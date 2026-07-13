@@ -11,7 +11,7 @@ namespace emiteat.NexUI.Designer.Editor.Inspectors
         {
             _capabilities = new Label { tooltip = DesignerLocalization.T("tooltip.capability.list") };
             Add(_capabilities);
-            context.SelectionChanged += _ => Refresh();
+            Subscriptions.Add<emiteat.NexUI.Abstractions.IUIElementHandle>(h => context.SelectionChanged += h, h => context.SelectionChanged -= h, _ => Refresh());
             Refresh();
         }
 

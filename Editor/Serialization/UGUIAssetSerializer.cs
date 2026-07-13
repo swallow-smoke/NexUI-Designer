@@ -34,7 +34,7 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
             if (prefab == null)
             {
                 report.MarkSkipped("No uGUI prefab assigned to the screen backend asset (metadata saved only).");
-                AssetDatabase.SaveAssets();
+                SaveDirtyAssets(metadata, definition);
                 return report;
             }
 
@@ -42,14 +42,14 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
             if (string.IsNullOrEmpty(path) || !path.EndsWith(".prefab"))
             {
                 report.Warn($"Backend asset '{prefab.name}' is not a prefab asset; prefab changes were skipped (metadata saved only).");
-                AssetDatabase.SaveAssets();
+                SaveDirtyAssets(metadata, definition);
                 return report;
             }
 
             if (metadata == null || metadata.elements.Count == 0)
             {
                 report.MarkSkipped("No metadata elements to apply to prefab.");
-                AssetDatabase.SaveAssets();
+                SaveDirtyAssets(metadata, definition);
                 return report;
             }
 
@@ -72,8 +72,14 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
                     PrefabUtility.UnloadPrefabContents(root);
             }
 
-            AssetDatabase.SaveAssets();
+            SaveDirtyAssets(metadata, definition);
             return report;
+        }
+
+        private static void SaveDirtyAssets(DesignerMetadataAsset metadata, UIScreenDefinition definition)
+        {
+            if (metadata != null) AssetDatabase.SaveAssetIfDirty(metadata);
+            if (definition != null) AssetDatabase.SaveAssetIfDirty(definition);
         }
 
         private static void ApplyMetadata(GameObject root, DesignerMetadataAsset metadata, DesignerSaveReport report)

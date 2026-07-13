@@ -111,7 +111,11 @@ namespace emiteat.NexUI.Designer
         /// clipping children. Zero by default. Consumed by Auto Layout and clip/overflow preview;
         /// leaf elements ignore it.
         /// </summary>
-        public RectOffset contentPadding = new RectOffset(0, 0, 0, 0);
+        // Keep the default null. Constructing RectOffset from a serialized object's field
+        // initializer can execute native Unity code while the serializer is running and emits
+        // "CreateObject is not allowed during serialization" on domain reload. All consumers
+        // treat null as zero padding, preserving existing metadata behaviour.
+        public RectOffset contentPadding;
 
         /// <summary>Screen-reader-facing label. Falls back to <see cref="text"/> or <see cref="displayName"/> at runtime when empty.</summary>
         public string accessibilityLabel;

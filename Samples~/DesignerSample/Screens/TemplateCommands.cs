@@ -32,5 +32,21 @@ namespace emiteat.NexUI.Designer.Samples
             // ConfirmDialog.UIToolkit/.UGUI: Confirm button.
             resolver.Register("template.confirmDialog.confirm", () => Debug.Log("[NexUI Sample] Confirm dialog accepted (no-op stub)"));
         }
+
+        /// <summary>Registers the working Inventory vertical-slice commands against its sample state model.</summary>
+        public static InventorySampleModel RegisterInventory(UIActionResolver resolver, UIStateStore state)
+        {
+            if (resolver == null || state == null) return null;
+            var model = new InventorySampleModel(state);
+            for (var slot = 1; slot <= 6; slot++)
+            {
+                var captured = slot;
+                resolver.Register("inventory.select.slot" + captured, () => model.Select(captured));
+            }
+            resolver.Register("inventory.open", model.Open);
+            resolver.Register("inventory.close", model.Close);
+            resolver.Register("inventory.equip", model.EquipSelected);
+            return model;
+        }
     }
 }

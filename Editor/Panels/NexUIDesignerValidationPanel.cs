@@ -1,5 +1,7 @@
 using emiteat.NexUI.Designer.Editor.Localization;
 using emiteat.NexUI.Designer.Editor.Validation;
+using emiteat.NexUI.Designer.Editor;
+using UnityEditor;
 using UnityEngine.UIElements;
 
 namespace emiteat.NexUI.Designer.Editor.Panels
@@ -25,7 +27,8 @@ namespace emiteat.NexUI.Designer.Editor.Panels
             _list.AddToClassList("nexui-validation-content");
             Add(_list);
 
-            context.ValidationChanged += Refresh;
+            var subscriptions = new ContextBoundSubscriptions(this);
+            subscriptions.Add(h => context.ValidationChanged += h, h => context.ValidationChanged -= h, Refresh);
             Refresh();
         }
 
@@ -56,6 +59,11 @@ namespace emiteat.NexUI.Designer.Editor.Panels
                     var id = issue.ElementId;
                     row.tooltip = string.Format(DesignerLocalization.T("tooltip.validationPanel.item"), id);
                     row.RegisterCallback<ClickEvent>(_ => _context.SelectMetadata(id));
+                }
+                else if (issue.Asset != null)
+                {
+                    var asset = issue.Asset;
+                    row.RegisterCallback<ClickEvent>(_ => EditorGUIUtility.PingObject(asset));
                 }
                 _list.Add(row);
             }

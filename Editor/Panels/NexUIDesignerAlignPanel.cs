@@ -51,7 +51,8 @@ namespace emiteat.NexUI.Designer.Editor.Panels
                 foreach (var button in _distributeButtons) button.SetEnabled(canDistribute);
             }
 
-            context.MultiSelectionChanged += RefreshButtons;
+            var subscriptions = new ContextBoundSubscriptions(this);
+            subscriptions.Add<System.Collections.Generic.IReadOnlyList<DesignerElementMetadata>>(h => context.MultiSelectionChanged += h, h => context.MultiSelectionChanged -= h, RefreshButtons);
             RefreshButtons(context.SelectedElements);
         }
 

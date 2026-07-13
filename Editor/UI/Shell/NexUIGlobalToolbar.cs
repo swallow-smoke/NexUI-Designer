@@ -74,9 +74,11 @@ namespace emiteat.NexUI.Designer.Editor.UI.Shell
                 _status.EnableInClassList("is-muted", context.CurrentScreen == null);
             }
 
-            context.ScreenChanged += _ => RefreshStatus();
-            context.ValidationChanged += RefreshStatus;
-            DesignerEditMode.Changed += _ => RefreshMode();
+            var subscriptions = new ContextBoundSubscriptions(this);
+            subscriptions.Add<emiteat.NexUI.Core.UIScreenDefinition>(h => context.ScreenChanged += h, h => context.ScreenChanged -= h, _ => RefreshStatus());
+            subscriptions.Add(h => context.ValidationChanged += h, h => context.ValidationChanged -= h, RefreshStatus);
+            subscriptions.Add<DesignerMode>(h => DesignerEditMode.Changed += h,
+                h => DesignerEditMode.Changed -= h, _ => RefreshMode());
             RefreshMode();
             RefreshStatus();
         }
