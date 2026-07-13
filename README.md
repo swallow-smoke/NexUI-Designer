@@ -1,58 +1,47 @@
 # NexUI Designer
 
-NexUI Designer는 Unity 안에서 NexUI 화면을 배치하고 Binding, Interaction, Motion을 연결한 뒤 uGUI 또는 UI Toolkit으로 저장·Publish하는 Editor 패키지입니다.
+NexUI Designer는 NexUI 화면을 Unity Editor에서 구성하는 시각적 제작 도구입니다. 화면 요소 배치, Hierarchy, Binding, Preview, Motion, Validation과 Backend 저장 흐름을 한곳에서 연결합니다.
 
-## 기본 작업 흐름
+NexUI Core가 화면 실행, 상태, Command와 Backend 계약을 담당한다면 Designer는 그 데이터를 제작하고 검증하는 Editor 패키지입니다. Designer만 설치해서 독립적인 런타임 UI 시스템으로 사용할 수는 없습니다.
+
+## 핵심 제작 흐름
 
 ```text
-화면 생성 → 요소 배치 → 부모/자식 구성 → Binding 설정
-→ Motion Clip 연결 → 저장 → Reload → Backend Publish → Play Mode 확인
+Screen 준비 → Component 배치 → Hierarchy 구성 → Binding/Motion 연결
+→ Validation → Save/생성 → Play Mode 확인
 ```
 
-## 시작하기
+## 주요 특징
 
-1. `com.emiteat.nexui` Core를 설치합니다.
-2. `com.emiteat.nexui.designer`를 설치합니다.
-3. Package Manager에서 `Designer Sample`을 Import합니다.
-4. `Tools > NexUI > Designer`를 엽니다.
-5. Screen Definition과 Designer Metadata를 선택하거나 새로 만듭니다.
+- uGUI와 UI Toolkit 화면을 같은 Metadata 모델로 편집합니다.
+- Canvas 단일·다중 선택, Hierarchy, Auto Layout과 Constraints를 제공합니다.
+- Binding 및 Command Key를 화면 Element에 연결합니다.
+- Motion Clip, Motion Graph와 Motion State Machine 에셋을 편집하고 Preview합니다.
+- 저장 전 참조, Backend 지원 범위와 Motion 데이터를 검증합니다.
+- 한국어와 영어 Editor UI를 제공합니다.
 
-자세한 설치 순서는 [PackageInstallation](Documentation~/PackageInstallation.md)을 참고하십시오.
+> [!IMPORTANT]
+> 프로젝트는 현재 개발 단계입니다. Backend별 지원 범위와 실험적 기능은 [현재 기능 상태](Documentation~/reference/feature-status.md)를 먼저 확인해 주세요.
 
-## 안정화된 구성
+## 요구 환경
 
-- 다중 Designer 창을 위한 Active Session Registry
-- Panel Attach/Detach 기반 Context 이벤트 수명주기
-- Motion Clip 에셋 참조를 포함하는 화면 Motion Metadata
-- Element ID 변경 시 Parent/Focus/Variant/Motion 참조 동기화
-- Undo/Redo 이후 Preview·Inspector·Validator 갱신
-- Ctrl+S, Dirty 표시, 화면 전환/창 종료 저장 경고
-- 원자적 UXML/USS 생성, Generated Marker 보호, Dry Run
-- Motion target/clip/track/keyframe Validator
-- 한국어/영어 Editor UI
+- Unity `6000.4` 이상
+- NexUI Core `0.1.0`
+- UniTask `2.5.10`
 
 ## 문서
 
-- [구현 상태](Documentation~/ImplementationStatus.md)
-- [아키텍처](Documentation~/Architecture.md)
-- [테스트와 CI](Documentation~/Testing.md)
-- [설치](Documentation~/PackageInstallation.md)
-- [사용법](Documentation~/how-to-use.md)
-- [Motion Clip Editor](Documentation~/motion-clip-editor.md)
-- [목표 기능 명세](Documentation~/FunctionList.md)
+- [문서 홈](Documentation~/index.md)
+- [설치](Documentation~/getting-started/installation.md)
+- [10분 빠른 시작](Documentation~/getting-started/quick-start.md)
+- [첫 화면 만들기](Documentation~/getting-started/first-screen.md)
+- [현재 기능 상태](Documentation~/reference/feature-status.md)
+- [목표 기능 명세](Documentation~/reference/feature-specification.md)
+- [개발자 아키텍처](Documentation~/developer/architecture.md)
 
-`FunctionList.md`는 목표 명세이며 실제 지원 여부는 `ImplementationStatus.md`를 기준으로 판단합니다.
+## 관련 프로젝트와 라이선스
 
-## 요구 사항
+- [NexUI Designer 저장소](https://github.com/swallow-smoke/NexUI-Designer)
+- [NexUI Core 패키지](../com.emiteat.nexui/README.md)
+- [MIT License](LICENSE.md)
 
-- Unity 6000.4 이상
-- `com.emiteat.nexui` 0.1.0
-- uGUI 또는 UI Toolkit
-
-## 검증
-
-```powershell
-dotnet build emiteat.NexUI.Designer.Tests.EditMode.csproj --no-restore
-```
-
-Unity Test Runner와 Batchmode 실행법은 [Testing](Documentation~/Testing.md)에 있습니다.

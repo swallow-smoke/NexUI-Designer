@@ -1,4 +1,4 @@
-# API 레퍼런스
+# NexUI Designer 확장 API
 
 이 문서는 주요 확장 지점을 요약합니다. 네임스페이스 루트는 `emiteat`입니다.
 

@@ -1,49 +1,46 @@
-# NexUI Designer
+# NexUI Designer 문서
 
-NexUI Designer는 런타임 패키지에 에디터 전용 코드를 넣지 않고 NexUI 화면을 제작하고 검토하기 위한 Unity Editor 패키지입니다.
+사용 목적에 맞는 경로에서 시작해 주세요. 문서의 기능 설명은 현재 코드 기준이며, 장기 목표는 별도 명세로 분리했습니다.
 
-`UIScreenDefinition`을 선택하고, 디자이너 메타데이터를 확인하고, 화면 프리뷰를 갱신하고, 자주 발생하는 제작 실수를 검증하고, 백엔드별 저장 로직으로 변경 사항을 저장할 수 있습니다.
+## 처음 사용하는 사용자
 
-## 문서
+- [설치](getting-started/installation.md) — Core와 Designer 패키지를 올바른 순서로 설치합니다.
+- [빠른 시작](getting-started/quick-start.md) — 약 10분 안에 화면을 열고 Element를 추가해 저장합니다.
+- [첫 화면 만들기](getting-started/first-screen.md) — 간단한 메인 메뉴를 처음부터 구성합니다.
 
-- [설치](installation.md)
-- [빠른 시작](how-to-use.md)
-- [핵심 개념](concepts.md)
-- [API 레퍼런스](api-reference.md)
-- [개발 가이드](development.md)
-- [레시피](recipes.md)
-- [Motion Graph Editor](motion-graph-editor.md)
-- [Motion Clip Editor](motion-clip-editor.md)
+## UI를 제작하는 사용자
 
-## 패키지 구조
+- [Designer 창](user-guide/designer-window.md) — Toolbar, Sidebar, Canvas, Inspector와 Bottom Drawer의 역할을 설명합니다.
+- [Screen과 Metadata](user-guide/screen-and-metadata.md) — 런타임 정의와 편집 데이터의 책임을 구분합니다.
+- [Canvas 편집](user-guide/canvas-editing.md) · [Hierarchy와 Layout](user-guide/hierarchy-and-layout.md)
+- [Inspector와 Style](user-guide/inspector-and-style.md) · [Binding](user-guide/binding.md)
+- [Preview와 Scenario](user-guide/preview-and-scenarios.md) · [Validation과 Save](user-guide/validation-and-save.md)
+- [uGUI Backend](user-guide/ugui-backend.md) · [UI Toolkit Backend](user-guide/ui-toolkit-backend.md)
+- [Motion 선택 가이드](motion/overview.md) · [Motion Clip](motion/motion-clip-editor.md) · [Motion Graph](motion/motion-graph-editor.md)
 
-```text
-com.emiteat.nexui.designer/
-  Editor/             Unity Editor 창, 패널, 도구, 검증기, 서비스
-  Runtime/Metadata/   직렬화 가능한 디자이너 메타데이터 에셋
-  Samples~/           선택해서 가져올 수 있는 샘플 에셋과 샘플 스크립트
-  Documentation~/     패키지 문서
-```
+## 따라 하기
 
-## 요구 사항
+- [Inventory 화면](tutorials/inventory-screen.md)
+- [HUD 화면](tutorials/hud-screen.md)
+- [애니메이션 Popup](tutorials/animated-popup.md)
 
-- Unity 6000.4 이상
-- `com.emiteat.nexui`
-- Unity Editor의 UI Toolkit 패키지 지원
+## 기능 상태와 문제 해결
 
-## 진입점
+- [현재 기능 상태](reference/feature-status.md) — 실제 지원·부분 지원·실험적 기능을 확인합니다.
+- [목표 기능 명세](reference/feature-specification.md) — 장기 제품 범위를 확인합니다.
+- [단축키](reference/shortcuts.md) · [용어](reference/terminology.md)
+- [알려진 제한](reference/known-limitations.md) · [문제 해결](reference/troubleshooting.md)
 
-- `Tools/NexUI/Designer` — 메인 디자이너 창
-- `Tools/NexUI/Designer/Open Selected Screen`
-- `Tools/NexUI/Designer/Rebuild Preview`
-- `Tools/NexUI/Designer/Validate Current Screen`
-- `Tools/NexUI/Designer/Save Current Screen`
-- `Tools/NexUI/Designer/Language/Korean` / `English`
-- `Tools/NexUI/Designer/Advanced/Figma Bridge` — Figma 연결(진행 중, [사용법](how-to-use.md#figma-브리지-진행-중) 참고)
-- `Tools/NexUI/Migration Wizard` — 버전 업 시 옛 네임스페이스/패키지 ID 참조 일괄 치환
+## 고급 기능
 
-전체 패널 구성, 단축키, 인스펙터 필드는 [사용법](how-to-use.md) 문서에서 처음부터 끝까지 다룹니다.
+- [Figma Bridge](advanced/figma-bridge.md) — 현재는 인증과 원본 JSON 조회 단계입니다.
+- [Migration Wizard](advanced/migration-wizard.md) — 구버전 Namespace와 Package ID를 안전하게 치환합니다.
+- [Runtime Debugging](advanced/runtime-debugging.md) — Play Mode Snapshot과 Overlay를 사용합니다.
+- [Design Token](advanced/design-tokens.md) · [Screen Flow](advanced/screen-flow-editor.md) · [Sync와 Publish](advanced/sync-and-publish.md)
 
-## 현재 범위
+## NexUI Designer를 개발하는 사용자
 
-이 패키지는 에디터 셸, 메타데이터 모델, 백엔드 추상화, 검증 패널, 프리뷰 패널(도형/값 기반 컴포넌트 미리보기/이미지 미리보기 포함), 로컬라이제이션 헬퍼(UI 전체 툴팁 포함), 프로파일링 헬퍼, 확장 지점을 제공합니다. 실제 런타임 렌더링은 대체하지 않으며, 런타임 동작은 `com.emiteat.nexui`에 남겨둡니다.
+- [아키텍처](developer/architecture.md) · [프로젝트 구조](developer/project-structure.md) · [확장 API](developer/api-reference.md)
+- [Panel 추가](developer/adding-panels.md) · [Backend 추가](developer/adding-backends.md) · [Validation 추가](developer/adding-validation.md)
+- [직렬화](developer/serialization.md) · [코딩 규칙](developer/coding-conventions.md) · [테스트](developer/testing.md)
+- [성능 측정](developer/performance.md) · [Git 협업](developer/git-workflow.md)

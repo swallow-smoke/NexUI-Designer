@@ -1,4 +1,4 @@
-# 핵심 개념
+# NexUI Designer 핵심 개념
 
 ## 런타임 패키지와 디자이너 패키지
 
@@ -52,3 +52,27 @@
 ## Preview
 
 뷰포트는 에디터 프리뷰 표면입니다. 구조, 상태, 계층, 제작 규칙을 확인하는 데 유용하지만 최종 애니메이션 타이밍, 입력, 플랫폼별 동작은 Play Mode에서 다시 확인해야 합니다.
+
+## Element와 Component
+
+Element는 Stable ID와 Parent를 가진 화면 항목입니다. Component는 해당 Element가 Panel, Button, ProgressBar 등 어떤 역할과 Binding/Event를 지원하는지 설명합니다.
+
+## Binding과 Command
+
+Binding은 `UIStateStore` Key를 표시 속성과 연결합니다. Command는 클릭 같은 사용자 동작을 `UIActionResolver`의 문자열 Action Key로 연결합니다. Designer는 Key 계약을 저장하지만 게임 로직을 구현하지 않습니다.
+
+## Theme와 Variant
+
+Theme은 여러 Screen이 공유하는 시각 Token 집합입니다. Variant는 입력 방식이나 상황에 따라 다른 설정을 선택하는 대안입니다. 둘 다 Preview만 보고 Runtime 선택 로직이 자동 완성됐다고 판단해서는 안 됩니다.
+
+## Motion Graph와 Motion Clip
+
+Motion Graph는 Node 의존성 또는 Event Flow를 표현합니다. Motion Clip은 여러 Element의 Property를 Track과 Keyframe 시간축으로 표현합니다. 자세한 선택 기준은 [Motion 개요](../motion/overview.md)를 참고하세요.
+
+## Scenario, Capability와 Policy
+
+Scenario는 Preview 상태 값을 묶어 재현합니다. Capability는 Element가 제공하는 동작 계약이고 Policy는 Screen 실행 정책을 설명합니다. 이 데이터는 Validation과 확장 도구가 사용하지만 Backend가 모든 값을 자동 변환하지는 않습니다.
+
+## Save와 Publish
+
+Save는 현재 Metadata와 Backend Serializer를 실행합니다. Publish/Generation은 생성 파일이나 여러 Screen 배포 흐름을 다루는 별도 도구일 수 있습니다. UI Toolkit 일반 Save와 UXML Generation을 구분해야 합니다.

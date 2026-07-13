@@ -1,4 +1,7 @@
-# NexUI Designer 기능 명세서
+# NexUI Designer 목표 기능 명세
+
+> [!IMPORTANT]
+> 이 문서는 장기 제품 목표입니다. 현재 구현과 Backend 지원 범위는 [기능 상태](feature-status.md)를 기준으로 확인해 주세요.
 
 > **디자이너가 Unity UI를 직접 설계하고, 연결하고, 움직이고, 검증할 수 있도록 만드는 통합 UI 제작 환경**
 
