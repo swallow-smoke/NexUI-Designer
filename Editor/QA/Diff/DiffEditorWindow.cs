@@ -15,7 +15,6 @@ namespace emiteat.NexUI.Designer.Editor.Diff
         protected override string TitleKey => "panel.diff";
         protected override string TooltipKey => "tooltip.diff";
 
-        [MenuItem("Tools/NexUI/Designer/QA/Metadata Diff")]
         public static void Open() => GetWindow<DiffEditorWindow>();
 
         protected override void DrawBody()

@@ -16,7 +16,6 @@ namespace emiteat.NexUI.Designer.Editor.Responsive
         protected override string TitleKey => "panel.responsive";
         protected override string TooltipKey => "tooltip.responsive";
 
-        [MenuItem("Tools/NexUI/Designer/Advanced/Responsive Rules")]
         public static void Open() => GetWindow<ResponsiveEditorWindow>();
 
         protected override void DrawBody()

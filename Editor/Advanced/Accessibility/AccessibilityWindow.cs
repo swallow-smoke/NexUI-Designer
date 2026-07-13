@@ -18,7 +18,6 @@ namespace emiteat.NexUI.Designer.Editor.Accessibility
         protected override string TitleKey => "panel.accessibility";
         protected override string TooltipKey => "tooltip.accessibility";
 
-        [MenuItem("Tools/NexUI/Designer/Advanced/Accessibility Preview")]
         public static void Open() => GetWindow<AccessibilityWindow>();
 
         protected override void DrawBody()

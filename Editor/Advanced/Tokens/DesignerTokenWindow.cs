@@ -21,7 +21,6 @@ namespace emiteat.NexUI.Designer.Editor.Tokens
         protected override string TitleKey => "tokens.window.title";
         protected override string TooltipKey => "tokens.window.description";
 
-        [MenuItem("Tools/NexUI/Designer/Advanced/Design Tokens")]
         public static void Open()
         {
             var window = GetWindow<DesignerTokenWindow>();

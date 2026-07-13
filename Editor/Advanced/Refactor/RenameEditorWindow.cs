@@ -18,7 +18,6 @@ namespace emiteat.NexUI.Designer.Editor.Refactor
         protected override string TitleKey => "panel.refactor";
         protected override string TooltipKey => "tooltip.refactor";
 
-        [MenuItem("Tools/NexUI/Designer/Advanced/Rename Refactor")]
         public static void Open() => GetWindow<RenameEditorWindow>();
 
         protected override void DrawBody()

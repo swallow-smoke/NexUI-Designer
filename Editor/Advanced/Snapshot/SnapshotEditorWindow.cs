@@ -16,7 +16,6 @@ namespace emiteat.NexUI.Designer.Editor.Snapshot
         protected override string TitleKey => "panel.snapshot";
         protected override string TooltipKey => "tooltip.snapshot";
 
-        [MenuItem("Tools/NexUI/Designer/Advanced/Snapshot")]
         public static void Open() => GetWindow<SnapshotEditorWindow>();
 
         protected override void DrawBody()

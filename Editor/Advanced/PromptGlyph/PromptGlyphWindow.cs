@@ -14,7 +14,6 @@ namespace emiteat.NexUI.Designer.Editor.PromptGlyph
         protected override string TitleKey => "panel.promptGlyph";
         protected override string TooltipKey => "tooltip.promptGlyph";
 
-        [MenuItem("Tools/NexUI/Designer/Advanced/Prompt Glyphs")]
         public static void Open() => GetWindow<PromptGlyphWindow>();
 
         protected override void DrawBody()

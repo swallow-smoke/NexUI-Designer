@@ -14,7 +14,6 @@ namespace emiteat.NexUI.Designer.Editor.AgentHandoff
         protected override string TitleKey => "panel.agentHandoff";
         protected override string TooltipKey => "tooltip.agentHandoff";
 
-        [MenuItem("Tools/NexUI/Designer/Advanced/AI Agent Handoff")]
         public static void Open() => GetWindow<AgentHandoffWindow>();
 
         protected override void DrawBody()

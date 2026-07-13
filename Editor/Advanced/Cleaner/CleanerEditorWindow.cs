@@ -14,7 +14,6 @@ namespace emiteat.NexUI.Designer.Editor.Cleaner
         protected override string TitleKey => "panel.cleaner";
         protected override string TooltipKey => "tooltip.cleaner";
 
-        [MenuItem("Tools/NexUI/Designer/Advanced/Dead Reference Cleaner")]
         public static void Open() => GetWindow<CleanerEditorWindow>();
 
         protected override void DrawBody()

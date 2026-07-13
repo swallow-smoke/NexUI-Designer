@@ -16,7 +16,6 @@ namespace emiteat.NexUI.Designer.Editor.Contracts
         protected override string TitleKey => "panel.contract";
         protected override string TooltipKey => "tooltip.contract";
 
-        [MenuItem("Tools/NexUI/Designer/Advanced/UI Contract")]
         public static void Open() => GetWindow<ContractEditorWindow>();
 
         protected override void DrawBody()

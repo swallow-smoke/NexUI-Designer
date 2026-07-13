@@ -20,6 +20,7 @@ namespace emiteat.NexUI.Designer.Editor.Common
         private Vector2 _scroll;
         private GUIStyle _headerBoxStyle;
         private GUIStyle _headerTitleStyle;
+        private GUIStyle _bodyStyle;
         private GUIStyle _sectionStyle;
         private GUIStyle _badgeStyleOk;
         private GUIStyle _badgeStyleWarning;
@@ -44,6 +45,7 @@ namespace emiteat.NexUI.Designer.Editor.Common
 
         protected virtual void OnEnable()
         {
+            minSize = new Vector2(380f, 280f);
             UpdateTitle();
             DesignerLocalization.LanguageChanged += UpdateTitle;
         }
@@ -72,6 +74,13 @@ namespace emiteat.NexUI.Designer.Editor.Common
                 fontSize = 13,
                 normal = { textColor = DesignerColors.TextHeading }
             };
+
+            _bodyStyle = new GUIStyle(EditorStyles.helpBox)
+            {
+                padding = new RectOffset(12, 12, 10, 12),
+                margin = new RectOffset(6, 6, 2, 8)
+            };
+            _bodyStyle.normal.background = MakeTex(DesignerColors.Panel);
 
             _sectionStyle = new GUIStyle(EditorStyles.boldLabel)
             {
@@ -106,6 +115,8 @@ namespace emiteat.NexUI.Designer.Editor.Common
         private void OnGUI()
         {
             EnsureStyles();
+            if (Event.current.type == EventType.Repaint)
+                EditorGUI.DrawRect(new Rect(0f, 0f, position.width, position.height), DesignerColors.Background);
 
             EditorGUILayout.Space(4);
             EditorGUILayout.BeginVertical(_headerBoxStyle);
@@ -115,7 +126,9 @@ namespace emiteat.NexUI.Designer.Editor.Common
             EditorGUILayout.Space(4);
 
             _scroll = EditorGUILayout.BeginScrollView(_scroll);
+            EditorGUILayout.BeginVertical(_bodyStyle);
             DrawBody();
+            EditorGUILayout.EndVertical();
             EditorGUILayout.EndScrollView();
         }
 

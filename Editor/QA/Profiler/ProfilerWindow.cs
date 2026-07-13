@@ -15,7 +15,6 @@ namespace emiteat.NexUI.Designer.Editor.Profiler
         protected override string TitleKey => "panel.profiler";
         protected override string TooltipKey => "tooltip.profiler";
 
-        [MenuItem("Tools/NexUI/Designer/QA/UI Profiler")]
         public static void Open() => GetWindow<ProfilerWindow>();
 
         protected override void DrawBody()

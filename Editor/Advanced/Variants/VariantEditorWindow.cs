@@ -17,7 +17,6 @@ namespace emiteat.NexUI.Designer.Editor.Variants
         protected override string TitleKey => "panel.variants";
         protected override string TooltipKey => "tooltip.variants";
 
-        [MenuItem("Tools/NexUI/Designer/Advanced/Screen Variants")]
         public static void Open() => GetWindow<VariantEditorWindow>();
 
         protected override void DrawBody()

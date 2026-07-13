@@ -16,7 +16,6 @@ namespace emiteat.NexUI.Designer.Editor.Contrast
         protected override string TitleKey => "panel.contrastChecker";
         protected override string TooltipKey => "tooltip.contrastChecker";
 
-        [MenuItem("Tools/NexUI/Designer/QA/Contrast Checker")]
         public static void Open() => GetWindow<ContrastWindow>();
 
         protected override void DrawBody()

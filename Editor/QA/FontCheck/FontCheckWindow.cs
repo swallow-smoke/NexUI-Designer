@@ -17,7 +17,6 @@ namespace emiteat.NexUI.Designer.Editor.FontCheck
         protected override string TitleKey => "panel.fontChecker";
         protected override string TooltipKey => "tooltip.fontChecker";
 
-        [MenuItem("Tools/NexUI/Designer/QA/Font Glyph Checker")]
         public static void Open() => GetWindow<FontCheckWindow>();
 
         protected override void DrawBody()

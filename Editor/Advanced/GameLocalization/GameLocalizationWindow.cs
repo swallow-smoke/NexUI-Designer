@@ -16,7 +16,6 @@ namespace emiteat.NexUI.Designer.Editor.GameLocalization
         protected override string TitleKey => "panel.gameLocalization";
         protected override string TooltipKey => "tooltip.gameLocalization";
 
-        [MenuItem("Tools/NexUI/Designer/Advanced/Game Localization")]
         public static void Open() => GetWindow<GameLocalizationWindow>();
 
         protected override void DrawBody()

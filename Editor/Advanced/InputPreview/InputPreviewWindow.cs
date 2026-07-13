@@ -16,7 +16,6 @@ namespace emiteat.NexUI.Designer.Editor.InputPreview
         protected override string TitleKey => "panel.inputPreview";
         protected override string TooltipKey => "tooltip.inputPreview";
 
-        [MenuItem("Tools/NexUI/Designer/Advanced/Input Mode Preview")]
         public static void Open() => GetWindow<InputPreviewWindow>();
 
         protected override void DrawBody()

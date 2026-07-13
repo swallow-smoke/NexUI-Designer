@@ -18,7 +18,6 @@ namespace emiteat.NexUI.Designer.Editor.MotionBudget
         protected override string TitleKey => "panel.motionBudget";
         protected override string TooltipKey => "tooltip.motionBudget";
 
-        [MenuItem("Tools/NexUI/Designer/Advanced/Motion Budget")]
         public static void Open() => GetWindow<MotionBudgetWindow>();
 
         protected override void DrawBody()

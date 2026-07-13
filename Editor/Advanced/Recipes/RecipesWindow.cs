@@ -15,7 +15,6 @@ namespace emiteat.NexUI.Designer.Editor.Recipes
         protected override string TitleKey => "panel.recipes";
         protected override string TooltipKey => "tooltip.recipes";
 
-        [MenuItem("Tools/NexUI/Designer/Advanced/UI Recipes")]
         public static void Open() => GetWindow<RecipesWindow>();
 
         protected override void DrawBody()

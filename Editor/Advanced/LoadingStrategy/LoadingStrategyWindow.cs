@@ -15,7 +15,6 @@ namespace emiteat.NexUI.Designer.Editor.LoadingStrategy
         protected override string TitleKey => "panel.loadingStrategy";
         protected override string TooltipKey => "tooltip.loadingStrategy";
 
-        [MenuItem("Tools/NexUI/Designer/Advanced/Loading Strategy")]
         public static void Open() => GetWindow<LoadingStrategyWindow>();
 
         protected override void DrawBody()

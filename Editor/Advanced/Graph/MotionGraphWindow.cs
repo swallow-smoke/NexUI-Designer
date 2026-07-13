@@ -18,7 +18,6 @@ namespace emiteat.NexUI.Designer.Editor.Graph
         [SerializeField] private UIMotionPreset _preset;
         private MotionGraphPanel _panel;
 
-        [MenuItem("Tools/NexUI/Designer/Advanced/Motion Graph")]
         public static void OpenFromMenu()
         {
             var window = GetWindow<MotionGraphWindow>();

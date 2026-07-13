@@ -22,7 +22,6 @@ namespace emiteat.NexUI.Designer.Editor.Sync
         protected override string TitleKey => "sync.window.title";
         protected override string TooltipKey => "sync.window.description";
 
-        [MenuItem("Tools/NexUI/Designer/Advanced/Sync & Publish")]
         public static void Open()
         {
             var window = GetWindow<SyncPublishWindow>();

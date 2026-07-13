@@ -27,7 +27,6 @@ namespace emiteat.NexUI.Designer.Editor.Backend
         protected override string TitleKey => "uxmlGen.window.title";
         protected override string TooltipKey => "uxmlGen.window.description";
 
-        [MenuItem("Tools/NexUI/Designer/Advanced/Generate UXML + USS")]
         public static void Open()
         {
             var window = GetWindow<UIToolkitGenerationWindow>();

@@ -15,7 +15,6 @@ namespace emiteat.NexUI.Designer.Editor.BindingProfiler
         protected override string TitleKey => "panel.bindingProfiler";
         protected override string TooltipKey => "tooltip.bindingProfiler";
 
-        [MenuItem("Tools/NexUI/Designer/QA/Binding Profiler")]
         public static void Open() => GetWindow<BindingProfilerWindow>();
 
         protected override void DrawBody()

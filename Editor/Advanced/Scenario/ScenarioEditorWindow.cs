@@ -37,7 +37,6 @@ namespace emiteat.NexUI.Designer.Editor.Scenario
         protected override string TitleKey => "scenario.window.title";
         protected override string TooltipKey => "scenario.window.description";
 
-        [MenuItem("Tools/NexUI/Designer/Advanced/Scenario Editor")]
         public static void Open()
         {
             var window = GetWindow<ScenarioEditorWindow>();

@@ -15,7 +15,6 @@ namespace emiteat.NexUI.Designer.Editor.FlowSimulator
         protected override string TitleKey => "panel.flowSimulator";
         protected override string TooltipKey => "tooltip.flowSimulator";
 
-        [MenuItem("Tools/NexUI/Designer/QA/Flow Simulator")]
         public static void Open() => GetWindow<FlowSimulatorWindow>();
 
         protected override void DrawBody()

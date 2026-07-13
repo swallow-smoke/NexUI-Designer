@@ -50,7 +50,8 @@ namespace emiteat.NexUI.Designer.Editor.UI.Shell
             _status.AddToClassList("nexui-toolbar-status");
             Add(_status);
 
-            Add(MakeButton(NexUIUtilitiesWindow.Open, "Utilities", "Open the unified NexUI tool collection.", "nexui-button-secondary"));
+            Add(MakeButton(NexUIUtilitiesWindow.Open, DesignerLocalization.T("utilities.title"),
+                DesignerLocalization.T("utilities.open.tooltip"), "nexui-button-secondary"));
             Add(MakeButton(context.ApplyMetadataToPreview, "Preview", DesignerLocalization.T("tooltip.toolbar.rebuild"), "nexui-button-secondary"));
             Add(MakeButton(context.Validate, DesignerLocalization.T("toolbar.validate"), DesignerLocalization.T("tooltip.toolbar.validate"), "nexui-button-secondary"));
             Add(MakeButton(() => context.Save(), DesignerLocalization.T("toolbar.save"), DesignerLocalization.T("tooltip.toolbar.save"), "nexui-button-primary"));
