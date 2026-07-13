@@ -7,6 +7,7 @@
         "emiteat.NexUI.State",
         "emiteat.NexUI.Motion",
         "emiteat.NexUI.MotionClip",
+        "emiteat.NexUI.MotionGraph",
         "emiteat.NexUI.Theme",
         "emiteat.NexUI.Components",
         "emiteat.NexUI.Query",
@@ -17,6 +18,7 @@
         "emiteat.NexUI.Integrations.UIToolkit",
         "emiteat.NexUI.Integrations.UGUI",
         "emiteat.NexUI.Designer.Runtime",
+        "UniTask",
         "Unity.TextMeshPro",
         "UnityEngine.UI"
     ],

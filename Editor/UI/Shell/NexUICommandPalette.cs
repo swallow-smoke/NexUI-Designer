@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using emiteat.NexUI.Designer.Editor.Backend;
 using emiteat.NexUI.Designer.Editor.Commands;
+using emiteat.NexUI.Designer.Editor.Utilities;
 using emiteat.NexUI.Designer.Editor.Viewport;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -82,6 +83,7 @@ namespace emiteat.NexUI.Designer.Editor.UI.Shell
             _entries.Add(new Entry("Open Validation Drawer", "drawer", () => _context.SetBottomTab(DesignerBottomTab.Validation), () => true));
             _entries.Add(new Entry("Open History Drawer", "drawer", () => _context.SetBottomTab(DesignerBottomTab.History), () => true));
             _entries.Add(new Entry("Open Graph Drawer", "drawer", () => _context.SetBottomTab(DesignerBottomTab.Graph), () => true));
+            _entries.Add(new Entry("Open Utilities", "tools setup quality motion", NexUIUtilitiesWindow.Open, () => true));
 
             foreach (var preset in DesignerResolutionPreset.Defaults)
             {

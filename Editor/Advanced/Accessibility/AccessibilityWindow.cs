@@ -1,11 +1,14 @@
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using emiteat.NexUI.Accessibility;
 using emiteat.NexUI.Designer.Editor.Common;
+using emiteat.NexUI.Designer.Editor.Components;
 
 namespace emiteat.NexUI.Designer.Editor.Accessibility
 {
-    /// <summary>Full UI for accessibility preference preview (§19).</summary>
+    /// <summary>Accessibility preference preview (§19) plus a screen audit (§35/§38): WCAG contrast,
+    /// touch-target size, and missing label/role over the open screen's elements.</summary>
     public sealed class AccessibilityWindow : NexUIToolWindow
     {
         [SerializeField] private bool _reduceMotion;
@@ -36,6 +39,36 @@ namespace emiteat.NexUI.Designer.Editor.Accessibility
             EditorGUILayout.LabelField("Preview effects", EditorStyles.boldLabel);
             foreach (var effect in AccessibilityService.Effects(pref))
                 EditorGUILayout.LabelField("• " + effect);
+
+            DrawAudit();
+        }
+
+        private void DrawAudit()
+        {
+            Section("accessibility.audit.title");
+
+            var context = Resources.FindObjectsOfTypeAll<NexUIDesignerWindow>().FirstOrDefault()?.Context;
+            var metadata = context?.Metadata;
+            if (metadata == null)
+            {
+                EditorGUILayout.HelpBox(T("accessibility.audit.noScreen"), MessageType.Info);
+                return;
+            }
+
+            var issues = DesignerAccessibilityAudit.Audit(
+                metadata.elements,
+                type => DesignerComponentRegistry.Get(type).IsInteractive,
+                AccessibilityAuditOptions.Default);
+
+            if (issues.Count == 0)
+            {
+                Badge(T("accessibility.audit.passed"), BadgeKind.Ok);
+                return;
+            }
+
+            foreach (var issue in issues)
+                EditorGUILayout.HelpBox(issue.Message,
+                    issue.Level == AccessibilityAuditIssue.Severity.Warning ? MessageType.Warning : MessageType.Info);
         }
     }
 }

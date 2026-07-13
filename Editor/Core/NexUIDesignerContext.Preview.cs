@@ -1,6 +1,8 @@
 using System;
 using emiteat.NexUI.Designer.Editor.Components;
+using emiteat.NexUI.MotionClip;
 using UnityEditor;
+using UnityEngine;
 
 namespace emiteat.NexUI.Designer.Editor
 {
@@ -20,7 +22,63 @@ namespace emiteat.NexUI.Designer.Editor
 
         public event Action PreviewSettingsChanged;
 
+        /// <summary>
+        /// The clip currently open in <c>MotionClipEditorWindow</c> (if any) and its scrub time, kept
+        /// here so <c>Viewport.MotionPathOverlay</c>/<c>OnionSkinOverlay</c> can draw without the
+        /// Viewport needing a direct reference to whichever Motion Clip Editor window is open.
+        /// </summary>
+        public UIMotionClip ActiveMotionClip { get; private set; }
+        public float ActiveMotionClipTime { get; private set; }
+        public bool ShowMotionPath { get; private set; } = true;
+        public bool ShowOnionSkin { get; private set; }
+        public bool ShowFocusNav { get; private set; }
+
+        public event Action ActiveMotionClipChanged;
+
+        public void SetActiveMotionClip(UIMotionClip clip, float time)
+        {
+            ActiveMotionClip = clip;
+            ActiveMotionClipTime = time;
+            ActiveMotionClipChanged?.Invoke();
+        }
+
+        public void SetActiveMotionClipTime(float time)
+        {
+            if (Mathf.Approximately(ActiveMotionClipTime, time)) return;
+            ActiveMotionClipTime = time;
+            ActiveMotionClipChanged?.Invoke();
+        }
+
+        public void SetShowMotionPath(bool show)
+        {
+            if (ShowMotionPath == show) return;
+            ShowMotionPath = show;
+            PreviewSettingsChanged?.Invoke();
+        }
+
+        public void SetShowOnionSkin(bool show)
+        {
+            if (ShowOnionSkin == show) return;
+            ShowOnionSkin = show;
+            PreviewSettingsChanged?.Invoke();
+        }
+
+        public void SetShowFocusNav(bool show)
+        {
+            if (ShowFocusNav == show) return;
+            ShowFocusNav = show;
+            PreviewSettingsChanged?.Invoke();
+        }
+
         public bool IsInteractive => InteractionMode == DesignerInteractionMode.Interactive;
+
+        /// <summary>
+        /// Requests a canvas repaint after an external tool has changed element preview values in
+        /// place (e.g. Scenario timeline scrubbing) without going through Undo/dirty. Deliberately
+        /// does not mark metadata dirty or record Undo — transient preview mutation only. Callers that
+        /// mutate preview values this way are responsible for restoring the authored values afterward.
+        /// </summary>
+        public void NotifyPreviewValuesChanged() => CanvasChanged?.Invoke();
 
         public void SetForcedPreviewState(DesignerComponentState state)
         {

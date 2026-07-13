@@ -26,6 +26,12 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
         private readonly VisualElement _floatingToolbar;
         private readonly PopupField<string> _statePopup;
         private readonly Button _interactiveToggle;
+        private readonly Button _motionPathToggle;
+        private readonly Button _onionSkinToggle;
+        private readonly Button _focusNavToggle;
+        private readonly MotionPathOverlay _motionPathOverlay;
+        private readonly OnionSkinOverlay _onionSkinOverlay;
+        private readonly FocusNavigationOverlay _focusNavOverlay;
 
         private static readonly List<string> PreviewStateChoices = new List<string>
         {
@@ -93,6 +99,23 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
             _interactiveToggle = new Button(() => _context.ToggleInteractionMode()) { tooltip = "Toggle Interactive Preview: hover/press/activate simulates commands (logged, never runs real game logic)." };
             _interactiveToggle.AddToClassList("nexui-toolbar-button");
             header.Add(_interactiveToggle);
+
+            // Motion Clip Editor helpers: only meaningful while a clip is open there for the selected element.
+            _motionPathToggle = new Button(() => _context.SetShowMotionPath(!_context.ShowMotionPath))
+            { text = DesignerLocalization.T("viewport.motionPath"), tooltip = DesignerLocalization.T("tooltip.viewport.motionPath") };
+            _motionPathToggle.AddToClassList("nexui-toolbar-button");
+            header.Add(_motionPathToggle);
+
+            _onionSkinToggle = new Button(() => _context.SetShowOnionSkin(!_context.ShowOnionSkin))
+            { text = DesignerLocalization.T("viewport.onionSkin"), tooltip = DesignerLocalization.T("tooltip.viewport.onionSkin") };
+            _onionSkinToggle.AddToClassList("nexui-toolbar-button");
+            header.Add(_onionSkinToggle);
+
+            _focusNavToggle = new Button(() => _context.SetShowFocusNav(!_context.ShowFocusNav))
+            { text = DesignerLocalization.T("viewport.focusNav"), tooltip = DesignerLocalization.T("tooltip.viewport.focusNav") };
+            _focusNavToggle.AddToClassList("nexui-toolbar-button");
+            header.Add(_focusNavToggle);
+
             _context.PreviewSettingsChanged += RefreshPreviewControls;
 
             _previewFrame = new ScrollView();
@@ -108,6 +131,9 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
             _guideLayer = new VisualElement();
             _guideLayer.AddToClassList("nexui-guide-layer");
             _guideLayer.pickingMode = PickingMode.Ignore;
+            _motionPathOverlay = new MotionPathOverlay(_context);
+            _onionSkinOverlay = new OnionSkinOverlay(_context);
+            _focusNavOverlay = new FocusNavigationOverlay(_context);
             _selectionRectOverlay = new VisualElement();
             _selectionRectOverlay.AddToClassList("nexui-selection-rect");
             _selectionRectOverlay.style.position = Position.Absolute;
@@ -129,6 +155,9 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
 
             _previewCanvas.Add(_gridLayer);
             _previewCanvas.Add(_elementLayer);
+            _previewCanvas.Add(_onionSkinOverlay);
+            _previewCanvas.Add(_motionPathOverlay);
+            _previewCanvas.Add(_focusNavOverlay);
             _previewCanvas.Add(_guideLayer);
             _previewCanvas.Add(_selectionRectOverlay);
             _previewCanvas.Add(_floatingToolbar);
@@ -447,6 +476,9 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
                 if (PreviewStateChoices.Contains(name) && _statePopup.value != name)
                     _statePopup.SetValueWithoutNotify(name);
             }
+            if (_motionPathToggle != null) _motionPathToggle.EnableInClassList("is-active", _context.ShowMotionPath);
+            if (_onionSkinToggle != null) _onionSkinToggle.EnableInClassList("is-active", _context.ShowOnionSkin);
+            if (_focusNavToggle != null) _focusNavToggle.EnableInClassList("is-active", _context.ShowFocusNav);
         }
 
         private void ApplyRect(VisualElement view, Rect rect)

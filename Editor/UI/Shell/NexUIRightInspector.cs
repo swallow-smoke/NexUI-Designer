@@ -1,3 +1,4 @@
+using emiteat.NexUI.Designer.Editor.FocusNav;
 using emiteat.NexUI.Designer.Editor.Inspectors;
 using emiteat.NexUI.Designer.Editor.Panels;
 using emiteat.NexUI.Designer.Editor.UI.Controls;
@@ -96,6 +97,7 @@ namespace emiteat.NexUI.Designer.Editor.UI.Shell
             _host.Add(new BindingInspector(_context));
             _host.Add(new NexUIDesignerStatePanel(_context));
             _host.Add(new NexUIDesignerCommandPanel(_context));
+            _host.Add(new FocusNavigationPanel(_context));
             _host.Add(new ValidationInspector(_context));
             if (DesignerEditMode.IsAdvanced)
                 _host.Add(new PolicyInspector(_context));

@@ -459,6 +459,96 @@
     background-color: var(--nexui-bg-hover);
 }
 
+/* ---------------------------------------------------------------------------- utilities hub */
+
+.nexui-utilities-root {
+    padding: 0;
+    background-color: var(--nexui-bg-window);
+}
+
+.nexui-utilities-header {
+    padding: 18px 20px 14px 20px;
+    border-bottom-width: 1px;
+    border-bottom-color: var(--nexui-border);
+    background-color: var(--nexui-bg-panel);
+}
+
+.nexui-utilities-title {
+    color: var(--nexui-text-primary);
+    font-size: 20px;
+    -unity-font-style: bold;
+}
+
+.nexui-utilities-subtitle,
+.nexui-utilities-section-subtitle {
+    margin-top: 3px;
+    color: var(--nexui-text-secondary);
+    font-size: 11px;
+}
+
+.nexui-utilities-search {
+    height: 32px;
+    margin: 14px 20px 6px 20px;
+}
+
+.nexui-utilities-content {
+    flex-grow: 1;
+    padding: 0 20px 20px 20px;
+}
+
+.nexui-utilities-section {
+    margin-top: 14px;
+    margin-bottom: 8px;
+}
+
+.nexui-utilities-section-title {
+    color: var(--nexui-text-primary);
+    font-size: 13px;
+    -unity-font-style: bold;
+}
+
+.nexui-utilities-grid {
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+.nexui-utility-card {
+    width: 48.5%;
+    min-height: 68px;
+    margin-right: 1.5%;
+    margin-bottom: 8px;
+    padding: 10px 12px;
+    align-items: flex-start;
+    border-width: 1px;
+    border-color: var(--nexui-border);
+    border-radius: 7px;
+    background-color: var(--nexui-bg-raised);
+}
+
+.nexui-utility-card:hover {
+    border-color: var(--nexui-accent);
+    background-color: var(--nexui-bg-hover);
+}
+
+.nexui-utility-card-title {
+    color: var(--nexui-text-primary);
+    font-size: 11px;
+    -unity-font-style: bold;
+}
+
+.nexui-utility-card-description {
+    margin-top: 4px;
+    color: var(--nexui-text-secondary);
+    font-size: 10px;
+    white-space: normal;
+}
+
+.nexui-utilities-empty {
+    margin-top: 28px;
+    color: var(--nexui-text-secondary);
+    -unity-text-align: middle-center;
+}
+
 .nexui-designer-root Label,
 .nexui-designer-root Button,
 .nexui-designer-root ToolbarButton,
@@ -1609,4 +1699,66 @@
     -unity-font-style: bold;
     color: #f5f6f8;
     margin-bottom: 4px;
+}
+
+.nexui-status-row {
+    flex-direction: row;
+    align-items: center;
+    padding-left: 6px;
+    padding-top: 2px;
+    padding-bottom: 2px;
+    border-bottom-width: 1px;
+    border-bottom-color: #2a2e35;
+}
+
+.nexui-timeline-tick {
+    position: absolute;
+    top: 0;
+    width: 1px;
+    height: 8px;
+    background-color: #3a3f48;
+}
+
+.nexui-timeline-tick-label {
+    position: absolute;
+    top: 9px;
+    font-size: 9px;
+    color: #8a909b;
+}
+
+.nexui-timeline-playhead {
+    position: absolute;
+    top: 0;
+    width: 1px;
+    height: 100%;
+    background-color: #43e6c2;
+}
+
+.nexui-timeline-keyframe-selected {
+    border-color: #6d5efc;
+    background-color: #6d5efc;
+}
+
+.nexui-timeline-row-selected {
+    background-color: #1d2029;
+}
+
+.nexui-timeline-workarea {
+    top: 0;
+    height: 100%;
+    background-color: rgba(109, 94, 252, 0.18);
+    border-left-width: 1px;
+    border-right-width: 1px;
+    border-left-color: #6d5efc;
+    border-right-color: #6d5efc;
+}
+
+.nexui-timeline-marker {
+    position: absolute;
+    top: 2px;
+    width: 8px;
+    height: 8px;
+    background-color: #fbbf24;
+    border-radius: 2px;
+    rotate: 45deg;
 }

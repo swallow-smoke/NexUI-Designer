@@ -22,8 +22,8 @@ namespace emiteat.NexUI.Samples
         {
             // Open the "ControllerMode" variant of the Inventory screen.
             // Bare `NexUI` resolves to the namespace inside the emiteat.NexUI.* tree, so
-            // the static facade is referenced as Core.NexUI.
-            await Core.NexUI.OpenAsync("Inventory", new UIOpenArgs { variantId = "ControllerMode" });
+            // the static facade is referenced as Core.NexUIApp.
+            await Core.NexUIApp.OpenAsync("Inventory", new UIOpenArgs { variantId = "ControllerMode" });
         }
 
         private string ResumeLabel()

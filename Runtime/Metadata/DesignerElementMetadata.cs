@@ -95,6 +95,7 @@ namespace emiteat.NexUI.Designer
         public DesignerThemeMetadata theme = new DesignerThemeMetadata();
         public DesignerAutoLayoutMetadata autoLayout = new DesignerAutoLayoutMetadata();
         public DesignerConstraintMetadata constraint = new DesignerConstraintMetadata();
+        public DesignerFocusMetadata focus = new DesignerFocusMetadata();
         public bool locked;
         public bool hiddenInDesigner;
 

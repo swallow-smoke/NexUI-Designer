@@ -4,6 +4,8 @@
     "references": [
         "emiteat.NexUI.Abstractions",
         "emiteat.NexUI.Core",
+        "emiteat.NexUI.MotionClip",
+        "emiteat.NexUI.Accessibility",
         "emiteat.NexUI.Designer.Runtime",
         "emiteat.NexUI.Designer.Editor",
         "UnityEngine.TestRunner",
