@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using emiteat.NexUI.Designer.Editor.Scenario;
 using NUnit.Framework;
+using UnityEngine;
 
 namespace emiteat.NexUI.Designer.Tests.EditMode
 {
@@ -104,6 +105,31 @@ namespace emiteat.NexUI.Designer.Tests.EditMode
         {
             Assert.IsEmpty(ScenarioTimelineEvaluator.EvaluateAt(null, 1f));
             Assert.IsEmpty(ScenarioTimelineEvaluator.EvaluateAt(new List<DesignerScenarioTimelineKey>(), 1f));
+        }
+
+        [Test]
+        public void SpriteAndListKeys_StepAndCopyMutableList()
+        {
+            var sprite = Sprite.Create(Texture2D.whiteTexture, new Rect(0, 0, 1, 1), Vector2.zero);
+            var sourceItems = new List<string> { "Sword", "Potion" };
+            try
+            {
+                var keys = new List<DesignerScenarioTimelineKey>
+                {
+                    new DesignerScenarioTimelineKey(0f, "icon", DesignerScenarioValueKind.Sprite) { spriteValue = sprite },
+                    new DesignerScenarioTimelineKey(0f, "items", DesignerScenarioValueKind.List) { listValue = sourceItems }
+                };
+
+                var result = ScenarioTimelineEvaluator.EvaluateAt(keys, .5f);
+                Assert.AreSame(sprite, result.Single(x => x.key == "icon").spriteValue);
+                var evaluatedItems = result.Single(x => x.key == "items").listValue;
+                CollectionAssert.AreEqual(sourceItems, evaluatedItems);
+                Assert.AreNotSame(sourceItems, evaluatedItems, "evaluation must not expose the asset's mutable list");
+            }
+            finally
+            {
+                Object.DestroyImmediate(sprite);
+            }
         }
 
         private static float Value(List<DesignerScenarioTimelineKey> keys, float time) => Single(keys, time).numberValue;

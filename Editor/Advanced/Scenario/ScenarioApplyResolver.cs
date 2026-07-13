@@ -16,8 +16,12 @@ namespace emiteat.NexUI.Designer.Editor.Scenario
         public string Text;
         public bool SetHidden;
         public bool Hidden;
+        public bool SetPreviewImage;
+        public UnityEngine.Texture2D PreviewImage;
+        public bool SetPreviewItemCount;
+        public int PreviewItemCount;
 
-        public bool HasAnyChange => SetPreviewValue || SetText || SetHidden;
+        public bool HasAnyChange => SetPreviewValue || SetText || SetHidden || SetPreviewImage || SetPreviewItemCount;
     }
 
     /// <summary>
@@ -57,8 +61,21 @@ namespace emiteat.NexUI.Designer.Editor.Scenario
 
                 if (TryGet(byKey, element.binding.valueKey, out var valueBinding))
                 {
-                    change.SetPreviewValue = true;
-                    change.PreviewValue = ValueOf(valueBinding);
+                    if (valueBinding.kind == DesignerScenarioValueKind.Sprite)
+                    {
+                        change.SetPreviewImage = true;
+                        change.PreviewImage = valueBinding.spriteValue != null ? valueBinding.spriteValue.texture : null;
+                    }
+                    else if (valueBinding.kind == DesignerScenarioValueKind.List)
+                    {
+                        change.SetPreviewItemCount = true;
+                        change.PreviewItemCount = valueBinding.listValue?.Count ?? 0;
+                    }
+                    else
+                    {
+                        change.SetPreviewValue = true;
+                        change.PreviewValue = ValueOf(valueBinding);
+                    }
                 }
 
                 if (TryGet(byKey, element.binding.textKey, out var textBinding) &&

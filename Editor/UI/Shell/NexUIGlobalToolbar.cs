@@ -1,6 +1,8 @@
 using emiteat.NexUI.Core;
 using emiteat.NexUI.Designer.Editor.Localization;
 using emiteat.NexUI.Designer.Editor.Utilities;
+using emiteat.NexUI.Designer.Editor.Productivity;
+using emiteat.NexUI.Designer.Editor.Scenario;
 using UnityEditor.UIElements;
 using UnityEngine.UIElements;
 
@@ -19,6 +21,8 @@ namespace emiteat.NexUI.Designer.Editor.UI.Shell
             brand.AddToClassList("nexui-global-brand");
             Add(brand);
 
+            Add(MakeButton(DesignerScreenCreationWindow.Open, "+ " + DesignerLocalization.T("productivity.newScreen"), DesignerLocalization.T("productivity.tooltip.newScreen"), "nexui-button-secondary"));
+
             var screen = new ObjectField
             {
                 objectType = typeof(UIScreenDefinition),
@@ -33,6 +37,17 @@ namespace emiteat.NexUI.Designer.Editor.UI.Shell
             _backend = new Label("Backend");
             _backend.AddToClassList("nexui-backend-badge");
             Add(_backend);
+
+            var scenario = new ObjectField
+            {
+                objectType = typeof(DesignerScenarioAsset),
+                allowSceneObjects = false,
+                label = DesignerLocalization.T("productivity.scenario"),
+                tooltip = "선택한 Mock Data 시나리오를 현재 화면에 적용합니다."
+            };
+            scenario.AddToClassList("nexui-global-screen");
+            scenario.RegisterValueChangedCallback(evt => ScenarioService.Apply(evt.newValue as DesignerScenarioAsset, context));
+            Add(scenario);
 
             var mode = new Button(() =>
                 DesignerEditMode.Current = DesignerEditMode.IsAdvanced ? DesignerMode.Simple : DesignerMode.Advanced)

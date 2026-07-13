@@ -4,6 +4,7 @@ using emiteat.NexUI.Designer.Editor.Components;
 using emiteat.NexUI.Designer.Editor.Localization;
 using UnityEditor;
 using UnityEngine;
+using emiteat.NexUI.Theme;
 
 namespace emiteat.NexUI.Designer.Editor.Scenario
 {
@@ -73,6 +74,8 @@ namespace emiteat.NexUI.Designer.Editor.Scenario
                             if (change.SetPreviewValue) e.previewValue = change.PreviewValue;
                             if (change.SetText) e.text = change.Text;
                             if (change.SetHidden) e.hiddenInDesigner = change.Hidden;
+                            if (change.SetPreviewImage) e.previewImage = change.PreviewImage;
+                            if (change.SetPreviewItemCount) e.previewItemCount = change.PreviewItemCount;
                         }, "Apply Scenario");
                     }
                 });
@@ -91,6 +94,22 @@ namespace emiteat.NexUI.Designer.Editor.Scenario
             {
                 DesignerLocalization.SetLanguage(language);
                 report.Messages.Add($"Language → {language}");
+            }
+
+            if (scenario.resolution.x > 0 && scenario.resolution.y > 0)
+            {
+                context.SetResolution(scenario.resolution);
+                report.Messages.Add($"Resolution → {scenario.resolution.x}x{scenario.resolution.y}");
+            }
+            if (!string.IsNullOrEmpty(scenario.inputDevice))
+            {
+                context.SetInputMode(scenario.inputDevice);
+                report.Messages.Add($"Input → {scenario.inputDevice}");
+            }
+            if (!string.IsNullOrEmpty(scenario.theme))
+            {
+                context.SetTheme(scenario.theme);
+                report.Messages.Add($"Theme → {scenario.theme}");
             }
 
             report.Messages.Insert(0, $"{report.ElementsChanged} element(s) updated.");
@@ -122,6 +141,8 @@ namespace emiteat.NexUI.Designer.Editor.Scenario
                 if (change.SetPreviewValue) element.previewValue = change.PreviewValue;
                 if (change.SetText) element.text = change.Text;
                 if (change.SetHidden) element.hiddenInDesigner = change.Hidden;
+                if (change.SetPreviewImage) element.previewImage = change.PreviewImage;
+                if (change.SetPreviewItemCount) element.previewItemCount = change.PreviewItemCount;
             }
             context.NotifyPreviewValuesChanged();
             return changes.Count;
@@ -162,6 +183,9 @@ namespace emiteat.NexUI.Designer.Editor.Scenario
             scenario.forcedState = context.ForcedPreviewState == DesignerComponentState.Normal
                 ? string.Empty : context.ForcedPreviewState.ToString();
             scenario.language = DesignerLocalization.CurrentLanguage.ToString();
+            scenario.resolution = context.Resolution;
+            scenario.inputDevice = context.InputMode ?? string.Empty;
+            scenario.theme = NexUITheme.Active != null ? NexUITheme.Active.themeId : string.Empty;
 
             EditorUtility.SetDirty(scenario);
         }

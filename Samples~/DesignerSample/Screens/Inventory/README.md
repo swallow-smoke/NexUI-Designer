@@ -23,4 +23,4 @@
 6. Runtime 구성에서 `TemplateCommands.RegisterInventory(actionResolver, stateStore)`를 호출합니다.
 7. 화면을 열고 슬롯 선택, 빈 슬롯, Equip, Close를 확인합니다.
 
-`InventorySampleModel`은 샘플 검증용이며 실제 게임 인벤토리 시스템이 아닙니다. 현재 Motion Trigger의 모든 Backend 자동 배선은 Partial이므로, 저장된 Binding과 직접 Motion 재생 경로를 함께 확인하십시오.
+`InventorySampleModel`은 샘플 검증용이며 실제 게임 인벤토리 시스템이 아닙니다. Runtime Surface가 열린 뒤 `DesignerMotionTriggerRuntime`을 Metadata의 `screenMotion`과 연결하면 Click/Pointer/Focus Trigger가 두 Backend의 공통 Capability를 통해 실행됩니다. 화면·Command Lifecycle은 `Enter`/`Exit`/`Notify`를 호출하십시오.

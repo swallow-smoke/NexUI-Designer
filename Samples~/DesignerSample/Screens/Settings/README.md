@@ -1,6 +1,6 @@
 # Settings Template Screen
 
-A settings menu window with volume rows and Back/Apply buttons. Demonstrates a Window-layer, single-instance screen with default focus and an Apply command stub.
+A settings menu window with volume rows and Back/Apply buttons. Demonstrates a Window-layer, single-instance screen with default focus and a working sample Apply command.
 
 ## Files
 
@@ -14,4 +14,4 @@ A settings menu window with volume rows and Back/Apply buttons. Demonstrates a W
 1. Open `Tools/NexUI/Designer`.
 2. Assign `Settings.UIToolkit.asset` (or the `.UGUI` variant) as the open screen, and `Settings.Metadata.asset` as its metadata.
 3. Click **Rebuild Preview** / **Validate** to see the layout.
-4. Command bindings on interactive elements are wired to no-op stub commands in `TemplateCommands.cs` (see `Scripts/TemplateCommands.cs`) — replace `CommandId` handlers with real gameplay logic in your own project.
+4. `TemplateCommands.RegisterAll`을 호출하면 Apply가 `settings.applied` 상태를 변경하고 Back은 화면 Stack을 닫습니다. 게임 프로젝트에서는 같은 Command ID를 자체 로직으로 교체하세요.

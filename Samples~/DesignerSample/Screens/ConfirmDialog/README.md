@@ -1,6 +1,6 @@
 # ConfirmDialog Template Screen
 
-A modal confirm/cancel popup. Demonstrates Modal layer, trap-focus policy, additive open policy, and two command bindings (confirm stub / nexui.close).
+A modal confirm/cancel popup. Demonstrates Modal layer, trap-focus policy, additive open policy, and two working sample command bindings (confirm / nexui.close).
 
 ## Files
 
@@ -14,4 +14,4 @@ A modal confirm/cancel popup. Demonstrates Modal layer, trap-focus policy, addit
 1. Open `Tools/NexUI/Designer`.
 2. Assign `ConfirmDialog.UIToolkit.asset` (or the `.UGUI` variant) as the open screen, and `ConfirmDialog.Metadata.asset` as its metadata.
 3. Click **Rebuild Preview** / **Validate** to see the layout.
-4. Command bindings on interactive elements are wired to no-op stub commands in `TemplateCommands.cs` (see `Scripts/TemplateCommands.cs`) — replace `CommandId` handlers with real gameplay logic in your own project.
+4. `TemplateCommands.RegisterAll`을 호출하면 Confirm이 `confirmDialog.result`를 갱신하고 Modal을 닫으며 Cancel은 화면 Stack을 닫습니다. 게임 프로젝트에서는 같은 Command ID를 자체 로직으로 교체하세요.

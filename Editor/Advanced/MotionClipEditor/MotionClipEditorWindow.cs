@@ -152,6 +152,19 @@ namespace emiteat.NexUI.Designer.Editor.MotionClipEditor
             DesignerTooltip.Set(createButton, "tooltip.motionClip.createClip", "Ctrl+N");
             toolbar.Add(createButton);
 
+            var importButton = MakeButton(() =>
+            {
+                if (Selection.activeObject is AnimationClip)
+                {
+                    MotionClipConversionMenu.ImportSelected();
+                    _clip = Selection.activeObject as UIMotionClip;
+                    BuildUI();
+                }
+            }, "AnimationClip 가져오기", "nexui-button-secondary");
+            importButton.SetEnabled(Selection.activeObject is AnimationClip);
+            importButton.tooltip = "Project에서 선택한 AnimationClip을 Motion Clip 에셋으로 변환합니다.";
+            toolbar.Add(importButton);
+
             _addTrackButton = MakeButton(AddTrackFromSelection, DesignerLocalization.T("motionClip.toolbar.addTrackFromSelection"), "nexui-button-secondary");
             toolbar.Add(_addTrackButton);
             RefreshAddTrackButtonState();
@@ -232,6 +245,10 @@ namespace emiteat.NexUI.Designer.Editor.MotionClipEditor
                 var saveButton = MakeButton(() => AssetDatabase.SaveAssets(), DesignerLocalization.T("motionClip.toolbar.save"), "nexui-button-secondary");
                 DesignerTooltip.Set(saveButton, "tooltip.motionClip.save", "Ctrl+S");
                 toolbar.Add(saveButton);
+
+                var exportButton = MakeButton(() => MotionClipConversionMenu.Export(_clip), "AnimationClip 내보내기", "nexui-button-secondary");
+                exportButton.tooltip = "현재 Motion Clip을 uGUI GameObject용 AnimationClip으로 내보냅니다.";
+                toolbar.Add(exportButton);
 
                 toolbar.Add(BuildWorkAreaControls());
             }

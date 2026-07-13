@@ -2,6 +2,8 @@
 
 `Ctrl`은 macOS에서 `Command`로 사용할 수 있습니다. 아래는 코드에 등록된 Designer 단축키입니다.
 
+`Tools > NexUI > Designer > Preferences > 단축키 설정`에서 Command별 Key와 Ctrl/Shift/Alt 조합을 변경하고 중복 조합을 확인할 수 있습니다.
+
 | 단축키 | 기능 | 사용 위치 | 비고 |
 |---|---|---|---|
 | `Ctrl+S` | Save | Designer Window | Unity 전체 저장과 별도 처리 |
@@ -20,4 +22,3 @@
 | `F` | 선택 항목 보기 | Canvas | |
 | `Shift` 클릭 | 범위/추가 선택 | Canvas/Layers/Timeline | 위치에 따라 범위 기준 다름 |
 | `Ctrl/Command` 클릭 | 선택 토글 | Canvas/Layers/Timeline | |
-

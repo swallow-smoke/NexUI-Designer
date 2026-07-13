@@ -703,4 +703,12 @@
   "tooltip.sync.reviewDiff": "파일과 생성 결과의 라인 단위 차이를 봅니다(+ 추가, - 제거).",
   "tooltip.sync.dryRun": "쓰지 않고, 각 화면이 Publish될지/건너뛸지/해결이 필요한지 보고합니다.",
   "tooltip.sync.publish": "신규·Designer 변경 화면만 파일로 씁니다. 동기화됨은 건너뛰고, 백엔드 변경·충돌은 해결 필요로 보고합니다."
+  ,"productivity.newScreen": "새 화면"
+  ,"productivity.layout": "레이아웃 정리"
+  ,"productivity.transition": "전환"
+  ,"productivity.scenario": "시나리오"
+  ,"productivity.fixAllSafe": "안전한 문제 모두 수정"
+  ,"productivity.tooltip.newScreen": "Screen, Metadata와 Backend 에셋을 한 번에 연결해 만듭니다."
+  ,"productivity.tooltip.layout": "선택 요소를 Auto Layout으로 정리하거나 Anchor를 추천합니다."
+  ,"productivity.tooltip.transition": "선택 요소에서 Open/Close Motion Clip을 생성합니다."
 }

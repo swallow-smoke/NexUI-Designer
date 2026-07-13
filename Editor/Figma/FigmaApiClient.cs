@@ -15,13 +15,9 @@ namespace emiteat.NexUI.Integrations.Figma
     }
 
     /// <summary>
-    /// C5 (first slice): thin wrapper over the Figma REST API's authentication surface.
-    /// Confirms a personal access token works and can pull a file's raw JSON document. The
-    /// frame -&gt; NexUI element mapping (Auto Layout conversion, text layers, coordinate
-    /// conversion, nested components, auto-binding by name) is deliberately out of scope for
-    /// this slice - Figma's node JSON is a deeply recursive, polymorphic tree that needs a
-    /// dedicated parser/mapper, not <see cref="JsonUtility"/>. This class only proves the
-    /// connection works so that mapper has something real to build on.
+    /// Thin wrapper over the Figma REST API authentication and file surfaces. Mapping the fetched
+    /// document is intentionally kept in <see cref="FigmaDocumentImporter"/> so transport and
+    /// Designer mutation remain independently testable.
     /// </summary>
     public static class FigmaApiClient
     {

@@ -5,26 +5,35 @@
 | 기능 | 상태 | uGUI | UI Toolkit | 비고 |
 |---|---|---|---|---|
 | 단일·다중·박스 선택 | 지원 | 지원 | 지원 | Metadata Canvas 공통 |
-| 이동·크기·정렬·Group | 지원 | 지원 | 지원 | Undo 지원 |
-| Auto Layout/Constraints | 부분 지원 | 부분 지원 | 부분 지원 | Metadata/Preview 중심 |
+| 이동·크기·정렬·Group | 지원 | 지원 | 지원 | Undo, Key Object 정렬 지원 |
+| Auto Layout/Constraints | 부분 지원 | 지원 | 지원 | Row/Column/Grid 저장 지원, Constraints 일부 Preview 중심 |
 | Component Registry | 지원 | 부분 지원 | 부분 지원 | Component별 Backend support 확인 |
-| Text/Value/Visibility/Class/Command Binding | 부분 지원 | 지원 | 지원 | Runtime Key 등록 필요 |
-| Designer Preview/Interactive Log | 부분 지원 | 지원 | 지원 | 실제 Command는 실행하지 않음 |
-| Scenario Apply/Timeline | 실험적 | 공통 | 공통 | Preview Metadata 변경 |
+| Text/Value/Visibility/Class/Command Binding | 지원 | 지원 | 지원 | 프로젝트가 Runtime Key를 등록 |
+| Designer Preview/Interactive Log | 지원 | 지원 | 지원 | 안전을 위해 Command 실행 대신 Simulation Log |
+| Scenario Apply/Timeline | 지원 | 공통 | 공통 | Bool/Number/Text/Sprite/List, Preview 환경 복원 |
 | Validation/Save Report | 지원 | 지원 | 지원 | 일부 프로젝트 계약은 Warning |
 | uGUI Prefab 저장 | 부분 지원 | 부분 지원 | 해당 없음 | 기본 Rect/Image/Text/Button/Fill |
-| UI Toolkit 일반 Save | 부분 지원 | 해당 없음 | 부분 지원 | Metadata 저장·UXML 이름 검증 |
+| UI Toolkit 일반 Save | 지원 | 해당 없음 | 지원 | Generated UXML/USS 안전 재생성, 사용자 파일 보존 |
 | `.g.uxml/.g.uss` 생성 | 지원 | 해당 없음 | 지원 | 별도 Generation 도구 |
 | Motion Clip 편집/직접 재생 | 지원 | 지원 | 지원 | 일부 Property 차이 |
-| Motion Trigger 자동 Runtime 연결 | 부분 지원 | 부분 지원 | 부분 지원 | 데이터 저장은 지원 |
+| Motion Trigger Runtime 연결 | 지원 | 지원 | 지원 | Capability 자동 구독 + Lifecycle Notify API |
 | Legacy Motion Graph | 부분 지원 | 공통 | 공통 | 단일 Preset Dependency Graph |
 | Motion Graph (v2) | 실험적 | 공통 | 공통 | Event/Flow 실행 Preview |
 | Motion State Machine | 실험적 | 공통 | 공통 | Transition Clip Preview |
-| AnimationClip Import/Export | 미지원 | 미지원 | 미지원 | `NotImplementedException` Stub |
-| Figma 인증/JSON 조회 | 실험적 | 공통 | 공통 | 변환/Import/Sync 없음 |
-| Migration Scan/Apply | 부분 지원 | 공통 | 공통 | `.bak`, 직접 메뉴 없음 |
-| Runtime Snapshot/Overlay | 부분 지원 | 공통 | 공통 | Core 구현, 직접 메뉴 없음 |
+| AnimationClip Import/Export | 지원 | 지원 | 변환 에셋 공통 | Rect/Transform/CanvasGroup 지원 |
+| Figma 인증/조회/Frame Import | Beta | 공통 | 공통 | 계층·좌표·Text·Solid Fill·Auto Layout, Sync 제외 |
+| Migration Scan/Apply | 지원 | 공통 | 공통 | Utilities 메뉴, 변경 전 `.bak` 생성 |
+| Runtime Snapshot/Overlay | 지원 | 공통 | 공통 | Metadata/Live Preview Capture와 Diff 메뉴 |
 | Screen Flow/Design Token | 실험적 | 공통 | 공통 | 고급 도구, 수동 검증 필요 |
 
 장기 목표는 [목표 기능 명세](feature-specification.md), 구체적인 제약은 [알려진 제한](known-limitations.md)을 확인해 주세요.
+# 생산성 기능 상태
 
+| 기능 | 상태 | uGUI | UI Toolkit | 테스트 | 비고 |
+|---|---|---:|---:|---:|---|
+| 화면 생성 마법사 | Beta | Yes | Yes | Partial | 기존 파일 보호 및 실패 롤백 |
+| Transition Preset | Beta | Yes | Yes | Yes | 기존 Motion Clip 에셋 사용 |
+| Preview Scenario Sprite/List | Complete | Common | Common | Yes | 정적 Apply와 Timeline |
+| Auto Layout 감지/변환 | Complete | Yes | Yes | Yes | Row/Column/Grid |
+| Anchor 추천 | Beta | Common | Common | Yes | Rect 보존 |
+| Validation Auto Fix | Beta | Yes | Partial | Partial | 위험한 수정은 확인 필요 |

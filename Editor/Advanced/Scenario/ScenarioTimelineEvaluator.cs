@@ -6,7 +6,7 @@ namespace emiteat.NexUI.Designer.Editor.Scenario
     /// <summary>
     /// Pure evaluation of a scenario timeline at a point in time (brief §35.2). For each distinct
     /// binding key, finds the value active at <c>time</c>: numeric keys interpolate linearly between
-    /// the two surrounding keyframes, bool/text keys step (hold the previous keyframe's value). The
+    /// the two surrounding keyframes, while bool/text/sprite/list keys step (hold the previous keyframe's value). The
     /// result is a set of <see cref="DesignerScenarioBinding"/> that feeds the same
     /// <see cref="ScenarioApplyResolver"/> a static scenario uses — so timeline playback drives the
     /// canvas through exactly one, already-tested apply path. No Unity Editor dependency.
@@ -66,7 +66,9 @@ namespace emiteat.NexUI.Designer.Editor.Scenario
             {
                 boolValue = prev.boolValue,
                 numberValue = prev.numberValue,
-                textValue = prev.textValue
+                textValue = prev.textValue,
+                spriteValue = prev.spriteValue,
+                listValue = prev.listValue != null ? new List<string>(prev.listValue) : new List<string>()
             };
 
             // Numeric interpolation between prev and the next keyframe of the same kind.

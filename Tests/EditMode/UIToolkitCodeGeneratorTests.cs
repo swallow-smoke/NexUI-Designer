@@ -184,6 +184,32 @@ namespace emiteat.NexUI.Designer.Tests.EditMode
             StringAssert.Contains("flex-grow: 1;", uss);
         }
 
+        [Test]
+        public void GridLayout_EmitsWrappingContainerAndFixedCellSize()
+        {
+            var grid = El("grid", "Grid", new Rect(0, 0, 240, 240));
+            grid.autoLayout.enabled = true;
+            grid.autoLayout.direction = DesignerAutoLayoutDirection.Grid;
+            grid.autoLayout.gridColumns = 3;
+            grid.autoLayout.gridCellWidth = 64;
+            grid.autoLayout.gridCellHeight = 48;
+            var child = El("slot", "Slot", new Rect(0, 0, 10, 10), parentId: "grid");
+
+            var uss = UIToolkitCodeGenerator.GenerateUss(Metadata(grid, child));
+
+            StringAssert.Contains("flex-direction: row;", RuleFor(uss, "grid"));
+            StringAssert.Contains("flex-wrap: wrap;", RuleFor(uss, "grid"));
+            StringAssert.Contains("width: 64px;", RuleFor(uss, "slot"));
+            StringAssert.Contains("height: 48px;", RuleFor(uss, "slot"));
+        }
+
+        [Test]
+        public void Uxml_WithStylesheet_ReferencesGeneratedUss()
+        {
+            var uxml = UIToolkitCodeGenerator.GenerateUxml(Metadata(), "Inventory.uss");
+            StringAssert.Contains("<Style src=\"Inventory.uss\" />", uxml);
+        }
+
         private static string RuleFor(string uss, string id)
         {
             var start = uss.IndexOf("#" + id + " {", System.StringComparison.Ordinal);

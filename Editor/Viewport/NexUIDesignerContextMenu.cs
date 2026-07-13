@@ -4,6 +4,8 @@ using emiteat.NexUI.Designer.Editor.Backend;
 using emiteat.NexUI.Designer.Editor.MotionClipEditor;
 using UnityEditor;
 using UnityEngine;
+using emiteat.NexUI.Designer.Editor.Productivity;
+using emiteat.NexUI.Designer.Editor.Scenario;
 
 namespace emiteat.NexUI.Designer.Editor.Viewport
 {
@@ -148,6 +150,55 @@ namespace emiteat.NexUI.Designer.Editor.Viewport
 
             menu.AddSeparator("");
             menu.AddItem(new GUIContent("Create Motion Clip From Selection"), false, () => OpenMotionClipEditor(context, primary));
+            menu.AddItem(new GUIContent("생산성/전환 프리셋 적용"), false, () => DesignerTransitionPresetWindow.Open(context));
+            if (context.Metadata?.screenMotion?.entryClip != null)
+            {
+                menu.AddItem(new GUIContent("생산성/전환/Open 미리보기"), false,
+                    () => DesignerTransitionPresetService.Preview(context, context.Metadata.screenMotion.entryClip));
+                menu.AddItem(new GUIContent("생산성/전환/Close 다시 생성"), false,
+                    () => DesignerTransitionPresetService.RegenerateClose(context));
+            }
+            else
+            {
+                menu.AddDisabledItem(new GUIContent("생산성/전환/Open 미리보기"));
+                menu.AddDisabledItem(new GUIContent("생산성/전환/Close 다시 생성"));
+            }
+            if (context.Metadata?.screenMotion?.exitClip != null)
+                menu.AddItem(new GUIContent("생산성/전환/Close 미리보기"), false,
+                    () => DesignerTransitionPresetService.Preview(context, context.Metadata.screenMotion.exitClip));
+            else menu.AddDisabledItem(new GUIContent("생산성/전환/Close 미리보기"));
+            if (context.Metadata?.screenMotion?.entryClip != null || context.Metadata?.screenMotion?.exitClip != null)
+                menu.AddItem(new GUIContent("생산성/전환/화면 전환 연결 제거"), false,
+                    () => context.UpdateScreenMotion(x => { x.entryClip = null; x.exitClip = null; }, "Remove Screen Transitions"));
+            else menu.AddDisabledItem(new GUIContent("생산성/전환/화면 전환 연결 제거"));
+            if (context.SelectedElements.Count >= 2)
+                menu.AddItem(new GUIContent("생산성/Auto Layout으로 정리"), false, () => DesignerLayoutConversionWindow.Open(context));
+            else
+                menu.AddDisabledItem(new GUIContent("생산성/Auto Layout으로 정리"));
+            menu.AddItem(new GUIContent("생산성/추천 Anchor 적용"), false,
+                () => DesignerAnchorRecommendationService.Apply(context, context.Resolution));
+            menu.AddItem(new GUIContent("생산성/현재 상태를 Scenario로 저장"), false, () =>
+            {
+                var scenario = ScenarioService.CreateAsset();
+                ScenarioService.Capture(scenario, context);
+                AssetDatabase.SaveAssetIfDirty(scenario);
+            });
+            menu.AddSeparator("생산성/");
+            foreach (DesignerTextPreset preset in Enum.GetValues(typeof(DesignerTextPreset)))
+            {
+                var captured = preset;
+                menu.AddItem(new GUIContent("생산성/빠른 테스트/Text/" + preset), false, () => DesignerMockDataPresetService.ApplyText(context, captured));
+            }
+            foreach (DesignerValuePreset preset in Enum.GetValues(typeof(DesignerValuePreset)))
+            {
+                var captured = preset;
+                menu.AddItem(new GUIContent("생산성/빠른 테스트/Value/" + preset), false, () => DesignerMockDataPresetService.ApplyValue(context, captured));
+            }
+            foreach (var count in new[] { 0, 1, 5, 20, 100 })
+            {
+                var captured = count;
+                menu.AddItem(new GUIContent($"생산성/빠른 테스트/Collection/{count}개"), false, () => DesignerMockDataPresetService.ApplyCollection(context, captured));
+            }
         }
 
         private static void CreateAt(NexUIDesignerContext context, DesignerElementType type, Vector2 canvasPoint)

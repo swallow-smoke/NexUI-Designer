@@ -16,6 +16,7 @@ namespace emiteat.NexUI.Designer.Editor.Snapshot
         protected override string TitleKey => "panel.snapshot";
         protected override string TooltipKey => "tooltip.snapshot";
 
+        [MenuItem("Tools/NexUI/Designer/QA/Runtime Snapshot & Diff")]
         public static void Open() => GetWindow<SnapshotEditorWindow>();
 
         protected override void DrawBody()
@@ -32,6 +33,10 @@ namespace emiteat.NexUI.Designer.Editor.Snapshot
             EditorGUILayout.BeginHorizontal();
             if (GUILayout.Button(LC("button.captureSnapshot", "tooltip.captureSnapshot"), GUILayout.Height(22)))
                 _current = SnapshotService.Capture(_asset);
+            var context = DesignerSessions.ActiveContext;
+            using (new EditorGUI.DisabledScope(context?.Metadata != _asset || context.PreviewSurface == null))
+                if (GUILayout.Button("Capture Live Preview", GUILayout.Height(22), GUILayout.Width(150)))
+                    _current = SnapshotService.Capture(context);
             using (new EditorGUI.DisabledScope(_current == null))
                 if (GUILayout.Button("Save as baseline", GUILayout.Height(22), GUILayout.Width(140)))
                 {

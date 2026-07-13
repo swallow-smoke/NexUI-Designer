@@ -27,13 +27,14 @@
 ## 기능 상태와 문제 해결
 
 - [현재 기능 상태](reference/feature-status.md) — 실제 지원·부분 지원·실험적 기능을 확인합니다.
+- [구현 상태 표](ImplementationStatus.md) — Backend와 테스트 여부를 표로 확인합니다.
 - [목표 기능 명세](reference/feature-specification.md) — 장기 제품 범위를 확인합니다.
 - [단축키](reference/shortcuts.md) · [용어](reference/terminology.md)
 - [알려진 제한](reference/known-limitations.md) · [문제 해결](reference/troubleshooting.md)
 
 ## 고급 기능
 
-- [Figma Bridge](advanced/figma-bridge.md) — 현재는 인증과 원본 JSON 조회 단계입니다.
+- [Figma Bridge](advanced/figma-bridge.md) — 인증, JSON 조회와 첫 Frame Import를 사용합니다.
 - [Migration Wizard](advanced/migration-wizard.md) — 구버전 Namespace와 Package ID를 안전하게 치환합니다.
 - [Runtime Debugging](advanced/runtime-debugging.md) — Play Mode Snapshot과 Overlay를 사용합니다.
 - [Design Token](advanced/design-tokens.md) · [Screen Flow](advanced/screen-flow-editor.md) · [Sync와 Publish](advanced/sync-and-publish.md)
@@ -44,3 +45,11 @@
 - [Panel 추가](developer/adding-panels.md) · [Backend 추가](developer/adding-backends.md) · [Validation 추가](developer/adding-validation.md)
 - [직렬화](developer/serialization.md) · [코딩 규칙](developer/coding-conventions.md) · [테스트](developer/testing.md)
 - [성능 측정](developer/performance.md) · [Git 협업](developer/git-workflow.md)
+# 생산성 기능 빠른 링크
+
+- [화면 생성 마법사](user-guide/screen-creation-wizard.md)
+- [전환 프리셋](user-guide/transition-presets.md)
+- [Preview Scenario와 Mock Data](user-guide/preview-scenarios-and-mock-data.md)
+- [Auto Layout 변환과 Anchor 추천](user-guide/layout-conversion-and-anchor.md)
+- [Validation Auto Fix](user-guide/validation-auto-fix.md)
+- [Backend별 지원 차이](reference/backend-productivity-support.md)

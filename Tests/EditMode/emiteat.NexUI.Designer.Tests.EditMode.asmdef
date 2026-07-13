@@ -8,6 +8,8 @@
         "emiteat.NexUI.Accessibility",
         "emiteat.NexUI.Designer.Runtime",
         "emiteat.NexUI.Designer.Editor",
+        "emiteat.NexUI.Integrations.Figma",
+        "UniTask",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"
     ],

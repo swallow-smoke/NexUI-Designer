@@ -152,6 +152,17 @@ namespace emiteat.NexUI.Designer.Editor.Validation
                     $"'{id}' is {element.rect.width:0}x{element.rect.height:0}; below the 32x32 minimum touch target.",
                     "Increase width/height to at least 32x32.", screenId, id));
 
+            if (element.rect.width <= 0f || element.rect.height <= 0f)
+                issues.Add(new DesignerValidationIssue(DesignerValidationSeverity.Error, "zero-size-element",
+                    $"'{id}' has a non-positive size ({element.rect.width:0.#}x{element.rect.height:0.#}).",
+                    "Set a positive width and height.", screenId, id));
+
+            var reference = new Rect(0f, 0f, 1920f, 1080f);
+            if (!reference.Overlaps(element.rect))
+                issues.Add(new DesignerValidationIssue(DesignerValidationSeverity.Warning, "outside-canvas",
+                    $"'{id}' is completely outside the 1920x1080 reference canvas.",
+                    "Move the element back inside the canvas.", screenId, id));
+
             if (element.hiddenInDesigner && element.binding != null &&
                 (!string.IsNullOrEmpty(element.binding.commandKey) || !string.IsNullOrEmpty(element.binding.interactableKey)))
                 issues.Add(new DesignerValidationIssue(DesignerValidationSeverity.Info, "hidden-but-interactive",
@@ -341,6 +352,10 @@ namespace emiteat.NexUI.Designer.Editor.Validation
                 if (element != null && !string.IsNullOrEmpty(element.elementId)) ids.Add(element.elementId);
 
             var validatedClips = new HashSet<UIMotionClip>();
+            if (motion.entryClip != null && motion.exitClip == null)
+                issues.Add(new DesignerValidationIssue(DesignerValidationSeverity.Warning, "motion-close-missing",
+                    "The screen has an Open transition but no Close transition.",
+                    "Generate a reversed Close transition from the Open clip.", screenId));
             ValidateClip(motion.entryClip, screenId, issues, validatedClips);
             ValidateClip(motion.exitClip, screenId, issues, validatedClips);
             foreach (var binding in motion.bindings ?? new List<DesignerMotionBinding>())
@@ -385,8 +400,17 @@ namespace emiteat.NexUI.Designer.Editor.Validation
                 {
                     if (propertyTrack?.keyframes == null) continue;
                     var previous = float.NegativeInfinity;
+                    var hasStart = false;
+                    var hasEnd = false;
+                    var times = new HashSet<float>();
                     foreach (var keyframe in propertyTrack.keyframes)
                     {
+                        if (!times.Add(keyframe.time))
+                            AddClipIssue(DesignerValidationSeverity.Error, "motion-duplicate-keyframe-time",
+                                $"Clip '{clip.name}' has duplicate keyframes at {keyframe.time:0.###} in {propertyTrack.propertyType}.",
+                                "Merge or move one of the duplicate keyframes.", clip, screenId, issues);
+                        hasStart |= Mathf.Approximately(keyframe.time, 0f);
+                        hasEnd |= Mathf.Approximately(keyframe.time, clip.duration);
                         if (keyframe.time < 0f)
                             AddClipIssue(DesignerValidationSeverity.Error, "motion-negative-keyframe",
                                 $"Clip '{clip.name}' has a keyframe at negative time {keyframe.time:0.###}.", "Move it to time 0 or later.", clip, screenId, issues);
@@ -398,6 +422,14 @@ namespace emiteat.NexUI.Designer.Editor.Validation
                                 $"Clip '{clip.name}' has unsorted keyframes in {propertyTrack.propertyType}.", "Sort keyframes by time.", clip, screenId, issues);
                         previous = keyframe.time;
                     }
+                    if (propertyTrack.keyframes.Length > 0 && !hasStart)
+                        AddClipIssue(DesignerValidationSeverity.Warning, "motion-start-keyframe-missing",
+                            $"Clip '{clip.name}' has no keyframe at time 0 in {propertyTrack.propertyType}.",
+                            "Add a start keyframe at time 0.", clip, screenId, issues);
+                    if (propertyTrack.keyframes.Length > 0 && !hasEnd)
+                        AddClipIssue(DesignerValidationSeverity.Warning, "motion-end-keyframe-missing",
+                            $"Clip '{clip.name}' has no keyframe at duration {clip.duration:0.###} in {propertyTrack.propertyType}.",
+                            "Add an end keyframe at the clip duration.", clip, screenId, issues);
                 }
             }
         }
@@ -457,6 +489,24 @@ namespace emiteat.NexUI.Designer.Editor.Validation
 
                 var type = element.elementType ?? "Panel";
                 var go = child.gameObject;
+
+                var graphic = go.GetComponent<Graphic>();
+                if (graphic != null && graphic.raycastTarget && !Is(type, "Button") && !Is(type, "IconButton"))
+                    issues.Add(new DesignerValidationIssue(DesignerValidationSeverity.Warning, "ugui-decorative-raycast",
+                        $"Decorative '{element.elementId}' has Raycast Target enabled and can block controls behind it.",
+                        "Turn off Graphic.raycastTarget.", screenId, element.elementId));
+
+                var canvasGroup = go.GetComponent<CanvasGroup>();
+                if (canvasGroup != null && canvasGroup.alpha <= 0.001f && (canvasGroup.interactable || canvasGroup.blocksRaycasts))
+                    issues.Add(new DesignerValidationIssue(DesignerValidationSeverity.Error, "ugui-invisible-canvasgroup-blocks-input",
+                        $"'{element.elementId}' has CanvasGroup alpha 0 but still receives or blocks input.",
+                        "Disable Interactable and Blocks Raycasts.", screenId, element.elementId));
+
+                var button = go.GetComponent<UnityEngine.UI.Button>();
+                if (button != null && button.targetGraphic == null)
+                    issues.Add(new DesignerValidationIssue(DesignerValidationSeverity.Warning, "ugui-button-target-graphic-missing",
+                        $"Button '{element.elementId}' has no Target Graphic.",
+                        "Assign a Graphic on the same object as Target Graphic.", screenId, element.elementId));
 
                 if ((Is(type, "Button") || Is(type, "IconButton")) && go.GetComponent<UnityEngine.UI.Button>() == null)
                     issues.Add(new DesignerValidationIssue(DesignerValidationSeverity.Warning, "ugui-missing-button",

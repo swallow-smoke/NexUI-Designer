@@ -8,6 +8,7 @@
         "emiteat.NexUI.Motion",
         "emiteat.NexUI.MotionClip",
         "emiteat.NexUI.MotionGraph",
+        "UniTask",
         "emiteat.NexUI.Theme",
         "emiteat.NexUI.Accessibility",
         "emiteat.NexUI.Localization",

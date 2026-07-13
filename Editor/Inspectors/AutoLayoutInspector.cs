@@ -22,6 +22,8 @@ namespace emiteat.NexUI.Designer.Editor.Inspectors
         private readonly FloatField _paddingTop;
         private readonly FloatField _paddingRight;
         private readonly FloatField _paddingBottom;
+        private readonly IntegerField _gridColumns;
+        private readonly Vector2Field _gridCellSize;
         private readonly EnumField _widthSizing;
         private readonly EnumField _heightSizing;
         private bool _refreshing;
@@ -36,6 +38,8 @@ namespace emiteat.NexUI.Designer.Editor.Inspectors
             _paddingTop = new FloatField("Top") { tooltip = DesignerLocalization.T("tooltip.autoLayout.paddingTop") };
             _paddingRight = new FloatField("Right") { tooltip = DesignerLocalization.T("tooltip.autoLayout.paddingRight") };
             _paddingBottom = new FloatField("Bottom") { tooltip = DesignerLocalization.T("tooltip.autoLayout.paddingBottom") };
+            _gridColumns = new IntegerField("Grid Columns") { tooltip = "uGUI Fixed Column Count와 UI Toolkit Flex Wrap 열 수입니다." };
+            _gridCellSize = new Vector2Field("Grid Cell Size") { tooltip = "Grid Cell의 폭과 높이입니다." };
 
             _widthSizing = new EnumField("Width", DesignerAutoLayoutSizing.Fixed) { tooltip = DesignerLocalization.T("tooltip.autoLayout.widthSizing") };
             _heightSizing = new EnumField("Height", DesignerAutoLayoutSizing.Fixed) { tooltip = DesignerLocalization.T("tooltip.autoLayout.heightSizing") };
@@ -51,6 +55,8 @@ namespace emiteat.NexUI.Designer.Editor.Inspectors
             paddingRow.Add(_paddingBottom);
             Add(new Label("Padding"));
             Add(paddingRow);
+            Add(_gridColumns);
+            Add(_gridCellSize);
 
             var sizingRow = new VisualElement { style = { flexDirection = FlexDirection.Row } };
             sizingRow.Add(_widthSizing);
@@ -65,6 +71,8 @@ namespace emiteat.NexUI.Designer.Editor.Inspectors
             _paddingTop.RegisterValueChangedCallback(evt => Change(e => e.autoLayout.paddingTop = evt.newValue, "Edit NexUI Auto Layout Padding"));
             _paddingRight.RegisterValueChangedCallback(evt => Change(e => e.autoLayout.paddingRight = evt.newValue, "Edit NexUI Auto Layout Padding"));
             _paddingBottom.RegisterValueChangedCallback(evt => Change(e => e.autoLayout.paddingBottom = evt.newValue, "Edit NexUI Auto Layout Padding"));
+            _gridColumns.RegisterValueChangedCallback(evt => Change(e => e.autoLayout.gridColumns = Mathf.Max(1, evt.newValue), "Edit NexUI Grid Columns"));
+            _gridCellSize.RegisterValueChangedCallback(evt => Change(e => { e.autoLayout.gridCellWidth = Mathf.Max(1f, evt.newValue.x); e.autoLayout.gridCellHeight = Mathf.Max(1f, evt.newValue.y); }, "Edit NexUI Grid Cell Size"));
             _widthSizing.RegisterValueChangedCallback(evt => Change(e => e.autoLayout.widthSizing = (DesignerAutoLayoutSizing)evt.newValue, "Change NexUI Auto Layout Width Sizing"));
             _heightSizing.RegisterValueChangedCallback(evt => Change(e => e.autoLayout.heightSizing = (DesignerAutoLayoutSizing)evt.newValue, "Change NexUI Auto Layout Height Sizing"));
 
@@ -94,6 +102,8 @@ namespace emiteat.NexUI.Designer.Editor.Inspectors
                 _paddingTop.SetValueWithoutNotify(layout.paddingTop);
                 _paddingRight.SetValueWithoutNotify(layout.paddingRight);
                 _paddingBottom.SetValueWithoutNotify(layout.paddingBottom);
+                _gridColumns.SetValueWithoutNotify(layout.gridColumns);
+                _gridCellSize.SetValueWithoutNotify(new Vector2(layout.gridCellWidth, layout.gridCellHeight));
                 _widthSizing.SetValueWithoutNotify(layout.widthSizing);
                 _heightSizing.SetValueWithoutNotify(layout.heightSizing);
 
@@ -101,6 +111,9 @@ namespace emiteat.NexUI.Designer.Editor.Inspectors
                 _direction.style.display = showChildLayoutFields ? DisplayStyle.Flex : DisplayStyle.None;
                 _spacing.style.display = showChildLayoutFields ? DisplayStyle.Flex : DisplayStyle.None;
                 _paddingLeft.parent.style.display = showChildLayoutFields ? DisplayStyle.Flex : DisplayStyle.None;
+                var showGrid = showChildLayoutFields && layout.direction == DesignerAutoLayoutDirection.Grid;
+                _gridColumns.style.display = showGrid ? DisplayStyle.Flex : DisplayStyle.None;
+                _gridCellSize.style.display = showGrid ? DisplayStyle.Flex : DisplayStyle.None;
             }
             _refreshing = false;
         }

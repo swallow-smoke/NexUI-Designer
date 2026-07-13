@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using emiteat.NexUI.Abstractions;
 
 namespace emiteat.NexUI.Designer.Editor.Snapshot
 {
@@ -33,6 +34,31 @@ namespace emiteat.NexUI.Designer.Editor.Snapshot
                 });
             }
             return snap;
+        }
+
+        /// <summary>Captures authored metadata and replaces available fields with live Preview Surface capability values.</summary>
+        public static UISnapshot Capture(NexUIDesignerContext context, string variantId = null, string themeId = null)
+        {
+            if (context?.Metadata == null) return null;
+            var snapshot = Capture(context.Metadata, variantId, themeId);
+            foreach (var item in snapshot.elements)
+            {
+                var handle = context.PreviewSurface?.TryFind(item.elementId);
+                if (handle == null) continue;
+                var visibility = handle.As<IUIVisibilityCapability>();
+                var interactable = handle.As<IUIInteractableCapability>();
+                var text = handle.As<IUITextCapability>();
+                var value = handle.As<IUIValueCapability>();
+                var transform = handle.As<IUITransformCapability>();
+                var size = handle.As<IUISizeCapability>();
+                if (visibility != null) item.visible = visibility.Visible;
+                if (interactable != null) item.interactable = interactable.Interactable;
+                if (text != null) item.text = text.Text;
+                if (value != null) item.value = value.Value;
+                if (transform != null) item.position = transform.Position;
+                if (size != null) item.size = size.SizeDelta;
+            }
+            return snapshot;
         }
 
         /// <summary>Diffs baseline → current. Empty list means no change.</summary>

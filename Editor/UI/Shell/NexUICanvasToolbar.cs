@@ -3,6 +3,7 @@ using emiteat.NexUI.Designer.Editor.Localization;
 using emiteat.NexUI.Designer.Editor.Viewport;
 using UnityEditor.UIElements;
 using UnityEngine.UIElements;
+using emiteat.NexUI.Designer.Editor.Productivity;
 
 namespace emiteat.NexUI.Designer.Editor.UI.Shell
 {
@@ -71,6 +72,10 @@ namespace emiteat.NexUI.Designer.Editor.UI.Shell
             Add(MakeButton(() => context.ZoomBy(0.1f), "+", DesignerLocalization.T("tooltip.toolbar.zoomIn")));
             Add(MakeButton(fitCanvas, "Fit", "Fit canvas to the available viewport."));
             Add(MakeButton(context.RebuildPreview, "Rebuild", DesignerLocalization.T("tooltip.toolbar.rebuild")));
+
+            Add(Divider());
+            Add(MakeButton(() => DesignerLayoutConversionWindow.Open(context), DesignerLocalization.T("productivity.layout"), DesignerLocalization.T("productivity.tooltip.layout")));
+            Add(MakeButton(() => DesignerTransitionPresetWindow.Open(context), DesignerLocalization.T("productivity.transition"), DesignerLocalization.T("productivity.tooltip.transition")));
 
             var subscriptions = new ContextBoundSubscriptions(this);
             subscriptions.Add(h => context.CanvasChanged += h, h => context.CanvasChanged -= h, Refresh);

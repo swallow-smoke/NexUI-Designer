@@ -117,6 +117,7 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
                 // moving a parent carries its children, matching the Designer canvas).
                 var local = DesignerCoordinateUtility.GetLocalPosition(metadata, element);
                 ApplyRect(go, element, local);
+                ApplyAutoLayout(go, element, report);
                 go.SetActive(!element.hiddenInDesigner);
                 ApplyVisualAndText(go, element, report);
             }
@@ -197,6 +198,54 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
             if (!string.IsNullOrEmpty(element.text) || isText || isButton)
                 ApplyText(go, element, isButton, report);
         }
+
+        private static void ApplyAutoLayout(GameObject go, DesignerElementMetadata element, DesignerSaveReport report)
+        {
+            var layout = element.autoLayout;
+            if (layout == null) return;
+            var layoutElement = go.GetComponent<LayoutElement>();
+            if (layout.widthSizing == DesignerAutoLayoutSizing.Fill || layout.heightSizing == DesignerAutoLayoutSizing.Fill)
+            {
+                if (layoutElement == null) layoutElement = go.AddComponent<LayoutElement>();
+                layoutElement.flexibleWidth = layout.widthSizing == DesignerAutoLayoutSizing.Fill ? 1f : 0f;
+                layoutElement.flexibleHeight = layout.heightSizing == DesignerAutoLayoutSizing.Fill ? 1f : 0f;
+            }
+
+            if (!layout.enabled) return;
+            var horizontal = go.GetComponent<HorizontalLayoutGroup>();
+            var vertical = go.GetComponent<VerticalLayoutGroup>();
+            var grid = go.GetComponent<GridLayoutGroup>();
+            if (layout.direction != DesignerAutoLayoutDirection.Row && horizontal != null) Object.DestroyImmediate(horizontal);
+            if (layout.direction != DesignerAutoLayoutDirection.Column && vertical != null) Object.DestroyImmediate(vertical);
+            if (layout.direction != DesignerAutoLayoutDirection.Grid && grid != null) Object.DestroyImmediate(grid);
+
+            if (layout.direction == DesignerAutoLayoutDirection.Grid)
+            {
+                grid = go.GetComponent<GridLayoutGroup>() ?? go.AddComponent<GridLayoutGroup>();
+                grid.padding = Padding(layout);
+                grid.spacing = new Vector2(layout.spacing, layout.spacing);
+                grid.cellSize = new Vector2(Mathf.Max(1f, layout.gridCellWidth), Mathf.Max(1f, layout.gridCellHeight));
+                grid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+                grid.constraintCount = Mathf.Max(1, layout.gridColumns);
+            }
+            else
+            {
+                HorizontalOrVerticalLayoutGroup group = layout.direction == DesignerAutoLayoutDirection.Row
+                    ? (HorizontalOrVerticalLayoutGroup)(go.GetComponent<HorizontalLayoutGroup>() ?? go.AddComponent<HorizontalLayoutGroup>())
+                    : go.GetComponent<VerticalLayoutGroup>() ?? go.AddComponent<VerticalLayoutGroup>();
+                group.padding = Padding(layout);
+                group.spacing = layout.spacing;
+                group.childControlWidth = false;
+                group.childControlHeight = false;
+                group.childForceExpandWidth = false;
+                group.childForceExpandHeight = false;
+            }
+            report.MarkChanged($"Applied {layout.direction} layout to '{element.elementId}'");
+        }
+
+        private static RectOffset Padding(DesignerAutoLayoutMetadata layout)
+            => new RectOffset(Mathf.RoundToInt(layout.paddingLeft), Mathf.RoundToInt(layout.paddingRight),
+                Mathf.RoundToInt(layout.paddingTop), Mathf.RoundToInt(layout.paddingBottom));
 
         /// <summary>
         /// Maps a value component to a filled <see cref="Image"/>: fill method from the fill

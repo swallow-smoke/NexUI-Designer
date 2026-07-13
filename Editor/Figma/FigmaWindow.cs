@@ -1,12 +1,11 @@
 using UnityEditor;
 using UnityEngine;
+using emiteat.NexUI.Designer.Editor;
 
 namespace emiteat.NexUI.Integrations.Figma
 {
     /// <summary>
-    /// C5 (first slice): connection + auth UI for the Figma bridge. Lets the user store a
-    /// personal access token and verify it, and pull a file's raw JSON to confirm access before
-    /// the frame -&gt; NexUI mapping engine (not yet built) consumes it.
+    /// Connects to Figma and imports the first top-level frame into the active Designer metadata.
     /// </summary>
     public sealed class FigmaWindow : EditorWindow
     {
@@ -15,6 +14,7 @@ namespace emiteat.NexUI.Integrations.Figma
         private string _statusMessage;
         private MessageType _statusType = MessageType.None;
         private string _lastFileJsonPreview;
+        private string _lastFileJson;
         private bool _busy;
 
         public static void Open() => GetWindow<FigmaWindow>("NexUI Figma Bridge");
@@ -25,11 +25,8 @@ namespace emiteat.NexUI.Integrations.Figma
         {
             EditorGUILayout.LabelField("NexUI Figma Bridge", EditorStyles.boldLabel);
             EditorGUILayout.HelpBox(
-                "C5 (in progress): personal access token auth + connection check are implemented. " +
-                "The Figma frame -> NexUI screen mapping engine (Auto Layout conversion, text/font " +
-                "mapping, coordinate conversion, nested components, auto-binding by name) is not " +
-                "built yet - this window currently only proves your token/file access works.",
-                MessageType.Info);
+                "가져오기는 첫 번째 Frame의 계층, 좌표, Text, Solid Fill, Auto Layout을 현재 Designer Metadata로 변환합니다. " +
+                "가져온 결과는 저장 전에 Designer와 Validation에서 검토하세요.", MessageType.Info);
 
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("Personal Access Token", EditorStyles.boldLabel);
@@ -73,6 +70,12 @@ namespace emiteat.NexUI.Integrations.Figma
             {
                 EditorGUILayout.LabelField("Response preview (first 500 chars)", EditorStyles.boldLabel);
                 EditorGUILayout.TextArea(_lastFileJsonPreview, GUILayout.Height(120));
+                var context = DesignerSessions.ActiveContext;
+                using (new EditorGUI.DisabledScope(_busy || context?.Metadata == null))
+                {
+                    if (GUILayout.Button("현재 Designer로 첫 Frame 가져오기", GUILayout.Height(28)))
+                        ImportIntoDesigner(context);
+                }
             }
         }
 
@@ -103,6 +106,7 @@ namespace emiteat.NexUI.Integrations.Figma
             try
             {
                 var json = await FigmaApiClient.GetFileJsonAsync(_token, _fileKey);
+                _lastFileJson = json;
                 _lastFileJsonPreview = json.Length > 500 ? json.Substring(0, 500) + "..." : json;
                 SetStatus($"Fetched {json.Length} bytes. Treat this as a draft source, not a final asset - review it in the Designer before shipping.", MessageType.Info);
             }
@@ -114,6 +118,26 @@ namespace emiteat.NexUI.Integrations.Figma
             {
                 _busy = false;
                 Repaint();
+            }
+        }
+
+        private void ImportIntoDesigner(NexUIDesignerContext context)
+        {
+            if (context?.Metadata == null || string.IsNullOrEmpty(_lastFileJson)) return;
+            if (!EditorUtility.DisplayDialog("Figma Frame 가져오기",
+                    "현재 Metadata의 Element를 Figma 첫 Frame으로 교체합니다. 이 작업은 Undo할 수 있습니다.", "가져오기", "취소")) return;
+            try
+            {
+                Undo.RecordObject(context.Metadata, "Import Figma Frame");
+                var count = FigmaDocumentImporter.ImportFirstFrame(_lastFileJson, context.Metadata);
+                EditorUtility.SetDirty(context.Metadata);
+                context.SetMetadata(context.Metadata);
+                SetStatus($"{count}개 노드를 가져왔습니다. Validation 후 저장하세요.", MessageType.Info);
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogException(ex);
+                SetStatus($"Import failed: {ex.Message}", MessageType.Error);
             }
         }
 

@@ -703,4 +703,12 @@
   "tooltip.sync.reviewDiff": "Shows the line-level difference between the file and the generated result (+ added, - removed).",
   "tooltip.sync.dryRun": "Reports, without writing, whether each screen would be published / skipped / needs resolution.",
   "tooltip.sync.publish": "Writes only New/Designer-changed screens. In-sync is skipped; backend-changed and conflicts are reported as needing resolution."
+  ,"productivity.newScreen": "New Screen"
+  ,"productivity.layout": "Layout"
+  ,"productivity.transition": "Transition"
+  ,"productivity.scenario": "Scenario"
+  ,"productivity.fixAllSafe": "Fix all safe issues"
+  ,"productivity.tooltip.newScreen": "Create a connected Screen, Metadata and backend asset bundle."
+  ,"productivity.tooltip.layout": "Convert the selection to Auto Layout or recommend anchors."
+  ,"productivity.tooltip.transition": "Generate Open and Close Motion Clips from the selection."
 }

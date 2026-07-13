@@ -38,9 +38,8 @@ namespace emiteat.NexUI.Designer.Editor.Commands
     }
 
     /// <summary>
-    /// Holds the active shortcut bindings, persisted to <see cref="EditorPrefs"/> so a future
-    /// rebind UI can change them without code changes. No rebind panel exists yet (TODO) - this
-    /// only provides the storage + default table described in the Designer UX spec.
+    /// Holds the active shortcut bindings, persisted to <see cref="EditorPrefs"/> and edited by
+    /// <see cref="UIDesignerShortcutSettingsWindow"/>.
     /// </summary>
     public static class UIDesignerShortcutRegistry
     {

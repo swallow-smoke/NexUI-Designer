@@ -28,7 +28,7 @@ namespace emiteat.NexUI.Designer.Editor.Scenario
         private bool _timelinePlaying;
         private float _timelineTime;
         private double _lastEditorTime;
-        private struct ElementPreviewSnapshot { public float PreviewValue; public string Text; public bool Hidden; }
+        private struct ElementPreviewSnapshot { public float PreviewValue; public string Text; public bool Hidden; public Texture2D Image; public int ItemCount; }
         private readonly Dictionary<string, ElementPreviewSnapshot> _timelineSnapshot = new Dictionary<string, ElementPreviewSnapshot>();
         private bool _timelineSnapshotTaken;
 
@@ -64,12 +64,21 @@ namespace emiteat.NexUI.Designer.Editor.Scenario
             {
                 if (GUILayout.Button(LC("scenario.button.create", "tooltip.scenario.create")))
                     _scenario = ScenarioService.CreateAsset();
+                if (GUILayout.Button("이전")) NavigateScenario(-1);
+                if (GUILayout.Button("다음")) NavigateScenario(1);
             }
 
             if (_scenario == null)
             {
                 EditorGUILayout.HelpBox(T("scenario.help.noAsset"), MessageType.Info);
                 return;
+            }
+
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                if (GUILayout.Button("복제")) DuplicateScenario();
+                if (GUILayout.Button("초기화")) ResetScenario();
+                if (GUILayout.Button("삭제")) DeleteScenario();
             }
 
             DrawIdentity();
@@ -145,6 +154,52 @@ namespace emiteat.NexUI.Designer.Editor.Scenario
             }
         }
 
+        private void NavigateScenario(int direction)
+        {
+            var all = AssetDatabase.FindAssets("t:DesignerScenarioAsset")
+                .Select(AssetDatabase.GUIDToAssetPath)
+                .Select(AssetDatabase.LoadAssetAtPath<DesignerScenarioAsset>)
+                .Where(x => x != null).OrderBy(x => x.scenarioName).ToList();
+            if (all.Count == 0) return;
+            var index = Mathf.Max(0, all.IndexOf(_scenario));
+            _scenario = all[(index + direction + all.Count) % all.Count];
+            _hasReport = false;
+        }
+
+        private void DuplicateScenario()
+        {
+            if (_scenario == null) return;
+            var copy = Instantiate(_scenario);
+            copy.scenarioName = _scenario.scenarioName + " Copy";
+            var source = AssetDatabase.GetAssetPath(_scenario);
+            var path = AssetDatabase.GenerateUniqueAssetPath(System.IO.Path.ChangeExtension(source, null) + ".Copy.asset");
+            AssetDatabase.CreateAsset(copy, path);
+            Undo.RegisterCreatedObjectUndo(copy, "Duplicate Preview Scenario");
+            _scenario = copy;
+            AssetDatabase.SaveAssetIfDirty(copy);
+        }
+
+        private void ResetScenario()
+        {
+            if (_scenario == null || !EditorUtility.DisplayDialog("Scenario 초기화", "Mock Data와 상태 설정을 초기화할까요?", "초기화", "취소")) return;
+            Undo.RecordObject(_scenario, "Reset Preview Scenario");
+            _scenario.bindings.Clear();
+            _scenario.timelineKeys.Clear();
+            _scenario.useTimeline = false;
+            _scenario.forcedState = string.Empty;
+            _scenario.language = string.Empty;
+            MarkDirty(_scenario);
+        }
+
+        private void DeleteScenario()
+        {
+            if (_scenario == null || !EditorUtility.DisplayDialog("Scenario 삭제", $"'{_scenario.scenarioName}' 에셋을 휴지통으로 이동할까요? 이 작업은 Unity Undo 대상이 아닙니다.", "삭제", "취소")) return;
+            var path = AssetDatabase.GetAssetPath(_scenario);
+            _scenario = null;
+            AssetDatabase.MoveAssetToTrash(path);
+            _hasReport = false;
+        }
+
         private void DrawBindings()
         {
             Section("scenario.section.bindings");
@@ -164,6 +219,8 @@ namespace emiteat.NexUI.Designer.Editor.Scenario
                         bool boolValue = binding.boolValue;
                         float numberValue = binding.numberValue;
                         string textValue = binding.textValue;
+                        var spriteValue = binding.spriteValue;
+                        var listValue = binding.listValue != null ? string.Join(", ", binding.listValue) : string.Empty;
                         switch (kind)
                         {
                             case DesignerScenarioValueKind.Bool:
@@ -175,6 +232,12 @@ namespace emiteat.NexUI.Designer.Editor.Scenario
                             case DesignerScenarioValueKind.Text:
                                 textValue = EditorGUILayout.TextField(binding.textValue, GUILayout.MinWidth(90f));
                                 break;
+                            case DesignerScenarioValueKind.Sprite:
+                                spriteValue = (Sprite)EditorGUILayout.ObjectField(binding.spriteValue, typeof(Sprite), false, GUILayout.MinWidth(90f));
+                                break;
+                            case DesignerScenarioValueKind.List:
+                                listValue = EditorGUILayout.TextField(listValue, GUILayout.MinWidth(110f));
+                                break;
                         }
                         if (check.changed)
                         {
@@ -184,6 +247,9 @@ namespace emiteat.NexUI.Designer.Editor.Scenario
                             binding.boolValue = boolValue;
                             binding.numberValue = numberValue;
                             binding.textValue = textValue;
+                            binding.spriteValue = spriteValue;
+                            binding.listValue = listValue.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                                .Select(x => x.Trim()).ToList();
                             MarkDirty(_scenario);
                         }
                     }
@@ -308,11 +374,15 @@ namespace emiteat.NexUI.Designer.Editor.Scenario
                         bool boolValue = key.boolValue;
                         float numberValue = key.numberValue;
                         string textValue = key.textValue;
+                        var spriteValue = key.spriteValue;
+                        var listValue = key.listValue != null ? string.Join(", ", key.listValue) : string.Empty;
                         switch (kind)
                         {
                             case DesignerScenarioValueKind.Bool: boolValue = EditorGUILayout.Toggle(key.boolValue, GUILayout.Width(36f)); break;
                             case DesignerScenarioValueKind.Number: numberValue = EditorGUILayout.FloatField(key.numberValue, GUILayout.Width(80f)); break;
                             case DesignerScenarioValueKind.Text: textValue = EditorGUILayout.TextField(key.textValue, GUILayout.MinWidth(80f)); break;
+                            case DesignerScenarioValueKind.Sprite: spriteValue = (Sprite)EditorGUILayout.ObjectField(key.spriteValue, typeof(Sprite), false, GUILayout.MinWidth(90f)); break;
+                            case DesignerScenarioValueKind.List: listValue = EditorGUILayout.TextField(listValue, GUILayout.MinWidth(100f)); break;
                         }
                         if (check.changed)
                         {
@@ -323,6 +393,8 @@ namespace emiteat.NexUI.Designer.Editor.Scenario
                             key.boolValue = boolValue;
                             key.numberValue = numberValue;
                             key.textValue = textValue;
+                            key.spriteValue = spriteValue;
+                            key.listValue = listValue.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim()).ToList();
                             MarkDirty(_scenario);
                         }
                     }
@@ -405,6 +477,8 @@ namespace emiteat.NexUI.Designer.Editor.Scenario
                     PreviewValue = element.previewValue,
                     Text = element.text,
                     Hidden = element.hiddenInDesigner
+                    ,Image = element.previewImage
+                    ,ItemCount = element.previewItemCount
                 };
             }
             _timelineSnapshotTaken = true;
@@ -421,6 +495,8 @@ namespace emiteat.NexUI.Designer.Editor.Scenario
                     element.previewValue = snap.PreviewValue;
                     element.text = snap.Text;
                     element.hiddenInDesigner = snap.Hidden;
+                    element.previewImage = snap.Image;
+                    element.previewItemCount = snap.ItemCount;
                 }
                 context.NotifyPreviewValuesChanged();
             }

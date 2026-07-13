@@ -4,13 +4,15 @@ using UnityEngine;
 
 namespace emiteat.NexUI.Designer
 {
-    /// <summary>The kind of value a scenario binding overrides, matching the three preview channels
-    /// the designer canvas can actually render: numeric (value), text, and boolean (visibility).</summary>
+    /// <summary>The kind of value a scenario binding overrides. Scenarios support primitive preview
+    /// channels as well as image sprites and collection item lists.</summary>
     public enum DesignerScenarioValueKind
     {
         Bool,
         Number,
-        Text
+        Text,
+        Sprite,
+        List
     }
 
     /// <summary>
@@ -27,6 +29,8 @@ namespace emiteat.NexUI.Designer
         public bool boolValue;
         public float numberValue;
         public string textValue = string.Empty;
+        public Sprite spriteValue;
+        public List<string> listValue = new List<string>();
 
         public DesignerScenarioBinding() { }
 
@@ -40,7 +44,7 @@ namespace emiteat.NexUI.Designer
     /// <summary>
     /// One time-keyed value change on a scenario timeline (brief §35.2). At <see cref="time"/> the
     /// binding <see cref="key"/> takes this value. Numeric keys interpolate linearly between
-    /// surrounding keyframes of the same key; bool/text keys step (hold the last value until the next).
+    /// surrounding keyframes of the same key; all other kinds step (hold the last value until the next).
     /// </summary>
     [Serializable]
     public sealed class DesignerScenarioTimelineKey
@@ -51,6 +55,8 @@ namespace emiteat.NexUI.Designer
         public bool boolValue;
         public float numberValue;
         public string textValue = string.Empty;
+        public Sprite spriteValue;
+        public List<string> listValue = new List<string>();
 
         public DesignerScenarioTimelineKey() { }
 
@@ -68,7 +74,7 @@ namespace emiteat.NexUI.Designer
     /// whichever screen is open in the Designer: its <see cref="bindings"/> drive element preview
     /// values, <see cref="forcedState"/> forces a component state, and <see cref="language"/> switches
     /// the designer language. The remaining fields (theme/inputDevice/resolution) are captured and
-    /// shown for documentation but are not auto-applied yet (see <c>ScenarioService</c>).
+    /// restored together with the binding overrides by <c>ScenarioService</c>.
     /// </summary>
     [CreateAssetMenu(menuName = "NexUI/Designer/Scenario", fileName = "NexUIScenario")]
     public sealed class DesignerScenarioAsset : ScriptableObject
@@ -95,7 +101,7 @@ namespace emiteat.NexUI.Designer
         public bool timelineLoop;
         public List<DesignerScenarioTimelineKey> timelineKeys = new List<DesignerScenarioTimelineKey>();
 
-        // ---- Captured context (documentation only, not auto-applied yet) -----
+        // ---- Captured preview context ----------------------------------------
         public string theme = string.Empty;
         public string inputDevice = string.Empty;
         public Vector2Int resolution = new Vector2Int(1920, 1080);

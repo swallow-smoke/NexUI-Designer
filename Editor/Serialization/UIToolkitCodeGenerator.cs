@@ -26,12 +26,14 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
 
         // ---- UXML ---------------------------------------------------------------
 
-        public static string GenerateUxml(DesignerMetadataAsset metadata)
+        public static string GenerateUxml(DesignerMetadataAsset metadata, string ussFileName = null)
         {
             using var markerScope = UxmlMarker.Auto();
             var sb = new StringBuilder();
             sb.AppendLine("<ui:UXML xmlns:ui=\"UnityEngine.UIElements\" xmlns:uie=\"UnityEditor.UIElements\">");
             sb.Append("    ").AppendLine(GeneratedBanner);
+            if (!string.IsNullOrEmpty(ussFileName))
+                sb.Append("    <Style src=\"").Append(EscapeAttr(ussFileName)).AppendLine("\" />");
 
             if (metadata != null)
                 foreach (var root in DesignerHierarchyUtility.GetRootElements(metadata))
@@ -115,7 +117,9 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
             {
                 var al = element.autoLayout;
                 sb.Append("    flex-direction: ")
-                  .Append(al.direction == DesignerAutoLayoutDirection.Row ? "row" : "column").AppendLine(";");
+                  .Append(al.direction == DesignerAutoLayoutDirection.Column ? "column" : "row").AppendLine(";");
+                if (al.direction == DesignerAutoLayoutDirection.Grid)
+                    sb.AppendLine("    flex-wrap: wrap;");
                 sb.Append("    padding: ")
                   .Append(Px(al.paddingTop)).Append(' ').Append(Px(al.paddingRight)).Append(' ')
                   .Append(Px(al.paddingBottom)).Append(' ').Append(Px(al.paddingLeft)).AppendLine(";");
@@ -148,12 +152,18 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
             DesignerElementMetadata element, DesignerAutoLayoutMetadata parentLayout)
         {
             var self = element.autoLayout ?? new DesignerAutoLayoutMetadata();
-            var mainIsRow = parentLayout.direction == DesignerAutoLayoutDirection.Row;
+            var mainIsRow = parentLayout.direction != DesignerAutoLayoutDirection.Column;
 
             sb.AppendLine("    position: relative;");
 
             EmitAxisSize(sb, "width", self.widthSizing, element.rect.width, fillOnMainAxis: mainIsRow);
             EmitAxisSize(sb, "height", self.heightSizing, element.rect.height, fillOnMainAxis: !mainIsRow);
+
+            if (parentLayout.direction == DesignerAutoLayoutDirection.Grid)
+            {
+                sb.Append("    width: ").Append(Px(parentLayout.gridCellWidth)).AppendLine(";");
+                sb.Append("    height: ").Append(Px(parentLayout.gridCellHeight)).AppendLine(";");
+            }
 
             if (parentLayout.spacing > 0f && !IsFirstAmongSiblings(metadata, element))
             {

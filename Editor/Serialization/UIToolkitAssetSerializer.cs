@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using emiteat.NexUI.Core;
 using UnityEditor;
 using UnityEngine.UIElements;
+using System.IO;
 
 namespace emiteat.NexUI.Designer.Editor.Serialization
 {
@@ -37,7 +38,29 @@ namespace emiteat.NexUI.Designer.Editor.Serialization
                 return report;
             }
 
-            report.MarkSkipped("UXML is authored in UI Builder; NexUI Designer saves metadata only and does not rewrite UXML.");
+            var uxmlPath = AssetDatabase.GetAssetPath(vta);
+            var isGenerated = !string.IsNullOrEmpty(uxmlPath) && File.Exists(uxmlPath) &&
+                              File.ReadAllText(uxmlPath).Contains(GeneratedAssetWriter.GeneratedMarker);
+            if (isGenerated && metadata != null)
+            {
+                var ussPath = Path.ChangeExtension(uxmlPath, ".uss").Replace('\\', '/');
+                var writer = new GeneratedAssetWriter();
+                var write = writer.Write(new[]
+                {
+                    new GeneratedAssetFile(uxmlPath, UIToolkitCodeGenerator.GenerateUxml(metadata, Path.GetFileName(ussPath))),
+                    new GeneratedAssetFile(ussPath, UIToolkitCodeGenerator.GenerateUss(metadata))
+                });
+                if (write.Success)
+                {
+                    foreach (var changed in write.ChangedPaths) report.MarkChanged($"Generated '{changed}'");
+                    foreach (var unchanged in write.UnchangedPaths) report.MarkSkipped($"Generated '{unchanged}' is unchanged.");
+                }
+                else foreach (var error in write.Errors) report.Error(error);
+            }
+            else
+            {
+                report.MarkSkipped("Hand-authored UXML is preserved. Use UI Builder or generated .uxml/.uss output.");
+            }
 
             if (metadata != null)
             {

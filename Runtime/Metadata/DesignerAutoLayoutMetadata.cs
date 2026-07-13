@@ -6,7 +6,8 @@ namespace emiteat.NexUI.Designer
     public enum DesignerAutoLayoutDirection
     {
         Row,
-        Column
+        Column,
+        Grid
     }
 
     /// <summary>
@@ -41,6 +42,9 @@ namespace emiteat.NexUI.Designer
         public float paddingTop;
         public float paddingRight;
         public float paddingBottom;
+        public int gridColumns = 2;
+        public float gridCellWidth = 100f;
+        public float gridCellHeight = 100f;
         public DesignerAutoLayoutSizing widthSizing = DesignerAutoLayoutSizing.Fixed;
         public DesignerAutoLayoutSizing heightSizing = DesignerAutoLayoutSizing.Fixed;
     }

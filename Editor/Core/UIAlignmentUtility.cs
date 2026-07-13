@@ -9,11 +9,9 @@ namespace emiteat.NexUI.Designer.Editor
     /// rect for each element via a dictionary rather than mutating anything directly, so the
     /// caller (<see cref="NexUIDesignerContext"/>) stays the single place that records Undo and
     /// marks the metadata asset dirty.
-    ///
-    /// TODO: reference is currently always the bounding box of the selection (or the canvas
-    /// resolution for a single element). Figma-style "key object" alignment (align everything
-    /// to the last-selected element instead of the bounding box) is intentionally out of scope
-    /// for this pass.
+    /// Multi-selection alignment uses the explicit key object when one is set; otherwise the
+    /// context passes the selection bounds. Keeping that choice in the context makes this math
+    /// utility deterministic and directly testable.
     /// </summary>
     public static class UIAlignmentUtility
     {
