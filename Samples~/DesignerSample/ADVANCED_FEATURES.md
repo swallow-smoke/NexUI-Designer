@@ -16,9 +16,9 @@
 - `Tools/NexUI/Designer/Rebuild Preview`
 - `Tools/NexUI/Designer/Validate Current Screen`
 - `Tools/NexUI/Designer/Save Current Screen`
-- `Tools/NexUI/Designer/Run Advanced Validation`
-- `Tools/NexUI/Designer/Run Snapshot Tests`
-- `Tools/NexUI/Designer/Export Agent Manifest`
+- `Tools/NexUI/Designer/QA/Run Advanced Validation`
+- `Tools/NexUI/Designer/QA/Run Snapshot Tests`
+- `Tools/NexUI/Designer/Advanced/Export Agent Manifest`
 
 ## 코드 예시
 
@@ -32,4 +32,4 @@ var glyph = glyphTable.Find("Submit", UIPromptDevice.Xbox);
 float ratio = ThemeContrastChecker.ContrastRatio(foreground, background);
 ```
 
-패키지 사용법은 `Documentation~/how-to-use.md`부터 보면 됩니다.
+패키지 사용법은 [Sample 둘러보기](../../Documentation~/getting-started/sample-tour.md)부터 확인하세요.

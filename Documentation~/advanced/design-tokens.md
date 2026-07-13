@@ -44,3 +44,7 @@
 ## 아직 하지 않는 것
 
 토큰 값을 요소 스타일/테마에 **적용**(요소가 토큰을 참조하고 토큰 변경 시 즉시 갱신)하는 통합, 미사용 토큰 검사, 토큰 일괄 교체는 이후 단계입니다.
+
+Theme은 한 화면/컴포넌트의 상태별 표현을 묶는 제작 개념이고, Token은 여러 화면에서 공유할 값을 이름과 Alias로 관리하는 독립 에셋입니다. 현재는 Token 값을 검토·검증하고 팀 규칙을 합의하는 데 사용할 수 있지만, Inspector의 literal 색상/간격을 Token Reference로 자동 치환하지 않습니다. 따라서 Token을 만들었다는 이유만으로 Backend USS나 Prefab Style이 바뀌지는 않습니다.
+
+검증 오류가 나면 중복 이름을 먼저 정리하고, Missing Reference와 Category 불일치를 해결한 뒤 순환 Alias를 끊습니다. 예를 들어 `color.primary → color.brand → color.primary`는 최종 literal에 도달하지 못하므로 오류입니다.

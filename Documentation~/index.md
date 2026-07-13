@@ -7,6 +7,8 @@
 - [설치](getting-started/installation.md) — Core와 Designer 패키지를 올바른 순서로 설치합니다.
 - [빠른 시작](getting-started/quick-start.md) — 약 10분 안에 화면을 열고 Element를 추가해 저장합니다.
 - [첫 화면 만들기](getting-started/first-screen.md) — 간단한 메인 메뉴를 처음부터 구성합니다.
+- [인터페이스 둘러보기](getting-started/interface-tour.md) — Toolbar, Sidebar, Canvas, Inspector와 Bottom Drawer의 위치와 역할을 익힙니다.
+- [Sample 둘러보기](getting-started/sample-tour.md) — Import 후 실제로 먼저 열 Asset과 각 Sample의 검증 범위를 찾습니다.
 
 ## UI를 제작하는 사용자
 
@@ -14,9 +16,10 @@
 - [Screen과 Metadata](user-guide/screen-and-metadata.md) — 런타임 정의와 편집 데이터의 책임을 구분합니다.
 - [Canvas 편집](user-guide/canvas-editing.md) · [Hierarchy와 Layout](user-guide/hierarchy-and-layout.md)
 - [Inspector와 Style](user-guide/inspector-and-style.md) · [Binding](user-guide/binding.md)
+- [자주 사용하는 작업](user-guide/common-workflows.md) — 선택, 정렬, 부모 변경, Binding, Save/Publish를 목적별로 찾습니다.
 - [Preview와 Scenario](user-guide/preview-and-scenarios.md) · [Validation과 Save](user-guide/validation-and-save.md)
 - [uGUI Backend](user-guide/ugui-backend.md) · [UI Toolkit Backend](user-guide/ui-toolkit-backend.md)
-- [Motion 선택 가이드](motion/overview.md) · [Motion Clip](motion/motion-clip-editor.md) · [Motion Graph](motion/motion-graph-editor.md)
+- [Motion 선택 가이드](motion/overview.md) · [Motion Clip](motion/motion-clip-editor.md) · [Motion Graph](motion/motion-graph-editor.md) · [Motion 레시피](motion/recipes.md)
 
 ## 따라 하기
 
@@ -31,6 +34,10 @@
 - [목표 기능 명세](reference/feature-specification.md) — 장기 제품 범위를 확인합니다.
 - [단축키](reference/shortcuts.md) · [용어](reference/terminology.md)
 - [알려진 제한](reference/known-limitations.md) · [문제 해결](reference/troubleshooting.md)
+- [Backend 지원 범위](reference/backend-support-matrix.md) — Preview, Metadata, 일반 Save와 Generated 결과를 비교합니다.
+- [Asset Ownership](reference/asset-ownership.md) — 수동 파일, Designer 파일과 생성 파일의 책임을 구분합니다.
+- [Validation Catalog](reference/validation-catalog.md) — 실제 Validation Code별 원인과 해결 방법을 찾습니다.
+- [Compatibility](reference/compatibility.md) · [Upgrading](reference/upgrading.md)
 
 ## 고급 기능
 
@@ -44,8 +51,9 @@
 - [아키텍처](developer/architecture.md) · [프로젝트 구조](developer/project-structure.md) · [확장 API](developer/api-reference.md)
 - [Panel 추가](developer/adding-panels.md) · [Backend 추가](developer/adding-backends.md) · [Validation 추가](developer/adding-validation.md)
 - [직렬화](developer/serialization.md) · [코딩 규칙](developer/coding-conventions.md) · [테스트](developer/testing.md)
+- [Metadata Schema](developer/metadata-schema.md) — Screen, Metadata, Motion, Scenario, Flow와 Publish 참조 관계를 설명합니다.
 - [성능 측정](developer/performance.md) · [Git 협업](developer/git-workflow.md)
-# 생산성 기능 빠른 링크
+## 생산성 기능 빠른 링크
 
 - [화면 생성 마법사](user-guide/screen-creation-wizard.md)
 - [전환 프리셋](user-guide/transition-presets.md)

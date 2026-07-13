@@ -33,6 +33,25 @@
 - `Tools > NexUI > 유틸리티`에서 **Sync / Publish**를 선택합니다.
 - 프로젝트의 모든 `DesignerMetadataAsset`을 대상으로 합니다.
 
+## 어떤 작업을 사용할까요
+
+- **일반 Save**: Metadata와 Screen Definition을 저장하고 uGUI Prefab의 지원 값을 반영할 때 사용합니다. 수동 UXML은 보존됩니다.
+- **Generate**: 선택한 Metadata에서 별도 `.g.uxml/.g.uss` 결과를 만들고 싶을 때 사용합니다.
+- **Sync / Publish**: 여러 화면의 마지막 Publish Base와 현재 변경을 비교하고 충돌을 관리할 때 사용합니다.
+
+권장 흐름은 **Save → Validate → Dry Run → Diff → 변경분 Publish**입니다. Dry Run에서 BackendChanged/Conflict가 보이면 바로 쓰지 말고 파일 소유권을 먼저 결정하세요.
+
+## Publish 전 체크리스트
+
+- Validation Error가 없습니다.
+- 수동 UXML과 Generated UXML을 구분했습니다.
+- Dry Run의 New/DesignerChanged 대상이 예상과 같습니다.
+- BackendChanged/Conflict를 명시적으로 해결했습니다.
+- Screen Definition, Metadata, Generated 파일, Publish Manifest와 `.meta`를 함께 Git에서 검토합니다.
+- 두 Backend를 Play Mode에서 확인합니다.
+
+[Asset Ownership](../reference/asset-ownership.md)에서 커밋 범위와 수동 편집 규칙을 확인하세요.
+
 ## 아키텍처
 
 - 순수 `SyncStateResolver`(3-way 분류) + `TextLineDiff`(LCS 라인 diff)는 Unity 없이 단위 테스트됩니다(`SyncStateResolverTests`).
